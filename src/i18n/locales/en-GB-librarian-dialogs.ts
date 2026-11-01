@@ -64,6 +64,44 @@ export default {
       copiesHidden: 'Duplicate patches aren’t shown.',
     },
   },
+  backup: {
+    restoreTitle: 'Restore from backup',
+    restoreIntro:
+      'Choose a backup file made with Download backup. Nothing changes until you confirm.',
+    chooseFile: 'Choose a backup file',
+    reading: 'Reading the backup…',
+    backedUpAt: 'Backed up',
+    workspaceBanks: 'Banks',
+    patches: 'Patches',
+    savedBanks: 'Saved banks',
+    toAdd: 'To add',
+    alreadyHere: 'Already here, kept',
+    unreadable: 'Could not be read',
+    workspaceEffect:
+      'Your banks and all their patches are replaced by the ones in the backup. Undo in the notification afterwards puts them back.',
+    savedBanksEffect:
+      'Saved banks are only added. One already in this browser is kept as it is, and Undo does not remove the ones added.',
+    restoreAction: 'Restore backup',
+    restoring: 'Restoring…',
+    fxPresets: 'FX presets',
+    notInOlderBackup: 'Not included (older backup)',
+    fxPresetsEffect: 'FX presets are added. Ones already here are kept.',
+    errors: {
+      damaged: 'This backup is damaged and cannot be restored. Try another backup file.',
+      format:
+        'This file is not a backup from this app. Choose a .json file made with Download backup.',
+      newer:
+        'This backup was made by a newer version of this app. Reload the page to update it, then try again.',
+      read: 'The file could not be read. Choose it again.',
+      size: 'This file is too large to be a backup from this app.',
+      restoreFailed:
+        'Browser storage could not finish the restore, so your library was not replaced. Saved banks already added from this backup were kept.',
+      restoreFxFailed:
+        'FX presets from this backup could not be saved, so your library was not replaced and no FX presets were added.',
+      restoreFxFailedBanksKept:
+        'FX presets from this backup could not be saved, so your library was not replaced and no FX presets were added. The saved banks from this backup were added first and were kept.',
+    },
+  },
   toasts: {
     bankCreatedFromCatalog: 'Created “{{bank}}” from “{{source}}” in {{collection}}.',
     bankCreatedFromFile: 'Created “{{bank}}” from the file “{{file}}”.',

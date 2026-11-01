@@ -51,16 +51,22 @@ export type EffectControllerBase = 0 | 70
  * - `presetEffects`: the effect unit follows the preset that plays, so a patch played from its slot
  *   sends its effects with its voice. M-VAVE's V16 gives every Voice one shared FX group, so there
  *   a patch's effects go only as they are edited, and playing a patch leaves the group alone.
+ * - `sharedEffects`: one FX group, shared by every Voice and edited live through the effect
+ *   controllers, which the standalone Effects view and its named presets drive. M-VAVE's V16.
  * - `selectedVoiceEdits`: the FM1 plays several Voices, each on its own channel, and a dump edits
  *   the Voice selected on its screen while parameter changes reach that Voice only on channel 1 or
  *   All, so the editor says which Voice it reaches. M-VAVE's V16 (docs/fm1-research.md,
  *   "Confirmed on hardware", 2026-10-25).
+ * - `effectOrder`: V16's effect order, read and written as the FX order bytes of the updater's
+ *   object 4 settings block (`src/lib/v16-settings-block.ts`, approved 2026-10-27). M-VAVE's V16
+ *   (`docs/hardware-runs/stock-v16-effect-order-2026-11-01.md`).
  * - `multitimbral`: the FM1 plays several Voices, each with its own preset and MIDI channel.
  *   M-VAVE's V16 (docs/hardware-runs/stock-v16-voices-2026-10-26.md).
  */
 type FirmwareCapability =
   | 'bitcrush'
   | 'effectControllers'
+  | 'effectOrder'
   | 'knobChoices'
   | 'multitimbral'
   | 'parameterChanges'
@@ -69,6 +75,7 @@ type FirmwareCapability =
   | 'presetWrite'
   | 'programChanges'
   | 'selectedVoiceEdits'
+  | 'sharedEffects'
   | 'singleVoiceDumps'
   | 'soundControls'
   | 'trackEngineRead'
@@ -151,6 +158,10 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
       multitimbral: 16,
       // V16's eight Voices take a dump on the one selected on screen (2026-10-25).
       selectedVoiceEdits: 16,
+      // V16's one FX group is shared by all eight Voices.
+      sharedEffects: 16,
+      // V16 takes a new effect order in object 4's FX table (2026-11-01).
+      effectOrder: 16,
       singleVoiceDumps: 0,
     },
     effectControllerBase: { base: 70, from: 16 },
@@ -187,6 +198,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
     capabilities: {
       bitcrush: from(capabilities.bitcrush),
       effectControllers: from(capabilities.effectControllers),
+      effectOrder: from(capabilities.effectOrder),
       knobChoices: from(capabilities.knobChoices),
       multitimbral: from(capabilities.multitimbral),
       parameterChanges: from(capabilities.parameterChanges),
@@ -195,6 +207,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       presetWrite: from(capabilities.presetWrite),
       programChanges: from(capabilities.programChanges),
       selectedVoiceEdits: from(capabilities.selectedVoiceEdits),
+      sharedEffects: from(capabilities.sharedEffects),
       singleVoiceDumps: from(capabilities.singleVoiceDumps),
       soundControls: from(capabilities.soundControls),
       trackEngineRead: from(capabilities.trackEngineRead),

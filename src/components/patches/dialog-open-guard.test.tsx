@@ -5,6 +5,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { AddWorkspaceBankDialog } from '@/components/patches/add-workspace-bank-dialog'
 import { DeleteWorkspaceBankDialog } from '@/components/patches/delete-workspace-bank-dialog'
+import { FxPresetDialog } from '@/components/midi/fx-preset-dialog'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
 import { MidiLogDialog } from '@/components/midi/midi-log-dialog'
@@ -124,6 +125,17 @@ const openDialogs = {
       onClose={vi.fn()}
       onPlay={vi.fn()}
     />
+  ),
+  'fx-preset': () => (
+    <FxPresetDialog
+      busy={false}
+      confirmLabel="Delete preset"
+      onClose={vi.fn()}
+      onConfirm={vi.fn()}
+      title="Delete preset"
+    >
+      <p>Delete?</p>
+    </FxPresetDialog>
   ),
   'midi-log': () => <MidiLogDialog logStore={new MidiLogStore([])} onClose={vi.fn()} />,
 }

@@ -9,7 +9,7 @@ export default {
     selectedVoiceNotice:
       'On V16 this goes to the FM1’s selected Voice. Edits play live only on channel 1 or All; to hear it, select the Voice on channel {{channel}}.',
     effectsSharedNotice:
-      'On V16 these are the FM1’s effects, shared by all eight Voices. The FM1 doesn’t keep them with this patch: press SAVE and choose Globe on the FM1 to keep them.',
+      'On V16 the FM1’s effects are shared by all eight Voices, not kept with this patch. Return to the library and open Effects to change or recall them; press SAVE and choose Globe on the FM1 to keep them.',
     editName: 'Edit patch name',
     patchName: 'Patch name',
     unsaved: 'Unsaved changes',

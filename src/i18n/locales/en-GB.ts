@@ -217,6 +217,12 @@ export default {
     reloadApp: 'Reload app',
     backToLibrary: 'Back to library',
   },
+  libraryViews: {
+    label: 'Library view',
+    sounds: 'Patches',
+    effects: 'Effects',
+    effectsLoadFailed: 'Effects could not be opened. Reload the page and try again.',
+  },
   root: {
     skipToContent: 'Skip to main content',
     channelShort: 'Ch {{number}}',
@@ -382,7 +388,7 @@ export default {
     bulkExportFailed: 'Bulk export failed.',
     gridTitle: 'Patch banks',
     gridDescription: 'Import, edit, and arrange each bank before transferring it to the FM1.',
-    search: 'Search',
+    search: 'Search patches',
     noMatches: 'No patches match this search',
     searchResults: 'Search results: “{{search}}”',
     sendFromSearch: 'Choose a bank to send it to the FM1',
@@ -472,38 +478,13 @@ export default {
       'Downloading a backup of your banks. Saved banks could not be read, so they are not in it.',
     downloadedWithoutDamaged:
       'Downloading a backup. Some saved banks could not be read, so they are not in it.',
+    downloadedWithoutDamagedFx:
+      'Downloading a backup. FX presets that could not be read are not in it.',
+    downloadedWithoutBanksAndFx:
+      'Downloading a backup. Saved banks and FX presets that could not be read are not in it.',
     unavailable: 'Backups could not be opened. Reload the page and try again.',
     unavailableUnsaved:
       'The backup could not be prepared. Keep this tab open, because your latest changes are not saved, and try again.',
-    restoreTitle: 'Restore from backup',
-    restoreIntro:
-      'Choose a backup file made with Download backup. Nothing changes until you confirm.',
-    chooseFile: 'Choose a backup file',
-    reading: 'Reading the backup…',
-    backedUpAt: 'Backed up',
-    workspaceBanks: 'Banks',
-    patches: 'Patches',
-    savedBanks: 'Saved banks',
-    toAdd: 'To add',
-    alreadyHere: 'Already here, kept',
-    unreadable: 'Could not be read',
-    workspaceEffect:
-      'Your banks and all their patches are replaced by the ones in the backup. Undo in the notification afterwards puts them back.',
-    savedBanksEffect:
-      'Saved banks are only added. One already in this browser is kept as it is, and Undo does not remove the ones added.',
-    restoreAction: 'Restore backup',
-    restoring: 'Restoring…',
     restored: 'Restored the backup from {{date}}.',
-    errors: {
-      format:
-        'This file is not a backup from this app. Choose a .json file made with Download backup.',
-      newer:
-        'This backup was made by a newer version of this app. Reload the page to update it, then try again.',
-      damaged: 'This backup is damaged and cannot be restored. Try another backup file.',
-      size: 'This file is too large to be a backup from this app.',
-      read: 'The file could not be read. Choose it again.',
-      savedBanksFailed:
-        'Browser storage could not keep the saved banks from this backup, so your library was not changed. Try again.',
-    },
   },
 } as const

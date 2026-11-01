@@ -78,7 +78,7 @@ function renderPage(voices: Record<string, Dx7Voice> = {}) {
 }
 
 async function search(user: ReturnType<typeof userEvent.setup>, query: string) {
-  await user.type(screen.getByRole('searchbox', { name: 'Search' }), query)
+  await user.type(screen.getByRole('searchbox', { name: 'Search patches' }), query)
 }
 
 describe('LibrarianPage search beyond the workspace', () => {

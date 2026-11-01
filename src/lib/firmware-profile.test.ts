@@ -5,6 +5,7 @@ import { resolveFirmwareProfile } from './firmware-profile'
 const nothing = {
   bitcrush: false,
   effectControllers: false,
+  effectOrder: false,
   knobChoices: false,
   multitimbral: false,
   parameterChanges: false,
@@ -13,6 +14,7 @@ const nothing = {
   presetWrite: false,
   programChanges: false,
   selectedVoiceEdits: false,
+  sharedEffects: false,
   singleVoiceDumps: false,
   soundControls: false,
   trackEngineRead: false,
@@ -64,11 +66,9 @@ describe('resolveFirmwareProfile', () => {
     expect(presetEffects('FM-1_019')).toBe(false)
   })
 
-  it('shares effects across Voices only where controllers are sent but no preset carries them', () => {
-    const sharesEffects = (firmware: Parameters<typeof resolveFirmwareProfile>[0]) => {
-      const { capabilities } = resolveFirmwareProfile(firmware)
-      return capabilities.effectControllers && !capabilities.presetEffects
-    }
+  it('shares one FX group across Voices only on M-VAVE firmware from V16', () => {
+    const sharesEffects = (firmware: Parameters<typeof resolveFirmwareProfile>[0]) =>
+      resolveFirmwareProfile(firmware).capabilities.sharedEffects
     expect(sharesEffects({ identity: 'FM-1_015', kind: 'mvave' })).toBe(false)
     expect(sharesEffects({ identity: 'FM-1_016', kind: 'mvave' })).toBe(true)
     expect(sharesEffects({ identity: 'FM-1_019', kind: 'mvave' })).toBe(true)
@@ -113,15 +113,39 @@ describe('resolveFirmwareProfile', () => {
     expect(resolveFirmwareProfile({ identity: 'FM-1_016', kind: 'mvave' })).toEqual({
       capabilities: {
         ...cautious,
+        effectOrder: true,
         multitimbral: true,
         presetEffects: false,
         selectedVoiceEdits: true,
+        sharedEffects: true,
         singleVoiceDumps: true,
       },
       effectControllerBase: 70,
       family: 'mvave',
       presetWriteTiming: presetsPageTiming,
     })
+  })
+
+  it('offers the effect order to M-VAVE’s firmware from V16', () => {
+    expect(
+      resolveFirmwareProfile({ identity: 'FM-1_016', kind: 'mvave' }).capabilities.effectOrder,
+    ).toBe(true)
+    expect(
+      resolveFirmwareProfile({ identity: 'FM-1_019', kind: 'mvave' }).capabilities.effectOrder,
+    ).toBe(true)
+  })
+
+  it('offers no other firmware the effect order', () => {
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+      { identity: 'FM1_OFFICIAL_OPEN', kind: 'official-open' },
+    ] as const) {
+      expect(resolveFirmwareProfile(firmware).capabilities.effectOrder).toBe(false)
+    }
   })
 
   it('keeps every other firmware’s effect controllers at CC 0, whatever its release', () => {

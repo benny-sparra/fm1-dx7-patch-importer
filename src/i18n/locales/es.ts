@@ -1,4 +1,7 @@
+import fxPresets from './es-fx-presets'
+
 export default {
+  ...fxPresets,
   dialogs: {
     bankTitle: 'Elige el banco de destino en tu FM1',
     bankIntro:
@@ -999,6 +1002,12 @@ export default {
     reloadApp: 'Recargar la aplicación',
     backToLibrary: 'Volver a la biblioteca',
   },
+  libraryViews: {
+    label: 'Vista de la biblioteca',
+    sounds: 'Sonidos',
+    effects: 'Efectos',
+    effectsLoadFailed: 'No se pudieron abrir los efectos. Recarga la página e inténtalo de nuevo.',
+  },
   root: {
     skipToContent: 'Saltar al contenido principal',
     channelShort: 'Can. {{number}}',
@@ -1098,7 +1107,7 @@ export default {
     selectedVoiceNotice:
       'En la V16, este sonido va a la Voice seleccionada en la pantalla del FM1. Los cambios solo suenan en directo en el canal 1 o All; para oírlo, selecciona la Voice del canal {{channel}}.',
     effectsSharedNotice:
-      'En V16 estos son los efectos del FM1, compartidos por las ocho Voices. El FM1 no los guarda con este patch: pulsa SAVE y elige Globe en el FM1 para conservarlos.',
+      'En V16 las ocho Voices comparten los efectos del FM1; no pertenecen a este patch. Vuelve a la biblioteca y abre Efectos para cambiarlos o recuperarlos. Pulsa SAVE y elige Globe en el FM1 para conservarlos.',
     back: 'Volver a los bancos',
     editName: 'Editar nombre del sonido',
     patchName: 'Nombre del sonido',
@@ -1367,7 +1376,7 @@ export default {
     bulkExportFailed: 'Error de exportación masiva.',
     gridTitle: 'Bancos de sonidos',
     gridDescription: 'Importa, edita y organiza cada banco antes de transferirlo al FM1.',
-    search: 'Buscar',
+    search: 'Buscar sonidos',
     noMatches: 'Ningún sonido coincide con la búsqueda',
     searchResults: 'Resultados de búsqueda: «{{search}}»',
     sendFromSearch: 'Elige un banco para enviarlo al FM1',
@@ -1517,6 +1526,8 @@ export default {
       'Se descargó «{{name}}», con INIT VOICE en lugar de sus {{count, number}} presets Virtual Analog u 8-Bit.',
   },
   backup: {
+    fxPresets: 'Presets de FX',
+    notInOlderBackup: 'No incluido (copia anterior)',
     menuOtherFiles: 'Otros archivos',
     menuHeading: 'Copia de seguridad',
     download: 'Descargar copia de seguridad',
@@ -1527,6 +1538,10 @@ export default {
       'Descargando una copia de tus bancos. No se pudieron leer los bancos guardados, así que no están incluidos.',
     downloadedWithoutDamaged:
       'Descargando una copia de seguridad. Algunos bancos guardados no se pudieron leer, así que no están incluidos.',
+    downloadedWithoutDamagedFx:
+      'Descargando una copia de seguridad. Los presets de FX que no se pudieron leer no están incluidos.',
+    downloadedWithoutBanksAndFx:
+      'Descargando una copia de seguridad. Los bancos guardados y los presets de FX que no se pudieron leer no están incluidos.',
     unavailable:
       'No se pudieron abrir las copias de seguridad. Recarga la página y vuelve a intentarlo.',
     unavailableUnsaved:
@@ -1547,6 +1562,7 @@ export default {
       'Tus bancos y todos sus sonidos se sustituyen por los de la copia. Deshacer en la notificación posterior los recupera.',
     savedBanksEffect:
       'Los bancos guardados solo se añaden. Uno que ya esté en este navegador se conserva tal cual, y Deshacer no quita los añadidos.',
+    fxPresetsEffect: 'Los presets de FX se añaden. Los que ya están aquí se conservan.',
     restoreAction: 'Restaurar copia',
     restoring: 'Restaurando…',
     restored: 'Se restauró la copia de seguridad del {{date}}.',
@@ -1558,8 +1574,12 @@ export default {
       damaged: 'Esta copia está dañada y no se puede restaurar. Prueba con otro archivo de copia.',
       size: 'Este archivo es demasiado grande para ser una copia de esta aplicación.',
       read: 'No se pudo leer el archivo. Vuelve a elegirlo.',
-      savedBanksFailed:
-        'El almacenamiento del navegador no pudo guardar los bancos de esta copia, así que tu biblioteca no cambió. Vuelve a intentarlo.',
+      restoreFailed:
+        'El almacenamiento del navegador no pudo terminar la restauración, así que tu biblioteca no se sustituyó. Los bancos guardados de esta copia que ya se habían añadido se conservaron.',
+      restoreFxFailed:
+        'No se pudieron guardar los presets de FX de esta copia, así que tu biblioteca no se sustituyó y no se añadió ningún preset de FX.',
+      restoreFxFailedBanksKept:
+        'No se pudieron guardar los presets de FX de esta copia, así que tu biblioteca no se sustituyó y no se añadió ningún preset de FX. Los bancos guardados de esta copia se añadieron antes y se conservaron.',
     },
   },
   officialOpenTracks: {

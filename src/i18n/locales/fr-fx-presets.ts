@@ -1,0 +1,80 @@
+export default {
+  fxPresets: {
+    unsavedEffects: 'Effets non enregistrés',
+    saveButton: 'Enregistrer',
+    newPreset: 'Nouveau preset FX…',
+    revert: 'Rétablir',
+    reverted: '« {{name}} » rétabli.',
+    loaded: '« {{name}} » chargé.',
+    edited: 'modifié',
+    empty: 'Aucun preset FX pour l’instant.',
+    actions: 'Actions sur les presets FX',
+    presetActions: 'Actions pour {{name}}',
+    restored: '« {{name}} » restauré.',
+
+    effectsTitle: 'Effets',
+    dialogTitle: 'Presets FX',
+    search: 'Rechercher des presets FX',
+    loading: 'Chargement des presets FX…',
+    retry: 'Réessayer',
+    reload: 'Recharger la liste',
+    noMatches: 'Aucun preset FX ne correspond à cette recherche.',
+    unreadable: '{{count, number}} preset FX enregistré est illisible et a été laissé intact.',
+    unreadable_other:
+      '{{count, number}} presets FX enregistrés sont illisibles et ont été laissés intacts.',
+    saveTitle: 'Enregistrer les effets actuels',
+    name: 'Nom du preset',
+    save: 'Enregistrer le preset',
+    rename: 'Renommer…',
+    renameTitle: 'Renommer « {{name}} »',
+    renameAction: 'Renommer le preset',
+    duplicate: 'Dupliquer',
+    delete: 'Supprimer…',
+    deleteConfirm: 'Supprimer « {{name}} » de ce navigateur ?',
+    deleteAction: 'Supprimer le preset',
+    downloadPreset: 'Télécharger le preset',
+    downloadAll: 'Tout télécharger',
+    import: 'Importer…',
+    imported: '{{count, number}} preset FX importé. Les presets existants ont été conservés.',
+    imported_other:
+      '{{count, number}} presets FX importés. Les presets existants ont été conservés.',
+    importEmpty: 'Le fichier ne contient aucun preset FX ; rien n’a été importé.',
+    sending: 'Envoi…',
+    offline: 'Aucune sortie MIDI sélectionnée. Le chargement ne modifie que ce navigateur.',
+    ineligible:
+      'Ce firmware ne possède pas le groupe FX partagé de la V16. Le chargement reste local au navigateur.',
+    help: 'Modifiez les effets et enregistrez des presets. Sur V16, les effets sont partagés par toutes les Voix.',
+    orderHelp: 'Les presets contiennent les réglages affichés ici, pas l’ordre des effets.',
+    noReadback: 'Les changements effectués sur la façade ne sont pas relus par l’éditeur.',
+    effectOrderReading: 'Lecture de l’ordre des effets depuis le FM1…',
+    effectOrderFailed:
+      'Le FM1 n’a pas donné l’ordre de ses effets, il ne peut donc pas être changé ici.',
+    effectOrderWriteFailed: 'Le FM1 n’a pas pris le nouvel ordre. Réessayez.',
+    effectOrderDragTitle:
+      'Faites glisser pour changer la place de cet effet dans l’ordre que traverse le son, le premier en haut à gauche. Au clavier, appuyez sur Espace, puis sur les flèches. Le FM1 joue le nouvel ordre aussitôt.',
+    sessionOnly:
+      'Le stockage du navigateur ne peut pas conserver ces effets : ils ne durent que tant que cet onglet reste ouvert.',
+    partial: 'Tous les effets n’ont pas été envoyés. Le FM1 peut avoir été partiellement modifié.',
+    saved: '« {{name}} » enregistré.',
+    renamed: 'Preset renommé « {{name}} ».',
+    duplicated: '« {{name}} » créé.',
+    updated: '« {{name}} » actualisé avec les effets actuels.',
+    deleted: '« {{name}} » supprimé.',
+    working: 'Enregistrement…',
+    errors: {
+      load: 'Impossible de lire les presets FX. Réessayez sans fermer cet onglet.',
+      write:
+        'Le stockage du navigateur n’a pas pu enregistrer cette modification. Aucun preset existant n’a été remplacé.',
+      conflict:
+        'Ce preset a changé dans un autre onglet. Rechargez la liste ou enregistrez les effets actuels comme nouveau preset.',
+      fileFormat:
+        'Ce fichier n’est pas une bibliothèque de presets FX exportée par cette application.',
+      fileNewer:
+        'Ce fichier de presets FX vient d’une version plus récente. Rechargez l’application puis réessayez.',
+      fileDamaged: 'Ce fichier de presets FX est endommagé. Corrigez-le ou choisissez-en un autre.',
+      fileSize: 'Ce fichier est trop volumineux pour être une bibliothèque de presets FX.',
+      fileRead: 'Impossible de lire le fichier. Choisissez-le à nouveau.',
+      name: 'Saisissez un nom de 1 à {{max}} caractères.',
+    },
+  },
+} as const

@@ -2,6 +2,7 @@
 
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
@@ -65,17 +66,27 @@ function makeLibrary(overrides: Partial<{ namedBanks: NamedBank[] }> = {}) {
   return {
     namedBanks: [],
     namedBanksLoadFailed: false,
-    restoreBackup: vi.fn((backup: WorkspaceBackup) =>
+    restoreBackup: vi.fn((backup: WorkspaceBackup, _beforeCommit?: () => Promise<void>) =>
       Promise.resolve({ added: backup.savedBanks.length, changed: backup.workspace, kept: 0 }),
     ),
     ...overrides,
   }
 }
 
-function renderDialog(library = makeLibrary()) {
+function renderDialog(
+  library = makeLibrary(),
+  fxLibrary?: ComponentProps<typeof RestoreBackupDialog>['fxLibrary'],
+) {
   const onClose = vi.fn()
   const onRestored = vi.fn()
-  render(<RestoreBackupDialog library={library} onClose={onClose} onRestored={onRestored} />)
+  render(
+    <RestoreBackupDialog
+      fxLibrary={fxLibrary}
+      library={library}
+      onClose={onClose}
+      onRestored={onRestored}
+    />,
+  )
   return { library, onClose, onRestored }
 }
 
@@ -189,11 +200,46 @@ describe('RestoreBackupDialog', () => {
 
     expect(await screen.findByRole('alert')).toHaveProperty(
       'textContent',
-      'Browser storage could not keep the saved banks from this backup, so your library was not changed. Try again.',
+      'Browser storage could not finish the restore, so your library was not replaced. Saved banks already added from this backup were kept.',
     )
     expect(onClose).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: 'Restore backup' }))
     expect(library.restoreBackup).toHaveBeenCalledTimes(2)
+  })
+
+  it('says exactly what was kept when the FX presets fail after the saved banks were added', async () => {
+    const user = userEvent.setup()
+    const library = makeLibrary()
+    library.restoreBackup.mockImplementation(async (_backup, beforeCommit) => {
+      await beforeCommit?.()
+      throw new Error('unreachable')
+    })
+    const restorePresets = vi.fn(() => Promise.reject(new Error('QuotaExceededError')))
+    renderDialog(library, { restorePresets })
+
+    await user.upload(screen.getByLabelText('Choose a backup file'), makeBackupFile())
+    await user.click(await screen.findByRole('button', { name: 'Restore backup' }))
+
+    expect(await screen.findByRole('alert')).toHaveProperty(
+      'textContent',
+      'FX presets from this backup could not be saved, so your library was not replaced and no FX presets were added. The saved banks from this backup were added first and were kept.',
+    )
+  })
+
+  it('counts an unreadable FX preset in the file without refusing the backup', async () => {
+    const user = userEvent.setup()
+    renderDialog()
+    const file = JSON.parse(await makeBackupFile().text())
+    file.fxPresets = [{ id: 'broken', name: 'Broken' }]
+
+    await user.upload(
+      screen.getByLabelText('Choose a backup file'),
+      new File([JSON.stringify(file)], 'backup.json', { type: 'application/json' }),
+    )
+
+    const row = (await screen.findByText('Could not be read')).closest('div')
+    expect(row?.textContent).toContain('1')
+    expect(screen.getByRole('button', { name: 'Restore backup' })).toBeTruthy()
   })
 
   it('shows the file chosen last when an earlier read finishes after it', async () => {

@@ -106,6 +106,141 @@ test('opens the lazy editor and returns to the patch library', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
 })
 
+/** Effects exist only for firmware with a shared FX group, so the journey connects a V16 FM1. */
+async function openEffects(page: Page) {
+  await installFakeMidi(page, { firmware: 'mvave-v16' })
+  await openLibrarian(page)
+  await page.getByText('MIDI offline', { exact: true }).locator('visible=true').first().click()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
+}
+
+test('uses the independent Effects view and keeps a named FX preset across a reload', async ({
+  page,
+}) => {
+  await openEffects(page)
+
+  await expect(page.getByRole('tab', { name: /Voice/ })).toHaveCount(0)
+  await page.getByRole('button', { name: 'New FX preset…' }).click()
+  await expect(page.getByRole('dialog', { name: 'Save current effects' })).toBeVisible()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Stage hall')
+  await page.getByRole('button', { name: 'Save preset' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Completed actions' })).toContainText(
+    'Saved “Stage hall”.',
+  )
+  await expect(page.getByRole('button', { name: 'Stage hall', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await page.getByRole('button', { name: 'Actions for Stage hall' }).click()
+  await page.getByRole('menuitem', { name: 'Rename…' }).click()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Renamed hall')
+  await page.getByRole('button', { name: 'Rename preset' }).click()
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
+  await page.getByRole('switch', { name: 'Filter', exact: true }).press('Space')
+  await expect(page.getByRole('heading', { name: /Renamed hall\s*edited/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Patches', exact: true }).click()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
+  await expect(page.getByRole('switch', { name: 'Filter', exact: true })).toBeChecked()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByRole('region', { name: 'Completed actions' })).toContainText(
+    'Updated “Renamed hall” from the current effects.',
+  )
+
+  await page.reload()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
+  await page.getByRole('button', { name: 'Renamed hall', exact: true }).click()
+  await expect(page.getByRole('switch', { name: 'Filter', exact: true })).toBeChecked()
+  await page.getByRole('button', { name: 'Actions for Renamed hall' }).click()
+  await page.getByRole('menuitem', { name: 'Delete…' }).click()
+  await page.getByRole('button', { name: 'Delete preset' }).click()
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Patches', exact: true }).click()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
+  await page
+    .getByRole('status')
+    .filter({ hasText: 'Deleted “Renamed hall”.' })
+    .getByRole('button', { name: 'Undo', exact: true })
+    .click()
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
+})
+
+test('scrolls a long FX preset list inside the rail, as tall as the rack, keeping the loaded preset and New FX preset… in sight', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await openEffects(page)
+  for (let index = 1; index <= 16; index += 1) {
+    await page.getByRole('button', { name: 'New FX preset…' }).click()
+    await page
+      .getByRole('textbox', { name: 'Preset name' })
+      .fill(`Hall ${String(index).padStart(2, '0')}`)
+    await page.getByRole('button', { name: 'Save preset' }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+  }
+
+  const list = page.getByRole('list', { name: 'FX presets' })
+  const { clientHeight, scrollHeight } = await list.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }))
+  expect(scrollHeight).toBeGreaterThan(clientHeight)
+  const rail = await list.evaluate((element) => {
+    const railBox = element.closest('.w-\\[226px\\]')!.getBoundingClientRect()
+    const rackBox = element.closest('section')!.getBoundingClientRect()
+    return { railBottom: railBox.bottom, rackBottom: rackBox.bottom }
+  })
+  expect(Math.abs(rail.railBottom - rail.rackBottom)).toBeLessThanOrEqual(1)
+  await expect(page.getByRole('button', { name: 'New FX preset…' })).toBeInViewport()
+  // The last one saved is loaded, at the foot of an A–Z list, and scrolled into view.
+  await expect(page.getByRole('button', { name: 'Hall 16', exact: true })).toBeInViewport()
+  await page.getByRole('button', { name: 'Hall 01', exact: true }).scrollIntoViewIfNeeded()
+  await page.getByRole('button', { name: 'Hall 01', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Hall 01', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+})
+
+test('opens the FX preset list as a sheet from the name on a 320 px screen', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 640 })
+  await openEffects(page)
+
+  for (const control of [
+    page.getByRole('button', { name: 'Unsaved effects' }),
+    page.getByRole('button', { name: 'FX preset actions' }),
+    page.getByRole('button', { name: 'Help: Effects' }),
+  ]) {
+    const box = await control.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.x).toBeGreaterThanOrEqual(0)
+    expect(box!.x + box!.width).toBeLessThanOrEqual(320)
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  )
+  // On a phone New FX preset… sits at the foot of the sheet, as it does under the rail.
+  await page.getByRole('button', { name: 'Unsaved effects' }).click()
+  await page
+    .getByRole('dialog', { name: 'FX presets' })
+    .getByRole('button', { name: 'New FX preset…' })
+    .click()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Phone hall')
+  await page.getByRole('button', { name: 'Save preset' }).click()
+  await expect(page.getByRole('button', { name: 'Phone hall', exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Phone hall', exact: true }).click()
+  const sheet = page.getByRole('dialog', { name: 'FX presets' })
+  await expect(sheet).toBeVisible()
+  await sheet.getByRole('searchbox', { name: 'Search FX presets' }).fill('phone')
+  await sheet.getByRole('button', { name: 'Actions for Phone hall' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Rename…' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await sheet.getByRole('button', { name: 'Phone hall', exact: true }).click()
+  await expect(sheet).toBeHidden()
+})
+
 test('zooms out of the slot as a patch opens and back into it as the editor closes', async ({
   page,
 }) => {
@@ -1004,7 +1139,7 @@ test('keeps the librarian controls usable on a narrow viewport', async ({ page }
   await page.setViewportSize({ height: 900, width: 412 })
   await openLibrarian(page)
 
-  await expect(page.getByLabel('Search', { exact: true })).toBeVisible()
+  await expect(page.getByLabel('Search patches', { exact: true })).toBeVisible()
   await expect(page.getByAltText('M-VAVE FM1 synthesiser front panel')).toHaveCount(0)
 })
 

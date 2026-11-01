@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { dx7PackedVoiceSize, updateDx7VoiceName } from '@/lib/dx7'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
+import { createFxLibraryPreset } from '@/lib/fx-library-preset'
 import type { NamedBank } from '@/lib/named-bank'
 import {
   emptyPatchLibrary,
@@ -201,6 +202,22 @@ function versionFiveFixture() {
   }
 }
 
+function versionSixFixture() {
+  return {
+    ...versionFiveFixture(),
+    fxPresets: [
+      {
+        createdAt: '2026-10-30T10:00:00.000Z',
+        effects: btoa(String.fromCharCode(...new Uint8Array(24).fill(1))),
+        id: 'fx-backup-1',
+        name: 'Live room',
+        updatedAt: '2026-10-30T11:00:00.000Z',
+      },
+    ],
+    version: 6,
+  }
+}
+
 function fixtureVoiceBytes() {
   const data = new Uint8Array(dx7PackedVoiceSize)
   for (let index = 0; index < 118; index += 1) data[index] = index % 100
@@ -377,6 +394,51 @@ describe('workspace backup', () => {
       eightBit: capturedEightBitVoice(),
       record: capturedEightBitRecord(),
     })
+    expect(backup.hasFxPresets).toBe(false)
+    expect(backup.fxPresets).toEqual([])
+  })
+
+  it('reads and writes the complete version 6 FX preset section', () => {
+    const fromFixture = parseWorkspaceBackup(JSON.stringify(versionSixFixture()))
+
+    expect(fromFixture.hasFxPresets).toBe(true)
+    expect(fromFixture.fxPresets).toEqual([
+      {
+        ...createFxLibraryPreset({
+          effects: new Uint8Array(24).fill(1),
+          id: 'fx-backup-1',
+          name: 'Live room',
+          now: '2026-10-30T10:00:00.000Z',
+        }),
+        updatedAt: '2026-10-30T11:00:00.000Z',
+      },
+    ])
+
+    const preset = createFxLibraryPreset({
+      effects: new Uint8Array(24).fill(2),
+      id: 'fx-round-trip',
+      name: 'Stage delay',
+      now: '2026-10-30T12:00:00.000Z',
+    })
+    const roundTrip = parseWorkspaceBackup(
+      makeWorkspaceBackup(makeWorkspace(), [], '2026-10-30T13:00:00.000Z', [preset]),
+    )
+    expect(roundTrip.fxPresets).toEqual([preset])
+  })
+
+  it('leaves a damaged FX preset out of a version 6 backup and counts it, keeping the rest', () => {
+    const fixture = versionSixFixture()
+    const [readable] = fixture.fxPresets
+    fixture.fxPresets = [
+      { ...readable, effects: btoa(String.fromCharCode(...new Uint8Array(23))), id: 'short' },
+      readable,
+      { ...readable, id: 'bad-name', name: '' },
+    ]
+
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.fxPresets?.map(({ id }) => id)).toEqual(['fx-backup-1'])
+    expect(backup.damagedFxPresetCount).toBe(2)
   })
 
   it('backs up 8-Bit presets and restores them exactly', () => {

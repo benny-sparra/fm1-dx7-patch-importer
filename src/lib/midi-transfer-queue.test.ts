@@ -71,6 +71,40 @@ describe('MidiTransferQueue coalescing', () => {
     await expect(next).resolves.toBeUndefined()
     expect(sent).toEqual(['next'])
   })
+
+  it('cancels only the waiting transfers in one batch group', async () => {
+    const queue = new MidiTransferQueue()
+    const sent: string[] = []
+    let finishFirst: (() => void) | undefined
+    const first = queue.enqueue(
+      () =>
+        new Promise<void>((resolve) => {
+          sent.push('batch first')
+          finishFirst = resolve
+        }),
+      undefined,
+      { group: 'batch' },
+    )
+    const batchWaiting = queue.enqueue(
+      () => {
+        sent.push('batch waiting')
+      },
+      undefined,
+      {
+        group: 'batch',
+      },
+    )
+    const other = queue.enqueue(() => {
+      sent.push('other')
+    })
+    queue.clearGroup('batch', 'The FX route changed.')
+    finishFirst?.()
+
+    await expect(first).resolves.toBeUndefined()
+    await expect(batchWaiting).rejects.toThrow(MidiTransferCancelledError)
+    await expect(other).resolves.toBeUndefined()
+    expect(sent).toEqual(['batch first', 'other'])
+  })
 })
 
 describe('MidiTransferQueue spacing', () => {

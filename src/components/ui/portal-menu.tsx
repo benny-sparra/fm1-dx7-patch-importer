@@ -16,6 +16,8 @@ import { cn } from '@/lib/utils'
 type PortalMenuItem = {
   /** Makes the item one of a set of choices, ticked while it is the one chosen. */
   checked?: boolean
+  /** Marks what replaces or removes data, in the danger colour; such an item goes last. */
+  danger?: boolean
   disabled?: boolean
   /**
    * Names the run of items this one starts, or sits in. A run of two or more shows its name as a
@@ -35,7 +37,17 @@ type PortalMenuProps = {
   items: readonly PortalMenuItem[]
   /** The accessible name of the open menu. */
   menuLabel: string
+  /**
+   * Places the open menu from the trigger's box and the menu's size, such as beside the trigger as
+   * a bank tab's menu opens; undefined falls back to under the trigger.
+   */
+  placeMenu?: (trigger: DOMRect, width: number, height: number) => MenuPosition | undefined
+  /** Where the open menu goes, in place of the page: a modal dialog covers everything outside it. */
+  portalTarget?: HTMLElement | null
+  /** Classes added to the trigger, such as its place in a row. */
   triggerClassName?: string
+  /** The trigger's size and colours, in place of the plain ⋮, as a bevelled box in a rail. */
+  triggerLook?: string
   /** What the trigger shows in place of ⋮. */
   triggerContent?: ReactNode
   /** The accessible name of the trigger. */
@@ -70,8 +82,11 @@ export function PortalMenu({
   heading,
   items,
   menuLabel,
+  placeMenu,
+  portalTarget,
   triggerClassName,
   triggerContent,
+  triggerLook,
   triggerLabel,
   triggerTitle,
 }: PortalMenuProps) {
@@ -97,9 +112,12 @@ export function PortalMenu({
       left: trigger.right - offsetWidth + 8,
       top: trigger.top,
     }
-    setPosition(positionMenu(anchor, offsetWidth, offsetHeight, innerWidth, innerHeight))
+    setPosition(
+      placeMenu?.(trigger, offsetWidth, offsetHeight) ??
+        positionMenu(anchor, offsetWidth, offsetHeight, innerWidth, innerHeight),
+    )
     ;(enabledItems(menu)[0] ?? menu).focus()
-  }, [open])
+  }, [open, placeMenu])
 
   useEffect(() => {
     if (!open) return
@@ -147,6 +165,7 @@ export function PortalMenu({
   const renderItem = (
     {
       checked,
+      danger,
       disabled,
       hint,
       Icon = checked ? Check : undefined,
@@ -160,7 +179,12 @@ export function PortalMenu({
       aria-checked={checked}
       aria-describedby={hint ? `${hintId}-hint-${index}` : undefined}
       aria-labelledby={hint ? `${hintId}-label-${index}` : undefined}
-      className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+      className={cn(
+        'flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50',
+        danger
+          ? 'text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:bg-destructive focus-visible:text-destructive-foreground'
+          : 'hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
+      )}
       disabled={disabled}
       onClick={() => {
         // Focus returns to the trigger first, so a dialog the action opens restores it there.
@@ -196,7 +220,9 @@ export function PortalMenu({
         aria-haspopup="menu"
         aria-label={triggerLabel}
         className={cn(
-          'grid size-6 shrink-0 cursor-pointer place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] aria-expanded:text-[var(--crt-acc-lt)]',
+          'grid shrink-0 cursor-pointer place-items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)]',
+          triggerLook ??
+            'size-6 text-[var(--crt-ink-4)] hover:text-[var(--crt-acc-lt)] aria-expanded:text-[var(--crt-acc-lt)]',
           triggerClassName,
         )}
         onClick={() => setOpen((current) => !current)}
@@ -249,7 +275,7 @@ export function PortalMenu({
                 )
               })}
             </div>,
-            document.body,
+            portalTarget ?? document.body,
           )
         : null}
     </>

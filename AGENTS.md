@@ -123,7 +123,8 @@ open everything an earlier release could have saved.
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
-  `fm1-colourway`, `fm1-last-backup`, `fm1-voice-setup` (V16's Voice setup: a version 1 record
+  `fm1-colourway`, `fm1-last-backup`, `fm1-v16-effects` (the current shared V16 effects, version
+  1), and `fm1-voice-setup` (V16's Voice setup: a version 1 record
   of the "Play several Voices" switch and each of eight Voices' preset and channel), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
   one too: links live for years in chats and forums, so every release reads version 1, and its
@@ -136,6 +137,10 @@ open everything an earlier release could have saved.
   successfully.
 - Only bump the IndexedDB schema version for additive changes. `onupgradeneeded` may create stores
   and indexes but must not delete stores, clear records, or reshape existing data.
+- IndexedDB schema version 3 adds the independent `fx-presets` store, keyed by `id`. Each named FX
+  preset is a version 1 public record. Full-library backup version 6 carries those records; versions
+  1–5 have no FX section and leave the browser's FX presets untouched when restored. The dedicated
+  `fm1-fx-presets` JSON format is independently versioned at 1.
 - New fields must be optional when read, with safe defaults for records that predate them. Unknown
   or out-of-range values from old records are normalised, not treated as a reason to discard the
   workspace; genuinely unreadable data surfaces the `incompatible` error rather than being replaced.
@@ -219,7 +224,7 @@ open everything an earlier release could have saved.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
   `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
   `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`, `selectedVoiceEdits`,
-  `multitimbral`, `effectControllers`, `presetEffects`), where its effect controllers start
+  `multitimbral`, `effectControllers`, `presetEffects`, `sharedEffects`), where its effect controllers start
   (`effectControllerBase`), and its preset write timing. A family
   lists the first release with each capability, or a range ending `before` the release that took
   it away, so a new firmware, a release that adds or removes one, or another device's firmware is
@@ -258,6 +263,24 @@ open everything an earlier release could have saved.
   The development FX probe's **V16 research** mode (`Fm1EffectProbeMode`) sends CC 0–23 or 70–93
   whatever the FM1 runs, with any 7-bit value; its default mode keeps to the controllers the
   profile places the effects at.
+- On M-VAVE's stock V16 the editor may send two more updater-protocol (`00 32`) frames, both on
+  object 4, the 176-byte settings block, approved by the owner on 2026-10-27 and narrowed the same
+  day: command `0x23`, a read of the block (offset 0, length 176), and command `0x22`, a write of
+  exactly the 27 FX table bytes at offset `0x92`, never the whole block, because a whole-block
+  write applies its preset, channel, bend, and glide to whichever Voice is selected when it
+  arrives. In those 27 bytes only byte 0 of entries 0–5 changes, as an arrangement of 0–5 (the
+  chain order); every other byte is written as read, entries 6–8 untouched. No other command,
+  object, offset, length, or value: object 5 writes the banks to Flash, `0x30`, object 8, and the
+  loader stay **Dangerous / excluded**, and the identity query rule stays. They live in
+  `src/lib/v16-settings-block.ts` (`readV16SettingsBlock`, `makeEffectOrderWrite`), which builds
+  the write only from a block a read produced, refuses a table that is not an order of the six
+  effects, and refuses any other order. A move reads the block immediately before its one write,
+  since the table also holds each effect's On/Off and Type, which CC 70–93 change. The profile's
+  `effectOrder` capability, listed for the `mvave` family from release 16 since the owner's run of
+  2026-11-01 reordered the FM1's FX chain from the editor
+  (`docs/hardware-runs/stock-v16-effect-order-2026-11-01.md`), gates the Effects view's
+  reordering (`useV16EffectOrder`). The order is live state, not part of an FX preset, and the
+  FM1 stores it only with its own SAVE.
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is
@@ -354,6 +377,69 @@ open everything an earlier release could have saved.
   that send (`openingSend`, `PatchEditorSession.synchronize`) rather than selecting the program
   and sending the patch again; it sends the patch itself only if that send fails or the patch is
   edited before it lands.
+
+### FX preset interactions
+
+- Keep the loaded FX preset ID in the current-effects session store so Patches/Effects navigation
+  preserves selection and unsaved FX edits. Tab return never reloads a preset or sends MIDI; the ID
+  stays in memory and does not change the version-1 persisted effects format.
+- The Effects view is offered only while the firmware profile has `sharedEffects` (M-VAVE V16 on),
+  and the page falls back to Patches if the firmware changes while it is open. The effects live in
+  `fm1-v16-effects`; a record this release cannot read, or one a newer release wrote, is never
+  written over: the session's edits stay in memory and the panel says, in a mounted `role="status"`
+  region, that they last only while the tab stays open.
+- Clicking an FX preset loads it into the rack immediately and applies it through the existing
+  shared-effects sender when supported MIDI is online. Repeat clicks do not resend unchanged FX.
+  A load that does not reach the FM1 (offline, or no shared FX group) says so in one `InfoNotice`
+  line in the mounted status region under the title strip, where **Sending…** also shows.
+  Opening a preset’s menu sends nothing and leaves the rack unchanged. Update targets the loaded
+  preset; capture the record when a management action opens so another tab cannot change its target.
+- Leaving the Effects view cancels the send still waiting its turn (`sendSharedEffectSettings` takes
+  an `AbortSignal`), and a send that finished after the view went records nothing. A finished send
+  records the snapshot that was sent (`markV16EffectsSent`), never the rack as it is by then.
+  **Send to FM1** on the title strip, styled as the patch banks' own, always sends the whole rack
+  as it is, saved or not, so it restores the FM1 after its own knobs, a power cycle, or a failed
+  send; a click on a preset never resends what was last sent.
+- The Effects view sits beside the patch banks as a tab, so it takes the panel header, search,
+  strip, Send button, rail, and content padding from `src/components/patches/library-panel.ts`,
+  as `PatchGrid` does, and its preset rows match a bank tab's: the same height, a bevelled ⋮
+  (`PortalMenu`'s `triggerLook`) whose menu opens beside it (`placeMenu`, from `src/lib/menu-beside.ts`, which only lazy code
+  imports, since `PortalMenu` is in the entry), and an icon on
+  every item. The rail is as tall as the rack beside it, never taller: the list takes the
+  room its rows need with **New FX preset…** under it, scrolls once it runs out of room, and
+  scrolls the loaded preset into view whenever it changes (`scrollTopShowing`). A send shows on the Send
+  button, as the bank's does: a barber pole and **Sending…** in the same cell as **Send to FM1**,
+  with the words read aloud from a status region that shows nothing, so nothing below the strip
+  moves while the effects go out.
+- The rack always has a name, kept easy to change in one place (`FxPresetLibrary`): the loaded
+  preset's name when the rack matches it, with a dim “edited” beside it once any value differs, or
+  **Unsaved effects** when it never came from a preset or that preset was deleted. The loaded id
+  sits beside the current effects in session state; the `fm1-v16-effects` record is unchanged.
+  Saving mirrors the bank rail (the owner's choice, 2026-11-01): **New FX preset…** sits at the
+  rail's foot, styled as **Add new bank…**, and names the rack as a new preset in a modal, which
+  becomes the loaded one. While a loaded preset is edited, **Save** and **Revert** sit beside its
+  name: **Save** overwrites it with no confirmation and an Undo toast, and **Revert** loads it
+  again as a recall does, sending it and offering Undo. There is no other save or update entry
+  point, so the strip otherwise holds only the name and **Send to FM1**. Recall stays one click and sends as above, then
+  `toast.success` “Loaded “name”” offers **Undo**: it puts back the previous 24 values and loaded
+  id and sends them through the same sender when MIDI is eligible. One step, no history; it is
+  built in the component, since `undoToastOptions` takes a patch-library snapshot.
+- Rename…, Duplicate, Download preset, and Delete… live only in a row's ⋮, Delete last in the
+  danger colour; the list's own ⋮ (**FX preset actions**) holds Import… and Download all. The list
+  is flat and A–Z: no folders, tags, or recently-used order. Below `md` the sidebar is replaced by
+  the name on the title strip, a button that opens the searchable list in a `Dialog` sheet;
+  choosing a preset recalls it and closes the sheet. A menu opened in a modal passes `portalTarget`
+  to `PortalMenu`, since a modal dialog covers everything outside it.
+- Save, rename, duplicate and import report success through `toast.success` after storage commits;
+  only errors stay on the page, in `ErrorNotice`. Creating an FX preset snapshots the current rack.
+  Updating or deleting offers Undo; neither action, nor Undo, sends MIDI. Deleting a loaded preset
+  leaves the rack unchanged as **Unsaved effects**.
+- The FX library has one owner: a panel handed a library by the page never opens a second one. FX
+  writes share one queue (`serializeFxMutation`), so a backup can wait for the writes already
+  started (`whenFxMutationsSettled`). A backup whose FX store cannot be read is still downloaded
+  without its FX presets, and says so; a damaged preset inside a backup file is skipped and counted
+  in the restore dialog, not a reason to refuse the file. A restore that fails after the saved banks
+  were added names what stayed, and never says “may”.
 
 ### Internationalisation
 
@@ -704,7 +790,8 @@ open everything an earlier release could have saved.
   unavailable. Its description says what a click does instead.
 - The header carries the note channel as **Ch n** (`NoteChannelSelect`, 2026-10-25): the same state
   as the Settings menu's Note channel, shown whether or not MIDI is online and for every firmware
-  so the header never shifts, and it sends nothing. On a phone it sits on the last line with the
+  so the header never shifts, and it sends nothing. From the small breakpoint it sits between
+  the IN/OUT LEDs and **Keyboard**, before the panic; on a phone it sits on the last line with the
   badge and the panic.
 - The header's colour swatch, **?** and ⋮ show no caption under them (removed on 2026-10-22 at
   the owner's request); each keeps its accessible name and tooltip. The swatch's choice is named

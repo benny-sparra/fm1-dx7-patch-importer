@@ -1,4 +1,7 @@
+import fxPresets from './zh-Hans-fx-presets'
+
 export default {
+  ...fxPresets,
   dialogs: {
     bankTitle: '在 FM1 上选择目标音色库',
     bankIntro: 'FM1 准备就绪后，开始 SysEx 传输并在设备上完成导入。',
@@ -892,6 +895,12 @@ export default {
     reloadApp: '重新加载应用',
     backToLibrary: '返回音色库',
   },
+  libraryViews: {
+    label: '资料库视图',
+    sounds: '音色',
+    effects: '效果',
+    effectsLoadFailed: '无法打开效果。请重新加载页面后再试。',
+  },
   root: {
     skipToContent: '跳到主要内容',
     channelShort: '通道 {{number}}',
@@ -985,7 +994,7 @@ export default {
     selectedVoiceNotice:
       '在 V16 上，此音色会发送到 FM1 屏幕上选中的 Voice，只有它设在通道 1 或 All 时编辑才会实时生效。要在这里听到，请选中通道 {{channel}} 上的 Voice。',
     effectsSharedNotice:
-      '在 V16 上，这些是 FM1 的效果，由全部八个 Voice 共用。FM1 不会把它们与此音色一起保存：在 FM1 上按 SAVE 并选择 Globe 即可保留。',
+      '在 V16 上，全部八个 Voice 共享 FM1 效果；它们不属于此音色。请返回资料库并打开“效果”来更改或调用它们。在 FM1 上按 SAVE 并选择 Globe 可保留这些效果。',
     back: '返回音色库',
     editName: '编辑音色名称',
     patchName: '音色名称',
@@ -1242,7 +1251,7 @@ export default {
     bulkExportFailed: '批量导出失败。',
     gridTitle: '音色库',
     gridDescription: '先导入、编辑和排列每个音色库，再传输到 FM1。',
-    search: '搜索',
+    search: '搜索音色',
     noMatches: '没有符合搜索条件的音色',
     searchResults: '搜索结果：“{{search}}”',
     sendFromSearch: '请选择一个音色库以发送到 FM1',
@@ -1372,6 +1381,8 @@ export default {
       '已下载“{{name}}”，其中的 {{count, number}} 个 Virtual Analog 或 8-Bit 预设以 INIT VOICE 代替。',
   },
   backup: {
+    fxPresets: 'FX 预设',
+    notInOlderBackup: '未包含（旧版备份）',
     menuOtherFiles: '其他文件',
     menuHeading: '备份',
     download: '下载备份',
@@ -1381,6 +1392,8 @@ export default {
     downloadedWithoutSavedBanks:
       '正在下载音色库的备份。无法读取已保存的音色库，因此备份中不包含它们。',
     downloadedWithoutDamaged: '正在下载备份。部分已保存的音色库无法读取，因此备份中不包含它们。',
+    downloadedWithoutDamagedFx: '正在下载备份。无法读取的 FX 预设不包含在备份中。',
+    downloadedWithoutBanksAndFx: '正在下载备份。无法读取的已保存音色库和 FX 预设不包含在备份中。',
     unavailable: '无法打开备份功能。请重新加载页面后重试。',
     unavailableUnsaved: '无法生成备份。请保持此标签页打开，因为最近的更改尚未保存，然后重试。',
     restoreTitle: '从备份恢复',
@@ -1397,6 +1410,7 @@ export default {
     workspaceEffect: '音色库及其全部音色将被备份中的内容替换。之后可在通知中点击撤销来恢复。',
     savedBanksEffect:
       '已保存的音色库只会被添加。此浏览器中已有的会保持不变，撤销也不会移除已添加的音色库。',
+    fxPresetsEffect: 'FX 预设会被添加。此处已有的预设会保留。',
     restoreAction: '恢复备份',
     restoring: '正在恢复…',
     restored: '已恢复 {{date}} 的备份。',
@@ -1406,7 +1420,11 @@ export default {
       damaged: '此备份已损坏，无法恢复。请尝试其他备份文件。',
       size: '此文件过大，不可能是本应用的备份。',
       read: '无法读取该文件。请重新选择。',
-      savedBanksFailed: '浏览器存储无法保存此备份中的音色库，因此音色库未作更改。请重试。',
+      restoreFailed:
+        '浏览器存储无法完成恢复，因此资料库未被替换。此备份中已经添加的已保存音色库会保留。',
+      restoreFxFailed: '无法保存此备份中的 FX 预设，因此资料库未被替换，也没有添加任何 FX 预设。',
+      restoreFxFailedBanksKept:
+        '无法保存此备份中的 FX 预设，因此资料库未被替换，也没有添加任何 FX 预设。此备份中已保存的音色库已先行添加并保留。',
     },
   },
   officialOpenTracks: {

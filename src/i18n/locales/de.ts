@@ -1,4 +1,7 @@
+import fxPresets from './de-fx-presets'
+
 export default {
+  ...fxPresets,
   dialogs: {
     bankTitle: 'Zielbank am FM1 auswählen',
     bankIntro:
@@ -1014,6 +1017,13 @@ export default {
     reloadApp: 'App neu laden',
     backToLibrary: 'Zurück zur Bibliothek',
   },
+  libraryViews: {
+    label: 'Bibliotheksansicht',
+    sounds: 'Sounds',
+    effects: 'Effekte',
+    effectsLoadFailed:
+      'Effekte konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+  },
   root: {
     skipToContent: 'Zum Hauptinhalt springen',
     channelShort: 'Kan. {{number}}',
@@ -1115,7 +1125,7 @@ export default {
     selectedVoiceNotice:
       'Auf V16 geht dieser Sound an die am FM1 gewählte Voice. Änderungen erklingen nur auf Kanal 1 oder All live; zum Hören wähle die Voice auf Kanal {{channel}}.',
     effectsSharedNotice:
-      'Auf V16 sind das die Effekte des FM1, die sich alle acht Voices teilen. Der FM1 speichert sie nicht mit diesem Sound: Drücke am FM1 SAVE und wähle Globe, um sie zu behalten.',
+      'Auf V16 teilen sich alle acht Voices die Effekte des FM1; sie gehören nicht zu diesem Sound. Kehre zur Bibliothek zurück und öffne Effekte, um sie zu ändern oder abzurufen. Drücke am FM1 SAVE und wähle Globe, um sie zu behalten.',
     back: 'Zurück zu den Bänken',
     editName: 'Soundnamen bearbeiten',
     patchName: 'Soundname',
@@ -1389,7 +1399,7 @@ export default {
     bulkExportFailed: 'Sammel-Export fehlgeschlagen.',
     gridTitle: 'Sound-Bänke',
     gridDescription: 'Importiere, bearbeite und sortiere jede Bank vor der Übertragung zum FM1.',
-    search: 'Suchen',
+    search: 'Sounds suchen',
     noMatches: 'Keine Sounds entsprechen der Suche',
     searchResults: 'Suchergebnisse: „{{search}}“',
     sendFromSearch: 'Wählen Sie eine Bank, um sie an den FM1 zu senden',
@@ -1540,6 +1550,8 @@ export default {
       '„{{name}}“ wurde heruntergeladen, mit INIT VOICE anstelle seiner {{count, number}} Virtual-Analog- oder 8-Bit-Presets.',
   },
   backup: {
+    fxPresets: 'FX-Presets',
+    notInOlderBackup: 'Nicht enthalten (älteres Backup)',
     menuOtherFiles: 'Weitere Dateien',
     menuHeading: 'Sicherung',
     download: 'Sicherung herunterladen',
@@ -1550,6 +1562,10 @@ export default {
       'Eine Sicherung deiner Bänke wird heruntergeladen. Die gespeicherten Bänke konnten nicht gelesen werden und fehlen darin.',
     downloadedWithoutDamaged:
       'Eine Sicherung wird heruntergeladen. Einige gespeicherte Bänke konnten nicht gelesen werden und fehlen darin.',
+    downloadedWithoutDamagedFx:
+      'Eine Sicherung wird heruntergeladen. FX-Presets, die nicht gelesen werden konnten, fehlen darin.',
+    downloadedWithoutBanksAndFx:
+      'Eine Sicherung wird heruntergeladen. Gespeicherte Bänke und FX-Presets, die nicht gelesen werden konnten, fehlen darin.',
     unavailable:
       'Sicherungen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     unavailableUnsaved:
@@ -1570,6 +1586,7 @@ export default {
       'Deine Bänke und alle ihre Sounds werden durch die aus der Sicherung ersetzt. Mit „Rückgängig“ in der Benachrichtigung danach holst du sie zurück.',
     savedBanksEffect:
       'Gespeicherte Bänke werden nur hinzugefügt. Eine Bank, die schon in diesem Browser liegt, bleibt unverändert, und „Rückgängig“ entfernt die hinzugefügten nicht.',
+    fxPresetsEffect: 'FX-Presets werden hinzugefügt. Die bereits vorhandenen bleiben erhalten.',
     restoreAction: 'Sicherung wiederherstellen',
     restoring: 'Wird wiederhergestellt…',
     restored: 'Die Sicherung vom {{date}} wurde wiederhergestellt.',
@@ -1582,8 +1599,12 @@ export default {
         'Diese Sicherung ist beschädigt und kann nicht wiederhergestellt werden. Versuche eine andere Sicherungsdatei.',
       size: 'Diese Datei ist zu groß für eine Sicherung aus dieser App.',
       read: 'Die Datei konnte nicht gelesen werden. Wähle sie erneut aus.',
-      savedBanksFailed:
-        'Der Browserspeicher konnte die gespeicherten Bänke aus dieser Sicherung nicht aufnehmen, deshalb wurde deine Bibliothek nicht geändert. Versuche es erneut.',
+      restoreFailed:
+        'Der Browserspeicher konnte die Wiederherstellung nicht abschließen, deshalb wurde deine Bibliothek nicht ersetzt. Bereits hinzugefügte gespeicherte Bänke aus dieser Sicherung bleiben erhalten.',
+      restoreFxFailed:
+        'Die FX-Presets aus dieser Sicherung konnten nicht gespeichert werden, deshalb wurde deine Bibliothek nicht ersetzt und keine FX-Presets hinzugefügt.',
+      restoreFxFailedBanksKept:
+        'Die FX-Presets aus dieser Sicherung konnten nicht gespeichert werden, deshalb wurde deine Bibliothek nicht ersetzt und keine FX-Presets hinzugefügt. Die gespeicherten Bänke aus dieser Sicherung wurden zuerst hinzugefügt und bleiben erhalten.',
     },
   },
   officialOpenTracks: {

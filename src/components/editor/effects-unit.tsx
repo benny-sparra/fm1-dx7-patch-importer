@@ -54,6 +54,10 @@ import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
+  /** Keeps the shared-effects library to two columns at wide sizes. */
+  twoColumns?: boolean
+  /** Temporarily prevents edits while one complete shared-effects snapshot is being sent. */
+  disabled?: boolean
   /**
    * FM-1+VA's Bitcrush, offered while the FM1 runs FM-1_096 or later. `values` holds its switch,
    * Bits, Sample Rate, and Mix, or null for a patch without a settings record, which has nowhere to
@@ -67,10 +71,20 @@ type EffectsUnitProps = {
   /** Whether the patch keeps Bitcrush on for FM-1_096 while the FM1's firmware does not play it. */
   keepsBitcrush?: boolean
   /**
-   * FM-1+VA's order of seven effects, offered with Bitcrush. `order` holds their numbers first to
-   * last, or null for a patch without a settings record, which has nowhere to keep one.
+   * FM-1+VA's order of seven effects, offered with Bitcrush, or V16's six, which it lists itself.
+   * `order` holds their numbers first to last, or null for a patch without a settings record,
+   * which has nowhere to keep one.
    */
-  effectOrder?: { onMove: (from: number, to: number) => void; order: readonly number[] | null }
+  effectOrder?: {
+    /** What a grip's tooltip says, where the usual one does not fit the firmware. */
+    dragTitle?: string
+    /** Holds the effects where they are and shows `notice` instead of the grips and menus. */
+    disabled?: boolean
+    /** A short line below the effects, in place of the no-record line. */
+    notice?: string
+    onMove: (from: number, to: number) => void
+    order: readonly number[] | null
+  }
   /** Whether the patch keeps a changed order while the FM1's firmware plays its own. */
   keepsEffectOrder?: boolean
   /**
@@ -636,7 +650,9 @@ function SortableEffect({
   onMove,
   place,
   sortable,
+  dragTitle,
 }: {
+  dragTitle?: string
   children: (handle: ReactNode, menu: ReactNode) => ReactNode
   /** How many effects there are in the order. */
   count: number
@@ -669,7 +685,7 @@ function SortableEffect({
         {...listeners}
         aria-label={t('banks.reorder', { name: t(`ui.effects.${orderEffectKeys[effect]}`) })}
         className="-my-1 -ml-[7px] grid size-6 shrink-0 cursor-grab touch-none place-items-center text-[var(--crt-ink-4)] transition-colors hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--crt-led)] active:cursor-grabbing"
-        title={t('effectOrder.dragTitle')}
+        title={dragTitle ?? t('effectOrder.dragTitle')}
         type="button"
       >
         <GripVertical aria-hidden="true" className="size-3.5" />
@@ -733,6 +749,7 @@ function SortableEffect({
 
 export function EffectsUnit({
   bitcrush,
+  disabled = false,
   distortionType,
   effectOrder,
   keepsBitcrush,
@@ -742,6 +759,7 @@ export function EffectsUnit({
   onChange,
   onGestureEnd,
   onGestureStart,
+  twoColumns = false,
   values,
 }: EffectsUnitProps) {
   const { t } = useTranslation()
@@ -753,7 +771,7 @@ export function EffectsUnit({
   // FM-1+VA's order, with Bitcrush, where it is offered; elsewhere the six in the order they have
   // always been laid out. Only a patch with a record has an order to change.
   const order = effectOrder ? (effectOrder.order ?? FM1_VA_STOCK_EFFECT_ORDER) : [0, 1, 2, 3, 4, 5]
-  const sortable = Boolean(effectOrder?.order)
+  const sortable = Boolean(effectOrder?.order) && !effectOrder?.disabled
   const dragAccessibility = makeDragAccessibility(t, (id) => {
     const key = orderEffectKeys[Number(id)]
     return key === undefined ? undefined : t(`ui.effects.${key}`)
@@ -780,6 +798,7 @@ export function EffectsUnit({
             <Switch
               checked={enabled}
               className="-ml-[3px] inline-flex min-h-6 min-w-0 items-center gap-2 px-1 transition-colors"
+              disabled={disabled}
               onChange={(checked) => onChange(switchController, checked ? 1 : 0)}
             >
               <span className="truncate">{translatedEffect}</span>
@@ -791,21 +810,21 @@ export function EffectsUnit({
         <div className="grid min-w-0 gap-[5px] px-[7px] pt-1.5 pb-[7px]">
           <EffectScope enabled={enabled} name={effect.name} values={values} />
           <EffectPresetControl
-            disabled={!enabled}
+            disabled={disabled || !enabled}
             effectKey={effect.name.toLowerCase()}
             onApplyPreset={onApplyPreset}
             presets={effectPresetsFor(effect.name.toLowerCase())}
           />
           {effect.name === 'Distortion' && distortionType ? (
             <DistortionTypeControl
-              disabled={!enabled}
+              disabled={disabled || !enabled}
               onChange={distortionType.onChange}
               type={distortionType.type}
             />
           ) : null}
           {effect.parameters.map((parameter) => (
             <EffectControl
-              disabled={!enabled}
+              disabled={disabled || !enabled}
               effectName={effect.name}
               key={parameter.id}
               onChange={onChange}
@@ -826,7 +845,9 @@ export function EffectsUnit({
   }
 
   return (
-    <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
+    <div
+      className={cn('grid min-w-0 gap-2 p-[9px] md:grid-cols-2', !twoColumns && 'xl:grid-cols-3')}
+    >
       <DndContext
         accessibility={dragAccessibility}
         collisionDetection={closestCenter}
@@ -837,11 +858,12 @@ export function EffectsUnit({
           {order.map((effect, place) => (
             <SortableEffect
               count={order.length}
+              dragTitle={effectOrder?.dragTitle}
               effect={effect}
               key={effect}
               onMove={(offset) => effectOrder?.onMove(place, place + offset)}
               place={place}
-              sortable={sortable}
+              sortable={sortable && !disabled}
             >
               {(handle, menu) =>
                 effect === orderEffectKeys.indexOf('bitcrush') ? (
@@ -864,18 +886,18 @@ export function EffectsUnit({
           ))}
         </SortableContext>
       </DndContext>
-      {effectOrder?.order === null ? (
-        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
-          {t('effectOrder.noRecord')}
+      {effectOrder?.notice || effectOrder?.order === null ? (
+        <p className="col-span-full text-[11px] leading-4 text-[var(--crt-ink-3)]">
+          {effectOrder.notice ?? t('effectOrder.noRecord')}
         </p>
       ) : null}
       {keepsBitcrush ? (
-        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+        <p className="col-span-full text-[11px] leading-4 text-[var(--crt-ink-3)]">
           {t('bitcrush.otherFirmware')}
         </p>
       ) : null}
       {keepsEffectOrder ? (
-        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+        <p className="col-span-full text-[11px] leading-4 text-[var(--crt-ink-3)]">
           {t('effectOrder.otherFirmware')}
         </p>
       ) : null}

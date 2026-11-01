@@ -38,6 +38,45 @@ test('fits the patch banks to the screen without sideways scrolling', async ({ p
   await expectNoSidewaysScroll(page)
 })
 
+test('fits the independent Effects view and its preset controls on a narrow screen', async ({
+  page,
+}) => {
+  await installFakeMidi(page, { firmware: 'mvave-v16' })
+  await openLibrarian(page)
+  await page.getByText('MIDI offline', { exact: true }).locator('visible=true').first().tap()
+
+  await page.getByRole('button', { name: 'Effects' }).tap()
+  await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
+  await expectNoSidewaysScroll(page)
+  await page.getByRole('button', { name: 'Unsaved effects' }).tap()
+  await page
+    .getByRole('dialog', { name: 'FX presets' })
+    .getByRole('button', { name: 'New FX preset…' })
+    .tap()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Mobile hall')
+  await page.getByRole('button', { name: 'Save preset' }).tap()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Mobile hall', exact: true }).tap()
+  const sheet = page.getByRole('dialog', { name: 'FX presets' })
+  const presetBounds = await sheet
+    .getByRole('button', { name: 'Mobile hall', exact: true })
+    .boundingBox()
+  const menuBounds = await sheet
+    .getByRole('button', { name: 'Actions for Mobile hall' })
+    .boundingBox()
+  const saveBounds = await sheet.getByRole('button', { name: 'New FX preset…' }).boundingBox()
+  expect(presetBounds?.height).toBeGreaterThanOrEqual(24)
+  expect(saveBounds?.height).toBeGreaterThanOrEqual(24)
+  expect(menuBounds?.height).toBeGreaterThanOrEqual(24)
+  expect(menuBounds?.width).toBeGreaterThanOrEqual(24)
+  await sheet.getByRole('button', { name: 'Mobile hall', exact: true }).tap()
+  await expect(sheet).toBeHidden()
+  // With the list in a sheet, the effects start on the first screen.
+  const filter = await page.getByRole('switch', { name: 'Filter', exact: true }).boundingBox()
+  expect(filter!.y).toBeLessThan(page.viewportSize()!.height)
+  await expectNoSidewaysScroll(page)
+})
+
 test('gives every control on the patch banks a 24 px target', async ({ page }) => {
   await openLibrarian(page)
 

@@ -17,6 +17,7 @@ import {
 const databaseName = 'fm1-librarian'
 const workspaceStoreName = 'library'
 const namedBankStoreName = 'named-banks'
+export const fxPresetStoreName = 'fx-presets'
 const recordKey = 'current'
 
 export type PatchLibraryStorageErrorCode =
@@ -107,7 +108,7 @@ function readStoredPresetVoices(
   )
 }
 
-function asStorageError(
+export function asStorageError(
   error: unknown,
   code: PatchLibraryStorageErrorCode,
   message: string,
@@ -116,7 +117,7 @@ function asStorageError(
   return new PatchLibraryStorageError(code, message, error)
 }
 
-function openDatabase() {
+export function openDatabase() {
   return new Promise<IDBDatabase>((resolve, reject) => {
     if (!('indexedDB' in globalThis)) {
       reject(new PatchLibraryStorageError('unavailable', 'Browser storage is unavailable.'))
@@ -125,7 +126,7 @@ function openDatabase() {
 
     let request: IDBOpenDBRequest
     try {
-      request = indexedDB.open(databaseName, 2)
+      request = indexedDB.open(databaseName, 3)
     } catch (error) {
       reject(
         new PatchLibraryStorageError('unavailable', 'Browser storage could not be opened.', error),
@@ -148,6 +149,9 @@ function openDatabase() {
       if (!request.result.objectStoreNames.contains(namedBankStoreName)) {
         request.result.createObjectStore(namedBankStoreName, { keyPath: 'id' })
       }
+      if (!request.result.objectStoreNames.contains(fxPresetStoreName)) {
+        request.result.createObjectStore(fxPresetStoreName, { keyPath: 'id' })
+      }
     }
     request.onsuccess = () => {
       if (finished) {
@@ -160,7 +164,7 @@ function openDatabase() {
   })
 }
 
-async function runTransaction<T>(
+export async function runTransaction<T>(
   storeName: string,
   mode: IDBTransactionMode,
   operation: (store: IDBObjectStore, transaction: IDBTransaction) => IDBRequest<T>,

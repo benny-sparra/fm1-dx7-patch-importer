@@ -2,7 +2,6 @@ import {
   lazy,
   Suspense,
   type ComponentProps,
-  type CSSProperties,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -35,6 +34,7 @@ import {
   cancelDynamicImportRecovery,
   getDynamicImportRecoveryIntent,
 } from '@/lib/dynamic-import-recovery'
+import { LoadingSection } from '@/components/ui/loading-section'
 import { useToast } from '@/components/ui/toast'
 import { PatchEditorErrorBoundary } from '@/components/editor/patch-editor-error-boundary'
 import { WorkspacePersistenceStatus } from '@/components/workspace-persistence-status'
@@ -267,39 +267,10 @@ function App() {
       setAuditionedPatchId('')
     }
   }
-  // The patch banks and the editor both run past the fold, so their stand-in does too, keeping the
-  // footer out of view until they arrive; on a phone a shorter one let it show and then jump down.
-  const loadingSection = (label: string) => (
-    <section
-      aria-live="polite"
-      className="mx-auto flex min-h-svh max-w-[90rem] items-center justify-center px-4 py-8"
-      role="status"
-    >
-      <div className="crt-boot crt-raised bg-card">
-        <p className="crt-boot-line">
-          <span aria-hidden="true" className="crt-boot-prompt">
-            &gt;
-          </span>
-          {label}
-          <span aria-hidden="true" className="crt-boot-cursor" />
-        </p>
-        <div aria-hidden="true" className="crt-boot-bar crt-well">
-          {Array.from({ length: 12 }, (_, index) => (
-            <span
-              className="crt-boot-segment"
-              key={index}
-              style={{ '--crt-boot-index': index } as CSSProperties}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-
   return (
     <RootLayout compact={isEditorOpen} midi={midi}>
       {library.workspaceLoading ? (
-        loadingSection(t('common.loadingLibrary'))
+        <LoadingSection label={t('common.loadingLibrary')} />
       ) : library.persistenceStatus === 'load-error' ? (
         <WorkspacePersistenceStatus library={library} />
       ) : (
@@ -307,7 +278,7 @@ function App() {
           <WorkspacePersistenceStatus library={library} />
           {selectedPatch && selectedVirtualAnalog?.voice && selectedVirtualAnalog.record ? (
             <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
-              <Suspense fallback={loadingSection(t('common.loading'))}>
+              <Suspense fallback={<LoadingSection label={t('common.loading')} />}>
                 <LoadedVirtualAnalogEditorPage
                   browserBackRef={editorBrowserBack}
                   effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
@@ -333,7 +304,7 @@ function App() {
             </PatchEditorErrorBoundary>
           ) : selectedPatch && selectedEightBit?.voice && selectedEightBit.record ? (
             <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
-              <Suspense fallback={loadingSection(t('common.loading'))}>
+              <Suspense fallback={<LoadingSection label={t('common.loading')} />}>
                 <LoadedEightBitEditorPage
                   browserBackRef={editorBrowserBack}
                   effects={normalizeFm1Effects(library.effects[selectedPatch.id])}
@@ -359,7 +330,7 @@ function App() {
             </PatchEditorErrorBoundary>
           ) : selectedPatch && selectedVoice ? (
             <PatchEditorErrorBoundary key={selectedPatch.id} onBack={closeEditor}>
-              <Suspense fallback={loadingSection(t('common.loading'))}>
+              <Suspense fallback={<LoadingSection label={t('common.loading')} />}>
                 <LoadedPatchEditorPage
                   browserBackRef={editorBrowserBack}
                   copiedOperator={copiedOperator}
