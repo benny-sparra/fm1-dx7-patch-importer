@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/logo.svg" alt="FM1 Editor &amp; Librarian" width="480">
+</p>
+
 # M-VAVE FM1 Editor & Librarian
 
 A browser-based voice editor and patch librarian for the [M-VAVE FM1](https://www.mvave.com/).
@@ -6,6 +10,8 @@ The app runs entirely in the browser. Build and organise your own patch banks, e
 
 ![M-VAVE FM1 synthesiser](src/assets/fm1-header.png)
 
+![The voice editor, showing a DX7 patch's operators and envelope](docs/images/editor.png)
+
 ## What it does
 
 - Keep up to 10 banks of patches in your browser, with search, favourites, drag-and-drop ordering, saved copies, backups, and Undo
@@ -13,7 +19,7 @@ The app runs entirely in the browser. Build and organise your own patch banks, e
 - Edit every DX7 voice parameter and the FM1's filter, reverb, delay, distortion, chorus, and phaser, with live MIDI updates
 - Audition any patch on the FM1 with a click, or from an on-screen keyboard
 - Work with Baud Girl's FM-1+VA firmware and M-VAVE's Official Open firmware as well as the stock one
-- Use it in British or American English, French, Spanish, German, Brazilian Portuguese, Ukrainian, or Simplified Chinese, in any of the FM1's six colour finishes
+- Use it in British or American English, French, Spanish, German, Italian, Dutch, Polish, Russian, Japanese, Korean, Brazilian Portuguese, Ukrainian, or Simplified Chinese, in any of the FM1's six colour finishes
 
 See the [full feature list](docs/features.md).
 
@@ -51,7 +57,7 @@ If the saved library cannot be opened, the app leaves its browser record untouch
 
 ## Translations
 
-The librarian is available in multiple languages. If you notice an inaccurate, unclear, or unusual translation, please [get in touch by opening an issue](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues) so it can be corrected.
+The librarian is available in British and American English, French, Spanish, German, Italian, Dutch, Polish, Russian, Japanese, Korean, Brazilian Portuguese, Ukrainian, and Simplified Chinese. The language follows your browser's setting and can be changed from the language menu. If you notice an inaccurate, unclear, or unusual translation, please [get in touch by opening an issue](https://github.com/benny-sparra/fm1-dx7-patch-importer/issues) so it can be corrected.
 
 ## Privacy
 
