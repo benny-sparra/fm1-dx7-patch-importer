@@ -6,7 +6,12 @@ import { EffectsUnit } from '@/components/editor/effects-unit'
 import { FxPresetLibrary } from '@/components/midi/fx-preset-library'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { InfoNotice } from '@/components/ui/info-notice'
-import { RackPanelTitle } from '@/components/ui/rack-panel'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  libraryPanelHeaderClassName,
+  libraryPanelTitleClassName,
+  librarySearchInputClassName,
+} from '@/components/patches/library-panel'
 import { useFxLibrary, type FxLibrary } from '@/hooks/use-fx-library'
 import type { MidiController } from '@/hooks/use-midi'
 import '@/i18n/fx-presets'
@@ -78,18 +83,32 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
   const applyPreset = (id: EffectPresetId) => change(applyEffectPreset(effects, id).settings)
 
   return (
-    <section aria-labelledby={headingId} className="synthwave-panel min-w-0">
-      <RackPanelTitle
-        action={
-          <div className="flex min-w-0 items-center gap-2">
-            <label className="relative hidden w-64 min-w-0 md:block">
+    <section aria-labelledby={headingId} className="min-w-0">
+      <Card className="synthwave-panel">
+        <CardHeader className={libraryPanelHeaderClassName}>
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+            <CardTitle className={libraryPanelTitleClassName} id={headingId}>
+              <Sparkles aria-hidden="true" className="size-4 shrink-0" />
+              {t('fxPresets.effectsTitle')}
+              <HelpPopover
+                className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
+                label={t('fxPresets.effectsTitle')}
+                text={[
+                  t('fxPresets.help'),
+                  t('fxPresets.orderHelp'),
+                  t('fxPresets.noReadback'),
+                ].join(' ')}
+              />
+            </CardTitle>
+            {/* Below md the preset list is a sheet with its own search. */}
+            <label className="relative hidden w-64 md:ml-auto md:block">
               <Search
                 aria-hidden="true"
                 className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]"
               />
               <input
                 aria-label={t('fxPresets.search')}
-                className="patch-search-input crt-field h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+                className={librarySearchInputClassName}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key !== 'Escape' || !search) return
@@ -101,49 +120,37 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
                 value={search}
               />
             </label>
-            <span ref={setMenuSlot} />
+            <span className="shrink-0 max-md:ml-auto" ref={setMenuSlot} />
           </div>
-        }
-        help={
-          <HelpPopover
-            className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
-            label={t('fxPresets.effectsTitle')}
-            text={[t('fxPresets.help'), t('fxPresets.orderHelp'), t('fxPresets.noReadback')].join(
-              ' ',
-            )}
+        </CardHeader>
+        <div className="empty:hidden" role="status">
+          {persistence === 'session-only' ? (
+            <div className="px-2 pt-2">
+              <InfoNotice>
+                <p>{t('fxPresets.sessionOnly')}</p>
+              </InfoNotice>
+            </div>
+          ) : null}
+        </div>
+        <FxPresetLibrary
+          fxLibrary={fxLibrary}
+          midi={midi}
+          menuSlot={menuSlot}
+          onSearchChange={setSearch}
+          onSendingChange={setSending}
+          search={search}
+        >
+          <EffectsUnit
+            disabled={sending}
+            onApplyPreset={applyPreset}
+            onChange={setParameter}
+            onGestureEnd={noGesture}
+            onGestureStart={noGesture}
+            twoColumns
+            values={effects}
           />
-        }
-        icon={Sparkles}
-        id={headingId}
-        title={t('fxPresets.effectsTitle')}
-      />
-      <div className="empty:hidden" role="status">
-        {persistence === 'session-only' ? (
-          <div className="px-2 pt-2">
-            <InfoNotice>
-              <p>{t('fxPresets.sessionOnly')}</p>
-            </InfoNotice>
-          </div>
-        ) : null}
-      </div>
-      <FxPresetLibrary
-        fxLibrary={fxLibrary}
-        midi={midi}
-        menuSlot={menuSlot}
-        onSearchChange={setSearch}
-        onSendingChange={setSending}
-        search={search}
-      >
-        <EffectsUnit
-          disabled={sending}
-          onApplyPreset={applyPreset}
-          onChange={setParameter}
-          onGestureEnd={noGesture}
-          onGestureStart={noGesture}
-          twoColumns
-          values={effects}
-        />
-      </FxPresetLibrary>
+        </FxPresetLibrary>
+      </Card>
     </section>
   )
 }

@@ -409,7 +409,7 @@ describe('field edges', () => {
   })
 
   it.each([
-    ['the patch search field', '../components/patches/patch-grid.tsx'],
+    ['the patch and FX preset search fields', '../components/patches/library-panel.ts'],
     ['the patch name field', '../components/editor/patch-editor-header.tsx'],
     ['the rack’s number fields and dropdowns', '../components/editor/parameter-controls.tsx'],
     ['the effects’ dropdowns', '../components/editor/effects-unit.tsx'],

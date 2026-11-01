@@ -38,6 +38,13 @@ import { resolveGridKey } from '@/lib/patch-grid-navigation'
 import { cn } from '@/lib/utils'
 
 import { droppedBank, patchDragCollision } from './bank-drop'
+import {
+  libraryContentClassName,
+  libraryPanelHeaderClassName,
+  libraryPanelTitleClassName,
+  librarySearchInputClassName,
+  libraryStripClassName,
+} from './library-panel'
 import { PatchButton } from './patch-button'
 
 type PatchGridProps = {
@@ -236,10 +243,10 @@ export function PatchGrid({
 
   return (
     <Card className="synthwave-panel">
-      <CardHeader className="crt-hatch border-b border-[var(--crt-shadow)] px-[9px] py-1.5">
+      <CardHeader className={libraryPanelHeaderClassName}>
         {/* Search covers every bank, so it sits above the bank rail rather than beside one bank. */}
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-          <CardTitle className="font-dot-matrix flex items-center gap-2 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase">
+          <CardTitle className={libraryPanelTitleClassName}>
             <PixelBankIcon aria-hidden="true" className="size-4 shrink-0" />
             {t('banks.gridTitle')}
             <HelpPopover
@@ -252,7 +259,7 @@ export function PatchGrid({
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]" />
             <input
               aria-label={t('banks.search')}
-              className="patch-search-input crt-field h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
+              className={librarySearchInputClassName}
               disabled={searchDisabled}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => {
@@ -287,7 +294,7 @@ export function PatchGrid({
           <div className="min-w-0 flex-1">
             <div
               className={cn(
-                'crt-hatch flex flex-wrap items-center gap-2 border-b border-[var(--crt-shadow)] p-2 sm:px-[9px]',
+                libraryStripClassName,
                 // Below md the bank's name, menu, and Send stay in view down the whole list.
                 actions && 'max-md:sticky max-md:top-0 max-md:z-30',
               )}
@@ -308,7 +315,8 @@ export function PatchGrid({
             {/* A dragged slot has to reach the bank tabs, so the grid stops clipping and rises above the rail. */}
             <CardContent
               className={cn(
-                'relative isolate space-y-4 bg-[var(--crt-bg-panel)] p-1.5 min-[360px]:p-[9px]',
+                'relative isolate space-y-4',
+                libraryContentClassName,
                 draggedId === null ? 'overflow-hidden' : 'z-20',
               )}
               // What switches off like a CRT when its bank is deleted.

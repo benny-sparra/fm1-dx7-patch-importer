@@ -33,6 +33,11 @@ import { useTranslation } from 'react-i18next'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { PixelHeartIcon } from '@/components/patches/favourite-button'
 import { FavouritesTab } from '@/components/patches/favourites-tab'
+import {
+  libraryRailClassName,
+  librarySendButtonClassName,
+  libraryStripNameClassName,
+} from '@/components/patches/library-panel'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { PatchGrid } from '@/components/patches/patch-grid'
 import type { SearchResultSound } from '@/components/patches/search-everywhere-results'
@@ -1154,7 +1159,8 @@ export function LibrarianPage({
                 )}
                 <span
                   className={cn(
-                    'font-dot-matrix block min-w-0 truncate text-[13px] font-bold tracking-[0.1em] text-[var(--crt-led)]',
+                    'block min-w-0 truncate',
+                    libraryStripNameClassName,
                     !isSearching && 'md:max-w-40',
                   )}
                 >
@@ -1211,7 +1217,7 @@ export function LibrarianPage({
                 // Not disabled without a MIDI output: a click opens the dialog that connects one.
                 aria-disabled={isSendBlocked || undefined}
                 className={cn(
-                  'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] md:ml-auto md:flex-none',
+                  librarySendButtonClassName,
                   // A barber pole while the bank is on its way.
                   isSending && 'barber-pole',
                 )}
@@ -1509,7 +1515,7 @@ export function LibrarianPage({
           setSearch={setSearch}
           toolbar={
             <>
-              <div className="h-full w-16 border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px]">
+              <div className={cn('h-full w-16 md:w-[226px]', libraryRailClassName)}>
                 {/* On a phone the rail stays in view beside the list, when the screen is tall
                   enough to hold it. */}
                 <div className="flex flex-col max-md:top-0 max-md:[@media(min-height:560px)]:sticky">

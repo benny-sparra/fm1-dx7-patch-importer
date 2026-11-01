@@ -448,7 +448,7 @@ describe('FX preset library', () => {
     ).toBeTruthy()
   })
 
-  it('shows Sending… in a status region while a preset goes out, then clears it', async () => {
+  it('says Sending… on the Send button and aloud while a preset goes out, then clears it', async () => {
     const user = userEvent.setup()
     let finishSend: (() => void) | undefined
     const send = vi.fn(
@@ -463,9 +463,15 @@ describe('FX preset library', () => {
     )
     await user.click(screen.getByRole('button', { name: 'Stage room' }))
 
-    expect(screen.getByText('Sending…')).toBeTruthy()
+    expect(
+      screen.getAllByRole('status').some((status) => status.textContent?.includes('Sending…')),
+    ).toBe(true)
+    expect(screen.getByRole('button', { name: 'Sending…' })).toBeTruthy()
     finishSend?.()
-    await waitFor(() => expect(screen.queryByText('Sending…')).toBeNull())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send to FM1' })).toBeTruthy())
+    expect(
+      screen.queryByText('Sending…', { ignore: '[aria-hidden="true"], [aria-hidden="true"] *' }),
+    ).toBeNull()
   })
 
   it('Send to FM1 retries a failed send, and a later success marks the preset sent', async () => {

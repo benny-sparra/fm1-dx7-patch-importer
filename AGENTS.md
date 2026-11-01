@@ -382,6 +382,12 @@ open everything an earlier release could have saved.
   **Send to FM1** on the title strip, styled as the patch banks' own, always sends the whole rack
   as it is, saved or not, so it restores the FM1 after its own knobs, a power cycle, or a failed
   send; a click on a preset never resends what was last sent.
+- The Effects view sits beside the patch banks as a tab, so it takes the panel header, search,
+  strip, Send button, rail, and content padding from `src/components/patches/library-panel.ts`,
+  as `PatchGrid` does, and its preset rows match a bank tab's height. A send shows on the Send
+  button, as the bank's does: a barber pole and **Sending…** in the same cell as **Send to FM1**,
+  with the words read aloud from a status region that shows nothing, so nothing below the strip
+  moves while the effects go out.
 - The rack always has a name, kept easy to change in one place (`FxPresetLibrary`): the loaded
   preset's name when the rack matches it, with a dim “edited” beside it once any value differs, or
   **Unsaved effects** when it never came from a preset or that preset was deleted. The loaded id

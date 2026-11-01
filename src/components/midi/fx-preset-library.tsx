@@ -12,6 +12,13 @@ import { PortalMenu } from '@/components/ui/portal-menu'
 import { useToast } from '@/components/ui/toast'
 import type { FxLibrary } from '@/hooks/use-fx-library'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import {
+  libraryContentClassName,
+  libraryRailClassName,
+  librarySendButtonClassName,
+  libraryStripClassName,
+  libraryStripNameClassName,
+} from '@/components/patches/library-panel'
 import '@/i18n/fx-presets'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import {
@@ -353,12 +360,12 @@ export function FxPresetLibrary({
         visible.length ? (
           <ul
             aria-label={t('fxPresets.dialogTitle')}
-            className="grid max-h-36 content-start gap-2 overflow-y-auto p-0.5 md:max-h-[50dvh]"
+            className="-m-0.5 flex max-h-36 flex-col gap-1.5 overflow-y-auto p-0.5 md:max-h-[50dvh]"
           >
             {visible.map((preset) => (
               <li
                 className={cn(
-                  'bank-tab flex min-w-0 items-center gap-2 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 py-[7px] transition-colors',
+                  'bank-tab flex min-w-0 items-center gap-[9px] border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 py-[7px] transition-colors',
                   preset.id === loadedId
                     ? 'bank-tab-active border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
                     : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] hover:bg-[var(--crt-bg-head)]',
@@ -369,7 +376,7 @@ export function FxPresetLibrary({
                   aria-disabled={blocked}
                   aria-pressed={preset.id === loadedId}
                   className={cn(
-                    'font-dot-matrix min-h-6 min-w-0 flex-1 cursor-pointer truncate text-left text-[14px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                    'font-dot-matrix min-h-[30px] min-w-0 flex-1 cursor-pointer truncate text-left text-[14px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
                     preset.id === loadedId ? 'text-[var(--crt-led)]' : 'text-[var(--crt-ink-2)]',
                   )}
                   onClick={() => {
@@ -457,14 +464,21 @@ export function FxPresetLibrary({
     >
       {menuSlot ? createPortal(menu, menuSlot) : null}
       {narrow ? null : (
-        <div className="min-w-0 shrink-0 border-b-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px] md:border-r-2 md:border-b-0">
+        <div className={cn('w-[226px] shrink-0', libraryRailClassName)}>
           {!menuSlot ? menu : null}
-          <div className="grid min-w-0 gap-2 p-2 text-sm break-words">{renderList()}</div>
+          <div className="flex min-w-0 flex-col gap-1.5 p-2 text-sm break-words">
+            {renderList()}
+          </div>
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <div className="crt-hatch flex min-h-[49px] min-w-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--crt-line)] px-2 py-2">
-          <h3 className="font-dot-matrix flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 text-sm font-bold break-words text-[var(--crt-acc-lt)]">
+        <div className={libraryStripClassName}>
+          <h3
+            className={cn(
+              'flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 break-words',
+              libraryStripNameClassName,
+            )}
+          >
             {narrow ? (
               <button
                 aria-haspopup="dialog"
@@ -484,14 +498,13 @@ export function FxPresetLibrary({
               </span>
             ) : null}
           </h3>
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 md:ml-auto">
             {loaded && modified ? (
               <Button
                 aria-disabled={unavailable || mode !== null}
                 onClick={() => {
                   if (!unavailable && mode === null) void updateCurrent()
                 }}
-                size="sm"
                 type="button"
                 variant="outline"
               >
@@ -501,7 +514,6 @@ export function FxPresetLibrary({
             <Button
               aria-disabled={unavailable || mode !== null}
               onClick={startSave}
-              size="sm"
               type="button"
               variant="outline"
             >
@@ -511,20 +523,38 @@ export function FxPresetLibrary({
                 changed it, a power cycle, or a send that failed. */}
             <Button
               aria-disabled={unavailable || mode !== null}
+              // A barber pole while the effects are on their way, as the bank's Send shows.
+              className={cn(librarySendButtonClassName, sending && 'barber-pole')}
               onClick={() => {
                 if (!unavailable && mode === null) void recall(current.slice(), loadedId, true)
               }}
-              size="sm"
+              size="bare"
               type="button"
+              variant="bare"
             >
               <Send aria-hidden="true" className="size-3.5" />
-              <span>{t('banks.send')}</span>
+              {/* Both labels share one cell, so the button keeps the longer one's width. */}
+              <span className="grid">
+                <span
+                  aria-hidden={sending || undefined}
+                  className={cn('[grid-area:1/1]', sending && 'invisible')}
+                >
+                  {t('banks.send')}
+                </span>
+                <span
+                  aria-hidden={!sending || undefined}
+                  className={cn('[grid-area:1/1]', !sending && 'invisible')}
+                >
+                  {t('banks.sending')}
+                </span>
+              </span>
             </Button>
           </div>
         </div>
         <div className="empty:hidden" role="status">
+          {/* Read aloud only: the Send button shows the send, so nothing below the strip moves. */}
           {sending ? (
-            <p className="px-2 pt-2 text-sm text-[var(--crt-ink-3)]">{t('fxPresets.sending')}</p>
+            <span className="sr-only">{t('fxPresets.sending')}</span>
           ) : notReached ? (
             <div className="px-2 pt-2">
               <InfoNotice>
@@ -534,7 +564,7 @@ export function FxPresetLibrary({
           ) : null}
         </div>
         <div className="grid gap-2 px-2 pt-2 empty:hidden">{!mode ? failureNotice : null}</div>
-        {children}
+        <div className={libraryContentClassName}>{children}</div>
       </div>
       {narrow && sheetOpen ? (
         <FxPresetSheet onClose={() => setSheetOpen(false)} title={t('fxPresets.dialogTitle')}>
