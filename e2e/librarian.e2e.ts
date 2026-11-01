@@ -121,7 +121,7 @@ test('uses the independent Effects view and keeps a named FX preset across a rel
   await openEffects(page)
 
   await expect(page.getByRole('tab', { name: /Voice/ })).toHaveCount(0)
-  await page.getByRole('button', { name: 'New FX preset…' }).click()
+  await page.getByRole('button', { name: 'Save as…' }).click()
   await expect(page.getByRole('dialog', { name: 'Save current effects' })).toBeVisible()
   await page.getByRole('textbox', { name: 'Preset name' }).fill('Stage hall')
   await page.getByRole('button', { name: 'Save preset' }).click()
@@ -143,8 +143,7 @@ test('uses the independent Effects view and keeps a named FX preset across a rel
   await page.getByRole('button', { name: 'Patches', exact: true }).click()
   await page.getByRole('button', { name: 'Effects', exact: true }).click()
   await expect(page.getByRole('switch', { name: 'Filter', exact: true })).toBeChecked()
-  await page.getByRole('button', { name: 'Current effects actions' }).click()
-  await page.getByRole('menuitem', { name: 'Update “Renamed hall”' }).click()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Completed actions' })).toContainText(
     'Updated “Renamed hall” from the current effects.',
   )
@@ -167,15 +166,13 @@ test('uses the independent Effects view and keeps a named FX preset across a rel
   await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
 })
 
-test('keeps the Effects title strip and its search, menu and help inside a 320 px screen', async ({
-  page,
-}) => {
+test('opens the FX preset list as a sheet from the name on a 320 px screen', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 })
   await openEffects(page)
 
-  const strip = page.getByRole('heading', { name: 'Effects', level: 2 }).locator('../..')
   for (const control of [
-    page.getByRole('searchbox', { name: 'Search FX presets' }),
+    page.getByRole('button', { name: 'Unsaved effects' }),
+    page.getByRole('button', { name: 'Save as…' }),
     page.getByRole('button', { name: 'FX preset actions' }),
     page.getByRole('button', { name: 'Help: Effects' }),
   ]) {
@@ -184,11 +181,23 @@ test('keeps the Effects title strip and its search, menu and help inside a 320 p
     expect(box!.x).toBeGreaterThanOrEqual(0)
     expect(box!.x + box!.width).toBeLessThanOrEqual(320)
   }
-  const stripBox = await strip.boundingBox()
-  expect(stripBox!.x + stripBox!.width).toBeLessThanOrEqual(320)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   )
+  await page.getByRole('button', { name: 'Save as…' }).click()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Phone hall')
+  await page.getByRole('button', { name: 'Save preset' }).click()
+  await expect(page.getByRole('button', { name: 'Phone hall', exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Phone hall', exact: true }).click()
+  const sheet = page.getByRole('dialog', { name: 'FX presets' })
+  await expect(sheet).toBeVisible()
+  await sheet.getByRole('searchbox', { name: 'Search FX presets' }).fill('phone')
+  await sheet.getByRole('button', { name: 'Actions for Phone hall' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Rename…' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await sheet.getByRole('button', { name: 'Phone hall', exact: true }).click()
+  await expect(sheet).toBeHidden()
 })
 
 test('zooms out of the slot as a patch opens and back into it as the editor closes', async ({

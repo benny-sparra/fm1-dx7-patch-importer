@@ -48,27 +48,26 @@ test('fits the independent Effects view and its preset controls on a narrow scre
   await page.getByRole('button', { name: 'Effects' }).tap()
   await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
   await expectNoSidewaysScroll(page)
-  for (const name of ['One', 'Two', 'Three', 'Four', 'Mobile hall']) {
-    await page.getByRole('button', { name: 'New FX preset…' }).tap()
-    await page.getByRole('textbox', { name: 'Preset name' }).fill(name)
-    await page.getByRole('button', { name: 'Save preset' }).tap()
-    await expect(page.getByRole('dialog')).toHaveCount(0)
-  }
-  await expect(page.getByRole('button', { name: 'Mobile hall', exact: true })).toBeVisible()
-  const presetBounds = await page
+  await page.getByRole('button', { name: 'Save as…' }).tap()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Mobile hall')
+  await page.getByRole('button', { name: 'Save preset' }).tap()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Mobile hall', exact: true }).tap()
+  const sheet = page.getByRole('dialog', { name: 'FX presets' })
+  const presetBounds = await sheet
     .getByRole('button', { name: 'Mobile hall', exact: true })
     .boundingBox()
-  const addBounds = await page.getByRole('button', { name: 'New FX preset…' }).boundingBox()
-  const menuBounds = await page
+  const menuBounds = await sheet
     .getByRole('button', { name: 'Actions for Mobile hall' })
     .boundingBox()
+  const saveBounds = await page.getByRole('button', { name: 'Save as…' }).boundingBox()
   expect(presetBounds?.height).toBeGreaterThanOrEqual(24)
-  expect(addBounds?.height).toBeGreaterThanOrEqual(24)
+  expect(saveBounds?.height).toBeGreaterThanOrEqual(24)
   expect(menuBounds?.height).toBeGreaterThanOrEqual(24)
   expect(menuBounds?.width).toBeGreaterThanOrEqual(24)
-  // The list scrolls inside a capped height, so the effects start on the first screen.
-  const list = await page.getByRole('list', { name: 'FX presets' }).boundingBox()
-  expect(list!.height).toBeLessThanOrEqual(160)
+  await sheet.getByRole('button', { name: 'Mobile hall', exact: true }).tap()
+  await expect(sheet).toBeHidden()
+  // With the list in a sheet, the effects start on the first screen.
   const filter = await page.getByRole('switch', { name: 'Filter', exact: true }).boundingBox()
   expect(filter!.y).toBeLessThan(page.viewportSize()!.height)
   await expectNoSidewaysScroll(page)

@@ -1,9 +1,9 @@
-import { Download, Plus, Upload } from 'lucide-react'
+import { ChevronDown, Download, Search, Upload } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { type ReactNode, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { FxPresetDialog } from '@/components/midi/fx-preset-dialog'
+import { FxPresetDialog, FxPresetSheet } from '@/components/midi/fx-preset-dialog'
 import type { V16EffectsMidi } from '@/components/midi/v16-effects-panel'
 import { Button } from '@/components/ui/button'
 import { ErrorNotice } from '@/components/ui/error-notice'
@@ -11,6 +11,7 @@ import { InfoNotice } from '@/components/ui/info-notice'
 import { PortalMenu } from '@/components/ui/portal-menu'
 import { useToast } from '@/components/ui/toast'
 import type { FxLibrary } from '@/hooks/use-fx-library'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import '@/i18n/fx-presets'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import {
@@ -50,6 +51,7 @@ type Props = {
   fxLibrary: FxLibrary
   midi: V16EffectsMidi
   menuSlot?: HTMLElement | null
+  onSearchChange: (search: string) => void
   onSendingChange: (sending: boolean) => void
   search: string
 }
@@ -70,6 +72,7 @@ export function FxPresetLibrary({
   fxLibrary,
   midi,
   menuSlot,
+  onSearchChange,
   onSendingChange,
   search,
 }: Props) {
@@ -90,6 +93,9 @@ export function FxPresetLibrary({
   // A load that changed only the rack, because the FM1 could not take it, and one that failed.
   const [loadedOnly, setLoadedOnly] = useState(false)
   const [failedSendId, setFailedSendId] = useState('')
+  const [sheetOpen, setSheetOpen] = useState(false)
+  // Below md the list is a sheet opened from the title strip, not a sidebar.
+  const narrow = useMediaQuery('(max-width: 767.98px)')
   const mutationInFlight = useRef(false)
   const sendInFlight = useRef(false)
   const sendAbort = useRef<AbortController | null>(null)
@@ -99,12 +105,12 @@ export function FxPresetLibrary({
   const route = v16EffectsRouteKey(midi.selectedOutputId, midi.effectChannel, midi.firmware)
   const sharedEffects = resolveFirmwareProfile(midi.firmware).capabilities.sharedEffects
   const eligible = midi.hasMidiOutput && sharedEffects
-  const isSent = (preset: FxLibraryPreset, effects: Uint8Array) =>
-    lastSent?.presetId === preset.id &&
+  const isSent = (presetId: string, effects: Uint8Array) =>
+    lastSent?.presetId === presetId &&
     lastSent.route === route &&
     sameBytes(lastSent.effects, effects)
   const offerSendAgain =
-    loaded !== undefined && !modified && (isSent(loaded, current) || failedSendId === loaded.id)
+    loaded !== undefined && !modified && (isSent(loaded.id, current) || failedSendId === loaded.id)
   const ordered = useMemo(() => {
     const collator = new Intl.Collator(i18n.resolvedLanguage, { sensitivity: 'base' })
     return fxLibrary.presets.toSorted(
@@ -207,13 +213,14 @@ export function FxPresetLibrary({
     else showUndoToast(entry, successMessage)
   }
 
-  const load = async (preset: FxLibraryPreset, sendAgain = false) => {
+  /** Puts `effects` in the rack as `presetId`, and sends them when the FM1 can take them. */
+  const recall = async (effects: Uint8Array, presetId: string, sendAgain: boolean) => {
     if (sendInFlight.current || mutationInFlight.current) return
     setError('')
-    setV16Effects(preset.effects)
-    setV16EffectsPresetId(preset.id)
+    setV16Effects(effects)
+    setV16EffectsPresetId(presetId)
     setLoadedOnly(!eligible)
-    if (!eligible || (isSent(preset, preset.effects) && !sendAgain)) return
+    if (!eligible || (isSent(presetId, effects) && !sendAgain)) return
     const controller = new AbortController()
     sendAbort.current = controller
     sendInFlight.current = true
@@ -221,7 +228,7 @@ export function FxPresetLibrary({
     clearV16EffectsLastSent()
     let sent = false
     try {
-      sent = (await midi.sendSharedEffectSettings(preset.effects.slice(), controller.signal)).ok
+      sent = (await midi.sendSharedEffectSettings(effects.slice(), controller.signal)).ok
     } catch {
       // A thrown send is reported like a partial one.
     } finally {
@@ -231,13 +238,30 @@ export function FxPresetLibrary({
     }
     if (controller.signal.aborted) return
     if (sent) {
-      // What was sent is the preset's snapshot; the rack may have been edited while it went out.
-      markV16EffectsSent(preset.id, route, preset.effects)
+      // What was sent is the snapshot; the rack may have been edited while it went out.
+      markV16EffectsSent(presetId, route, effects)
       setFailedSendId('')
     } else {
-      setFailedSendId(preset.id)
+      setFailedSendId(presetId)
       setError(t('fxPresets.partial'))
     }
+  }
+
+  /** One click recalls a preset; Undo, for one step only, puts the previous rack back. */
+  const load = (preset: FxLibraryPreset, sendAgain = false) => {
+    if (sendInFlight.current || mutationInFlight.current) return
+    const before = { effects: current.slice(), id: loadedId }
+    const changed = preset.id !== loadedId || !sameBytes(preset.effects, current)
+    const done = recall(preset.effects, preset.id, sendAgain)
+    if (changed && !sendAgain) {
+      toast.success(t('fxPresets.loaded', { name: preset.name }), {
+        action: {
+          label: t('toasts.undo'),
+          onAction: () => void recall(before.effects, before.id, true),
+        },
+      })
+    }
+    return done
   }
 
   const confirm = async () => {
@@ -308,17 +332,8 @@ export function FxPresetLibrary({
     />
   )
 
-  const currentItems = [
-    ...(modified
-      ? [
-          {
-            label: t('fxPresets.updateNamed', { name: loaded?.name }),
-            disabled: unavailable || mode !== null,
-            onSelect: () => void updateCurrent(),
-          },
-        ]
-      : []),
-    ...(offerSendAgain && loaded
+  const currentItems =
+    offerSendAgain && loaded
       ? [
           {
             label: t('fxPresets.sendAgain'),
@@ -326,8 +341,129 @@ export function FxPresetLibrary({
             onSelect: () => void load(loaded, true),
           },
         ]
-      : []),
-  ]
+      : []
+
+  const renderList = (menuTarget?: HTMLElement | null) => (
+    <>
+      <div className="empty:hidden" role="status">
+        {fxLibrary.status === 'loading' ? <p>{t('fxPresets.loading')}</p> : null}
+      </div>
+      {fxLibrary.status === 'error' ? (
+        <div className="grid justify-items-start gap-2">
+          <ErrorNotice>{t('fxPresets.errors.load')}</ErrorNotice>
+          <Button
+            className="min-h-8 w-full min-w-0 px-2 py-1 text-xs font-semibold break-words"
+            size="bare"
+            onClick={() => void fxLibrary.reload().catch(() => undefined)}
+            type="button"
+            variant="outline"
+          >
+            {t('fxPresets.retry')}
+          </Button>
+        </div>
+      ) : null}
+      {fxLibrary.damagedCount ? (
+        <ErrorNotice>{t('fxPresets.unreadable', { count: fxLibrary.damagedCount })}</ErrorNotice>
+      ) : null}
+      {fxLibrary.status === 'ready' ? (
+        visible.length ? (
+          <ul
+            aria-label={t('fxPresets.dialogTitle')}
+            className="grid max-h-36 content-start gap-2 overflow-y-auto p-0.5 md:max-h-[50dvh]"
+          >
+            {visible.map((preset) => (
+              <li
+                className={cn(
+                  'bank-tab flex min-w-0 items-center gap-2 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 py-[7px] transition-colors',
+                  preset.id === loadedId
+                    ? 'bank-tab-active border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
+                    : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] hover:bg-[var(--crt-bg-head)]',
+                )}
+                key={preset.id}
+              >
+                <button
+                  aria-disabled={blocked}
+                  aria-pressed={preset.id === loadedId}
+                  className={cn(
+                    'font-dot-matrix min-h-6 min-w-0 flex-1 cursor-pointer truncate text-left text-[14px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                    preset.id === loadedId ? 'text-[var(--crt-led)]' : 'text-[var(--crt-ink-2)]',
+                  )}
+                  onClick={() => {
+                    if (blocked) return
+                    void load(preset)
+                    setSheetOpen(false)
+                  }}
+                  title={preset.name}
+                  type="button"
+                >
+                  {preset.name}
+                </button>
+                <PortalMenu
+                  portalTarget={menuTarget}
+                  triggerLabel={t('fxPresets.presetActions', { name: preset.name })}
+                  menuLabel={t('fxPresets.presetActions', { name: preset.name })}
+                  items={[
+                    {
+                      label: t('fxPresets.rename'),
+                      disabled: unavailable || mode !== null,
+                      onSelect: () => {
+                        setModePreset(preset)
+                        setName(preset.name)
+                        setMode('rename')
+                      },
+                    },
+                    {
+                      label: t('fxPresets.duplicate'),
+                      disabled: unavailable || mode !== null,
+                      onSelect: () => void duplicatePreset(preset),
+                    },
+                    {
+                      label: t('fxPresets.downloadPreset'),
+                      Icon: Download,
+                      disabled: busy,
+                      onSelect: () => downloadPresets([preset]),
+                    },
+                    {
+                      label: t('fxPresets.delete'),
+                      danger: true,
+                      disabled: unavailable || mode !== null,
+                      onSelect: () => {
+                        setModePreset(preset)
+                        setMode('delete')
+                      },
+                    },
+                  ]}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-[var(--crt-ink-3)]">
+            {t(fxLibrary.presets.length ? 'fxPresets.noMatches' : 'fxPresets.empty')}
+          </p>
+        )
+      ) : null}
+    </>
+  )
+
+  const searchField = (
+    <label className="relative block min-w-0">
+      <Search
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]"
+      />
+      <input
+        aria-label={t('fxPresets.search')}
+        className="patch-search-input crt-field h-8 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+        onChange={(event) => onSearchChange(event.target.value)}
+        placeholder={t('fxPresets.search')}
+        type="search"
+        value={search}
+      />
+    </label>
+  )
+
+  const rackName = loaded ? loaded.name : t('fxPresets.unsavedEffects')
 
   return (
     <section
@@ -336,216 +472,65 @@ export function FxPresetLibrary({
       className="patch-area-surface flex min-w-0 flex-col items-stretch md:flex-row"
     >
       {menuSlot ? createPortal(menu, menuSlot) : null}
-      <div className="min-w-0 shrink-0 border-b-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px] md:border-r-2 md:border-b-0">
-        {!menuSlot ? menu : null}
-        <div className="grid min-w-0 gap-2 p-2 text-sm break-words">
-          <button
-            aria-disabled={unavailable || mode !== null}
-            className="font-dot-matrix flex w-full min-w-0 cursor-pointer items-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-left text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-            onClick={startSave}
-            type="button"
-          >
-            <Plus aria-hidden="true" className="size-4 shrink-0" />
-            <span>{t('fxPresets.newPreset')}</span>
-          </button>
-          <div className="empty:hidden" role="status">
-            {fxLibrary.status === 'loading' ? <p>{t('fxPresets.loading')}</p> : null}
-          </div>
-          {fxLibrary.status === 'error' ? (
-            <div className="grid justify-items-start gap-2">
-              <ErrorNotice>{t('fxPresets.errors.load')}</ErrorNotice>
-              <Button
-                className="min-h-8 w-full min-w-0 px-2 py-1 text-xs font-semibold break-words"
-                size="bare"
-                onClick={() => void fxLibrary.reload().catch(() => undefined)}
-                type="button"
-                variant="outline"
-              >
-                {t('fxPresets.retry')}
-              </Button>
-            </div>
-          ) : null}
-          {fxLibrary.damagedCount ? (
-            <ErrorNotice>
-              {t('fxPresets.unreadable', { count: fxLibrary.damagedCount })}
-            </ErrorNotice>
-          ) : null}
-          {fxLibrary.status === 'ready' ? (
-            visible.length ? (
-              <ul
-                aria-label={t('fxPresets.dialogTitle')}
-                className="grid max-h-36 content-start gap-2 overflow-y-auto p-0.5 md:max-h-[50dvh]"
-              >
-                {visible.map((preset) => (
-                  <li
-                    className={cn(
-                      'bank-tab flex min-w-0 items-center gap-2 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 py-[7px] transition-colors',
-                      preset.id === loadedId
-                        ? 'bank-tab-active border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
-                        : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] hover:bg-[var(--crt-bg-head)]',
-                    )}
-                    key={preset.id}
-                  >
-                    <button
-                      aria-disabled={blocked}
-                      aria-pressed={preset.id === loadedId}
-                      className={cn(
-                        'font-dot-matrix min-h-6 min-w-0 flex-1 cursor-pointer truncate text-left text-[14px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-                        preset.id === loadedId
-                          ? 'text-[var(--crt-led)]'
-                          : 'text-[var(--crt-ink-2)]',
-                      )}
-                      onClick={() => {
-                        if (!blocked) void load(preset)
-                      }}
-                      title={preset.name}
-                      type="button"
-                    >
-                      {preset.name}
-                    </button>
-                    <PortalMenu
-                      triggerLabel={t('fxPresets.presetActions', { name: preset.name })}
-                      menuLabel={t('fxPresets.presetActions', { name: preset.name })}
-                      items={[
-                        {
-                          label: t('fxPresets.rename'),
-                          disabled: unavailable || mode !== null,
-                          onSelect: () => {
-                            setModePreset(preset)
-                            setName(preset.name)
-                            setMode('rename')
-                          },
-                        },
-                        {
-                          label: t('fxPresets.duplicate'),
-                          disabled: unavailable || mode !== null,
-                          onSelect: () => void duplicatePreset(preset),
-                        },
-                        {
-                          label: t('fxPresets.downloadPreset'),
-                          Icon: Download,
-                          disabled: busy,
-                          onSelect: () => downloadPresets([preset]),
-                        },
-                        {
-                          label: t('fxPresets.delete'),
-                          danger: true,
-                          disabled: unavailable || mode !== null,
-                          onSelect: () => {
-                            setModePreset(preset)
-                            setMode('delete')
-                          },
-                        },
-                      ]}
-                    />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-[var(--crt-ink-3)]">
-                {t(fxLibrary.presets.length ? 'fxPresets.noMatches' : 'fxPresets.empty')}
-              </p>
-            )
-          ) : null}
-          {mode ? (
-            <FxPresetDialog
-              busy={working || fxLibrary.pending}
-              confirmDisabled={(mode === 'save' || mode === 'rename') && invalidName}
-              confirmLabel={t(
-                mode === 'save'
-                  ? 'fxPresets.save'
-                  : mode === 'rename'
-                    ? 'fxPresets.renameAction'
-                    : 'fxPresets.deleteAction',
-              )}
-              destructive={mode === 'delete'}
-              onClose={() => setMode(null)}
-              onConfirm={() => void confirm()}
-              title={
-                mode === 'save'
-                  ? t('fxPresets.saveTitle')
-                  : mode === 'rename'
-                    ? t('fxPresets.renameTitle', { name: modePreset?.name })
-                    : t('fxPresets.deleteAction')
-              }
-            >
-              {mode === 'save' || mode === 'rename' ? (
-                <label className="grid gap-2 text-sm font-semibold">
-                  {t('fxPresets.name')}
-                  <input
-                    ref={nameInput}
-                    className="crt-field h-9 w-full min-w-0 px-3 font-normal"
-                    onChange={(event) => setName(event.target.value)}
-                    readOnly={working}
-                    value={name}
-                  />
-                </label>
-              ) : (
-                <p className="text-sm">
-                  {t('fxPresets.deleteConfirm', { name: modePreset?.name })}
-                </p>
-              )}
-              {(mode === 'save' || mode === 'rename') && name && invalidName ? (
-                <ErrorNotice>
-                  {t('fxPresets.errors.name', { max: fxLibraryPresetNameLength })}
-                </ErrorNotice>
-              ) : null}
-              {failureNotice}
-            </FxPresetDialog>
-          ) : null}
-          {!mode ? failureNotice : null}
-          <input
-            accept={fxPresetFileAccept}
-            className="sr-only"
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              event.target.value = ''
-              if (!file) return
-              void readFxPresetFile(file)
-                .then(async (presets) => {
-                  if (!presets.length) {
-                    setError(t('fxPresets.importEmpty'))
-                    return
-                  }
-                  if (await run(() => fxLibrary.importPresets(presets))) {
-                    toast.success(t('fxPresets.imported', { count: presets.length }))
-                  }
-                })
-                .catch((caughtError) => {
-                  const problem =
-                    caughtError instanceof FxPresetFileError ? caughtError.problem : 'read'
-                  const key = {
-                    damaged: 'fxPresets.errors.fileDamaged',
-                    format: 'fxPresets.errors.fileFormat',
-                    newer: 'fxPresets.errors.fileNewer',
-                    read: 'fxPresets.errors.fileRead',
-                    size: 'fxPresets.errors.fileSize',
-                  } as const
-                  setError(t(key[problem]))
-                })
-            }}
-            ref={importInput}
-            type="file"
-          />
+      {narrow ? null : (
+        <div className="min-w-0 shrink-0 border-b-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px] md:border-r-2 md:border-b-0">
+          {!menuSlot ? menu : null}
+          <div className="grid min-w-0 gap-2 p-2 text-sm break-words">{renderList()}</div>
         </div>
-      </div>
+      )}
       <div className="min-w-0 flex-1">
         <div className="crt-hatch flex min-h-[49px] min-w-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--crt-line)] px-2 py-2">
           <h3 className="font-dot-matrix flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 text-sm font-bold break-words text-[var(--crt-acc-lt)]">
-            <span>{loaded ? loaded.name : t('fxPresets.unsavedEffects')}</span>
+            {narrow ? (
+              <button
+                aria-haspopup="dialog"
+                className="inline-flex min-h-6 max-w-full min-w-0 cursor-pointer items-center gap-1 text-left font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
+                onClick={() => setSheetOpen(true)}
+                type="button"
+              >
+                <span className="break-words">{rackName}</span>
+                <ChevronDown aria-hidden="true" className="size-4 shrink-0" />
+              </button>
+            ) : (
+              <span>{rackName}</span>
+            )}
             {loaded && modified ? (
               <span className="text-xs font-normal text-[var(--crt-ink-3)]">
                 {t('fxPresets.edited')}
               </span>
             ) : null}
           </h3>
-          {currentItems.length ? (
-            <PortalMenu
-              triggerLabel={t('fxPresets.currentActions')}
-              menuLabel={t('fxPresets.currentActions')}
-              items={currentItems}
-            />
-          ) : null}
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {loaded && modified ? (
+              <Button
+                aria-disabled={unavailable || mode !== null}
+                onClick={() => {
+                  if (!unavailable && mode === null) void updateCurrent()
+                }}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                {t('fxPresets.saveButton')}
+              </Button>
+            ) : null}
+            <Button
+              aria-disabled={unavailable || mode !== null}
+              onClick={startSave}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              {t('fxPresets.saveAs')}
+            </Button>
+            {currentItems.length ? (
+              <PortalMenu
+                triggerLabel={t('fxPresets.currentActions')}
+                menuLabel={t('fxPresets.currentActions')}
+                items={currentItems}
+              />
+            ) : null}
+          </div>
         </div>
         <div className="empty:hidden" role="status">
           {sending ? (
@@ -558,8 +543,96 @@ export function FxPresetLibrary({
             </div>
           ) : null}
         </div>
+        <div className="grid gap-2 px-2 pt-2 empty:hidden">{!mode ? failureNotice : null}</div>
         {children}
       </div>
+      {narrow && sheetOpen ? (
+        <FxPresetSheet onClose={() => setSheetOpen(false)} title={t('fxPresets.dialogTitle')}>
+          {(target) => (
+            <div className="grid min-w-0 gap-2 p-2 text-sm break-words">
+              {searchField}
+              {renderList(target)}
+            </div>
+          )}
+        </FxPresetSheet>
+      ) : null}
+      {mode ? (
+        <FxPresetDialog
+          busy={working || fxLibrary.pending}
+          confirmDisabled={(mode === 'save' || mode === 'rename') && invalidName}
+          confirmLabel={t(
+            mode === 'save'
+              ? 'fxPresets.save'
+              : mode === 'rename'
+                ? 'fxPresets.renameAction'
+                : 'fxPresets.deleteAction',
+          )}
+          destructive={mode === 'delete'}
+          onClose={() => setMode(null)}
+          onConfirm={() => void confirm()}
+          title={
+            mode === 'save'
+              ? t('fxPresets.saveTitle')
+              : mode === 'rename'
+                ? t('fxPresets.renameTitle', { name: modePreset?.name })
+                : t('fxPresets.deleteAction')
+          }
+        >
+          {mode === 'save' || mode === 'rename' ? (
+            <label className="grid gap-2 text-sm font-semibold">
+              {t('fxPresets.name')}
+              <input
+                ref={nameInput}
+                className="crt-field h-9 w-full min-w-0 px-3 font-normal"
+                onChange={(event) => setName(event.target.value)}
+                readOnly={working}
+                value={name}
+              />
+            </label>
+          ) : (
+            <p className="text-sm">{t('fxPresets.deleteConfirm', { name: modePreset?.name })}</p>
+          )}
+          {(mode === 'save' || mode === 'rename') && name && invalidName ? (
+            <ErrorNotice>
+              {t('fxPresets.errors.name', { max: fxLibraryPresetNameLength })}
+            </ErrorNotice>
+          ) : null}
+          {failureNotice}
+        </FxPresetDialog>
+      ) : null}
+      <input
+        accept={fxPresetFileAccept}
+        className="sr-only"
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          event.target.value = ''
+          if (!file) return
+          void readFxPresetFile(file)
+            .then(async (presets) => {
+              if (!presets.length) {
+                setError(t('fxPresets.importEmpty'))
+                return
+              }
+              if (await run(() => fxLibrary.importPresets(presets))) {
+                toast.success(t('fxPresets.imported', { count: presets.length }))
+              }
+            })
+            .catch((caughtError) => {
+              const problem =
+                caughtError instanceof FxPresetFileError ? caughtError.problem : 'read'
+              const key = {
+                damaged: 'fxPresets.errors.fileDamaged',
+                format: 'fxPresets.errors.fileFormat',
+                newer: 'fxPresets.errors.fileNewer',
+                read: 'fxPresets.errors.fileRead',
+                size: 'fxPresets.errors.fileSize',
+              } as const
+              setError(t(key[problem]))
+            })
+        }}
+        ref={importInput}
+        type="file"
+      />
     </section>
   )
 }

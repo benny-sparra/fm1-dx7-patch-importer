@@ -37,6 +37,8 @@ type PortalMenuProps = {
   items: readonly PortalMenuItem[]
   /** The accessible name of the open menu. */
   menuLabel: string
+  /** Where the open menu goes, in place of the page: a modal dialog covers everything outside it. */
+  portalTarget?: HTMLElement | null
   triggerClassName?: string
   /** What the trigger shows in place of ⋮. */
   triggerContent?: ReactNode
@@ -72,6 +74,7 @@ export function PortalMenu({
   heading,
   items,
   menuLabel,
+  portalTarget,
   triggerClassName,
   triggerContent,
   triggerLabel,
@@ -257,7 +260,7 @@ export function PortalMenu({
                 )
               })}
             </div>,
-            document.body,
+            portalTarget ?? document.body,
           )
         : null}
     </>

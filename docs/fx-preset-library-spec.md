@@ -7,9 +7,10 @@ this document. Audience: a lower-model executor working in the FM1 editor/librar
 
 The first view is named **Patches**, not Sounds (the library calls a library item a patch), and
 **Effects** is offered only on firmware with the profile's `sharedEffects` capability. There is one
-way to save (**+ New FX preset…**) and one to rename (**Rename…**): the sidebar menu holds Import…
-and Download all, the title strip's menu **Update “name”** and **Send again**, and the loaded
-preset's name shows a dim “edited” while the rack differs. Success is a toast, not a modal. These
+rule for saving: **Save** (loaded preset, only while edited) and **Save as…** beside the rack's name,
+which shows a dim “edited” while the rack differs; renaming is **Rename…**. The title strip's menu
+holds **Send again** only, recall offers Undo, and below `md` the list is a sheet opened from the
+name. Success is a toast, not a modal. These
 supersede the matching requirements below.
 
 ## Preset recall — owner decision, 2026-10-31

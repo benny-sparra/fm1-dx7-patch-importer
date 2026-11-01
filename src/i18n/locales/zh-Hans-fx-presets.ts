@@ -1,12 +1,13 @@
 export default {
   fxPresets: {
     currentActions: '当前效果操作',
-    newPreset: '新建 FX 预设…',
     unsavedEffects: '未保存的效果',
+    saveButton: '保存',
+    saveAs: '另存为…',
+    loaded: '已载入“{{name}}”。',
     edited: '已编辑',
     empty: '还没有 FX 预设。',
     actions: 'FX 预设操作',
-    updateNamed: '更新“{{name}}”',
     presetActions: '{{name}}的操作',
     restored: '已恢复“{{name}}”。',
 

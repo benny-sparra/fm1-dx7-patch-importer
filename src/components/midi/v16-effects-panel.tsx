@@ -82,7 +82,7 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
       <RackPanelTitle
         action={
           <div className="flex min-w-0 items-center gap-2">
-            <label className="relative block w-32 min-w-0 sm:w-64">
+            <label className="relative hidden w-64 min-w-0 md:block">
               <Search
                 aria-hidden="true"
                 className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]"
@@ -130,6 +130,7 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
         fxLibrary={fxLibrary}
         midi={midi}
         menuSlot={menuSlot}
+        onSearchChange={setSearch}
         onSendingChange={setSending}
         search={search}
       >

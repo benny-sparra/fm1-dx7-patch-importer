@@ -1,12 +1,13 @@
 export default {
   fxPresets: {
     currentActions: 'Дії з поточними ефектами',
-    newPreset: 'Новий пресет FX…',
     unsavedEffects: 'Незбережені ефекти',
+    saveButton: 'Зберегти',
+    saveAs: 'Зберегти як…',
+    loaded: '«{{name}}» завантажено.',
     edited: 'змінено',
     empty: 'Пресетів FX ще немає.',
     actions: 'Дії з пресетами FX',
-    updateNamed: 'Оновити «{{name}}»',
     presetActions: 'Дії для {{name}}',
     restored: '«{{name}}» відновлено.',
 

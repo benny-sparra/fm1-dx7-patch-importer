@@ -116,8 +116,7 @@ describe('independent Effects library view', () => {
     expect(getV16Effects()[2]).toBe(22)
     expect(screen.getByRole('button', { name: 'dave' }).getAttribute('aria-pressed')).toBe('true')
     expect(await screen.findByRole('heading', { name: /^dave/ })).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
-    expect(screen.getByRole('menuitem', { name: 'Update “dave”' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeTruthy()
     expect(sendSettings).not.toHaveBeenCalled()
   })
 

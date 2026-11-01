@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useId, useRef } from 'react'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,45 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import '@/i18n/fx-presets'
+
+/** Opens its dialog as it mounts, once, and gives focus back to what opened it on unmount. */
+function useOpenDialog() {
+  const dialog = useRef<HTMLDialogElement>(null)
+  useEffect(() => {
+    const element = dialog.current
+    const trigger = document.activeElement
+    if (element && !element.open) element.showModal()
+    return () => {
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus()
+    }
+  }, [])
+  return dialog
+}
+
+/** The phone's FX preset list: a sheet whose children get the element a menu opens inside. */
+export function FxPresetSheet({
+  children,
+  onClose,
+  title,
+}: {
+  children: (menuTarget: HTMLElement | null) => ReactNode
+  onClose: () => void
+  title: string
+}) {
+  const { t } = useTranslation()
+  const dialog = useOpenDialog()
+  const titleId = useId()
+  const [menuTarget, setMenuTarget] = useState<HTMLElement | null>(null)
+  return (
+    <Dialog aria-labelledby={titleId} onClose={onClose} ref={dialog} size="sm">
+      <DialogHeader>
+        <DialogTitle id={titleId}>{title}</DialogTitle>
+        <DialogCloseButton label={t('common.close')} onClick={() => dialog.current?.close()} />
+      </DialogHeader>
+      <DialogBody ref={setMenuTarget}>{children(menuTarget)}</DialogBody>
+    </Dialog>
+  )
+}
 
 /** The one dialog behind the FX presets' New, Rename, and Delete: a form with a pinned action. */
 export function FxPresetDialog({
@@ -33,19 +72,10 @@ export function FxPresetDialog({
   title: string
 }) {
   const { t } = useTranslation()
-  const dialog = useRef<HTMLDialogElement>(null)
+  const dialog = useOpenDialog()
   const titleId = useId()
   const formId = useId()
   const blocked = busy || confirmDisabled
-
-  useEffect(() => {
-    const element = dialog.current
-    const trigger = document.activeElement
-    if (element && !element.open) element.showModal()
-    return () => {
-      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus()
-    }
-  }, [])
 
   return (
     <Dialog

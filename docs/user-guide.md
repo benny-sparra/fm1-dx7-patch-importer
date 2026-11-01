@@ -103,23 +103,20 @@ browser. Merely opening the view sends nothing. Changing a control sends only th
 the shared FX group on the **Effect channel**. Other firmware does not offer the view, since the app
 sends it no shared-FX messages.
 
-Use **+ New FX preset…** in the Effects sidebar to name and save a snapshot of the 24 controls
-currently shown, then choose **Save preset**. A toast confirms the save, and the new preset is
-selected in the searchable, alphabetically sorted list. Each preset’s **⋮** menu offers Rename…,
-Duplicate, Download preset, and Delete…. Deleting offers **Undo** in its toast and leaves the
-current effects unchanged.
+The title strip above the rack always names it: the loaded preset's name, with “edited” beside it
+once you change a control, or **Unsaved effects**. Beside the name, **Save as…** names a snapshot of
+the 24 controls shown and saves it as a new preset, which then loads; a toast confirms. While a
+loaded preset is edited, **Save** also appears and replaces that preset at once, with **Undo** in
+its toast. The searchable list is alphabetical. Each preset’s **⋮** menu offers Rename…, Duplicate,
+Download preset, and Delete…, which offers **Undo** and leaves the current effects unchanged. On a
+phone the list opens from the name in the title strip, and choosing a preset closes it. Switching
+between Patches and Effects keeps the selected FX preset and any unsaved edits. Saving, renaming,
+duplicating, deleting, Undo, searching, importing and downloading send no MIDI. **FX preset
+actions** (the **⋮** by the search field) has **Import…** and **Download all**, which writes
+`fm1-fx-presets.json`; Import adds valid presets with new identities and keeps everything already
+present.
 
-The title strip above the rack shows the loaded preset’s name, with “edited” beside it once you
-change a control, or **Unsaved effects**. Switching between Patches and Effects keeps the selected
-FX preset and any unsaved effect edits. After changing effects, choose **Update “name”** in the
-strip’s **⋮** menu to replace that saved snapshot; updates save at once, show a toast, and offer
-**Undo** there. To keep the changes as another preset, use **+ New FX preset…**. Saving, updating,
-renaming, duplicating, deleting, Undo, searching, importing and downloading send no MIDI.
-**FX preset actions** (the **⋮** by the search field) has **Import…** and **Download all**, which
-writes `fm1-fx-presets.json`; Import adds valid presets with new identities and keeps everything
-already present.
-
-Click a preset to load it. If the load cannot reach the FM1, because MIDI is offline, the notice
+Click a preset to load it; **Undo** in the toast puts the previous effects back and sends them too. If the load cannot reach the FM1, because MIDI is offline, the notice
 under the strip says so, and it replaces only the browser’s current Effects controls; it is not
 sent later when MIDI reconnects. With an identified M-VAVE V16 online, the click also sends all 24
 controls once, in their existing order, to the shared FX group. Repeated clicks do not resend

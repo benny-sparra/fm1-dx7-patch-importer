@@ -375,18 +375,23 @@ open everything an earlier release could have saved.
   records the snapshot that was sent (`markV16EffectsSent`), never the rack as it is by then.
   **Send again** shows while the loaded preset matches its last send, and after a send that failed
   or went out only in part.
-- There is one way to save and one to rename. **+ New FX preset…** names a snapshot of the rack in a
-  modal; Rename… is a modal too. The title strip shows the loaded preset’s name, with a dim “edited”
-  beside it while the rack differs, or **Unsaved effects**. Its ⋮ menu holds **Update “name”** and
-  **Send again**, and is absent when neither applies. The sidebar header’s ⋮ (**FX preset actions**)
-  holds Import… and Download all only. A row’s menu ends with Delete…, in the danger colour.
-  Update saves immediately without a confirmation dialog and reports success through
-  `toast.success` after storage commits. Update and Delete offer Undo as an action in their
-  completion toast, capturing that change’s record; never as a sidebar button. A mutation
-  completed by a disposed FX-library owner refreshes the active owner, so a toast’s Undo still
-  updates the visible list after switching Patches/Effects. Renaming changes only the saved name,
-  never its effects. A name the library refuses reaches the page as the name-length error
-  (`FxLibraryPresetNameError`), not as a storage failure.
+- The rack always has a name, kept easy to change in one place (`FxPresetLibrary`): the loaded
+  preset's name when the rack matches it, with a dim “edited” beside it once any value differs, or
+  **Unsaved effects** when it never came from a preset or that preset was deleted. The loaded id
+  sits beside the current effects in session state; the `fm1-v16-effects` record is unchanged.
+  Two save verbs sit beside the name: **Save** overwrites the loaded preset, shown only while it is
+  edited, with no confirmation and an Undo toast; **Save as…** names a new preset in a modal, which
+  becomes the loaded one. There is no other save or update entry point. The title strip's ⋮ holds
+  **Send again** only, and is absent otherwise. Recall stays one click and sends as above, then
+  `toast.success` “Loaded “name”” offers **Undo**: it puts back the previous 24 values and loaded
+  id and sends them through the same sender when MIDI is eligible. One step, no history; it is
+  built in the component, since `undoToastOptions` takes a patch-library snapshot.
+- Rename…, Duplicate, Download preset, and Delete… live only in a row's ⋮, Delete last in the
+  danger colour; the list's own ⋮ (**FX preset actions**) holds Import… and Download all. The list
+  is flat and A–Z: no folders, tags, or recently-used order. Below `md` the sidebar is replaced by
+  the name on the title strip, a button that opens the searchable list in a `Dialog` sheet;
+  choosing a preset recalls it and closes the sheet. A menu opened in a modal passes `portalTarget`
+  to `PortalMenu`, since a modal dialog covers everything outside it.
 - Save, rename, duplicate and import report success through `toast.success` after storage commits;
   only errors stay on the page, in `ErrorNotice`. Creating an FX preset snapshots the current rack.
   Updating or deleting offers Undo; neither action, nor Undo, sends MIDI. Deleting a loaded preset

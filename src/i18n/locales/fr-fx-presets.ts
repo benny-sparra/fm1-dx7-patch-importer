@@ -1,12 +1,13 @@
 export default {
   fxPresets: {
     currentActions: 'Actions des effets actuels',
-    newPreset: 'Nouveau preset FX…',
     unsavedEffects: 'Effets non enregistrés',
+    saveButton: 'Enregistrer',
+    saveAs: 'Enregistrer sous…',
+    loaded: '« {{name}} » chargé.',
     edited: 'modifié',
     empty: 'Aucun preset FX pour l’instant.',
     actions: 'Actions sur les presets FX',
-    updateNamed: 'Actualiser « {{name}} »',
     presetActions: 'Actions pour {{name}}',
     restored: '« {{name}} » restauré.',
 
