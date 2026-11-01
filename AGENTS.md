@@ -379,16 +379,16 @@ open everything an earlier release could have saved.
 - Leaving the Effects view cancels the send still waiting its turn (`sendSharedEffectSettings` takes
   an `AbortSignal`), and a send that finished after the view went records nothing. A finished send
   records the snapshot that was sent (`markV16EffectsSent`), never the rack as it is by then.
-  **Send again** shows while the loaded preset matches its last send, and after a send that failed
-  or went out only in part.
+  **Send to FM1** on the title strip, styled as the patch banks' own, always sends the whole rack
+  as it is, saved or not, so it restores the FM1 after its own knobs, a power cycle, or a failed
+  send; a click on a preset never resends what was last sent.
 - The rack always has a name, kept easy to change in one place (`FxPresetLibrary`): the loaded
   preset's name when the rack matches it, with a dim “edited” beside it once any value differs, or
   **Unsaved effects** when it never came from a preset or that preset was deleted. The loaded id
   sits beside the current effects in session state; the `fm1-v16-effects` record is unchanged.
   Two save verbs sit beside the name: **Save** overwrites the loaded preset, shown only while it is
   edited, with no confirmation and an Undo toast; **Save as…** names a new preset in a modal, which
-  becomes the loaded one. There is no other save or update entry point. The title strip's ⋮ holds
-  **Send again** only, and is absent otherwise. Recall stays one click and sends as above, then
+  becomes the loaded one. There is no other save or update entry point. Recall stays one click and sends as above, then
   `toast.success` “Loaded “name”” offers **Undo**: it puts back the previous 24 values and loaded
   id and sends them through the same sender when MIDI is eligible. One step, no history; it is
   built in the component, since `undoToastOptions` takes a patch-library snapshot.

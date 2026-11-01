@@ -1,6 +1,5 @@
 export default {
   fxPresets: {
-    currentActions: 'Дії з поточними ефектами',
     unsavedEffects: 'Незбережені ефекти',
     saveButton: 'Зберегти',
     saveAs: 'Зберегти як…',
@@ -44,7 +43,6 @@ export default {
     imported_few: 'Імпортовано {{count, number}} пресети FX. Наявні пресети збережено.',
     imported_many: 'Імпортовано {{count, number}} пресетів FX. Наявні пресети збережено.',
     importEmpty: 'Файл не містить пресетів FX, тому нічого не імпортовано.',
-    sendAgain: 'Надіслати ще раз',
     sending: 'Надсилання…',
     offline: 'Вихід MIDI не вибрано. Завантаження змінює лише цей браузер.',
     ineligible: 'Ця прошивка не має спільної групи FX V16. Завантаження змінює лише цей браузер.',

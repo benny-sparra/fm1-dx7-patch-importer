@@ -120,8 +120,8 @@ Click a preset to load it; **Undo** in the toast puts the previous effects back 
 under the strip says so, and it replaces only the browser’s current Effects controls; it is not
 sent later when MIDI reconnects. With an identified M-VAVE V16 online, the click also sends all 24
 controls once, in their existing order, to the shared FX group. Repeated clicks do not resend
-unchanged settings. **Send again** in the strip’s **⋮** menu deliberately repeats the full send,
-and also appears after a send that failed. The FM1 does not acknowledge or verify these messages.
+unchanged settings. **Send to FM1** on the strip sends the effects as they are, saved or not,
+for example after a send that failed or after turning the FM1's own knobs. The FM1 does not acknowledge or verify these messages.
 
 FX presets do not contain the hardware's effect-chain order, and the editor cannot read changes
 made on the FM1's front panel. Loading does not select a Voice, change Voice setup, save on the FM1,

@@ -389,7 +389,7 @@ describe('FX preset library', () => {
     ).toBeTruthy()
   })
 
-  it('applies a clicked preset once and offers an explicit repeat in the rack menu', async () => {
+  it('applies a clicked preset once, and Send to FM1 repeats it', async () => {
     const user = userEvent.setup()
     const send = vi.fn(() => Promise.resolve({ ok: true as const, sent: 24 as const }))
     setup(
@@ -407,9 +407,27 @@ describe('FX preset library', () => {
     await waitFor(() => expect(send).toHaveBeenCalledOnce())
     await user.click(screen.getByRole('button', { name: 'Stage room' }))
     expect(send).toHaveBeenCalledOnce()
-    await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
-    await user.click(screen.getByRole('menuitem', { name: 'Send again' }))
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
     await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  })
+
+  it('Send to FM1 sends the rack as edited, without a saved preset', async () => {
+    const user = userEvent.setup()
+    const send = vi.fn(() => Promise.resolve({ ok: true as const, sent: 24 as const }))
+    setup(
+      makeLibrary(),
+      makeMidi({ hasMidiOutput: true, selectedOutputId: 'fm1', sendSharedEffectSettings: send }),
+    )
+    const edited = getV16Effects().slice()
+    edited[1] = 2
+    act(() => {
+      setV16Effects(edited)
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
+
+    await waitFor(() => expect(send).toHaveBeenCalledOnce())
+    expect(send).toHaveBeenCalledWith(edited, expect.anything())
   })
 
   it('says so when the firmware has no shared FX group, instead of staying silent', async () => {
@@ -450,7 +468,7 @@ describe('FX preset library', () => {
     await waitFor(() => expect(screen.queryByText('Sending…')).toBeNull())
   })
 
-  it('offers Send again after a failed send, and a later success marks the preset sent', async () => {
+  it('Send to FM1 retries a failed send, and a later success marks the preset sent', async () => {
     const user = userEvent.setup()
     const send = vi
       .fn()
@@ -463,8 +481,7 @@ describe('FX preset library', () => {
     await user.click(screen.getByRole('button', { name: 'Stage room' }))
     expect((await screen.findByRole('alert')).textContent).toContain('Not all effects were sent.')
 
-    await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
-    await user.click(screen.getByRole('menuitem', { name: 'Send again' }))
+    await user.click(screen.getByRole('button', { name: 'Send to FM1' }))
 
     await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
     await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
@@ -494,7 +511,6 @@ describe('FX preset library', () => {
     })
 
     expect(getV16EffectsLastSent()?.effects).toEqual(preset.effects)
-    expect(screen.queryByRole('menuitem', { name: 'Send again' })).toBeNull()
   })
 
   it('cancels its pending send when the view is left and records nothing', async () => {

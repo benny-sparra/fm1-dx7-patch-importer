@@ -1,6 +1,5 @@
 export default {
   fxPresets: {
-    currentActions: '当前效果操作',
     unsavedEffects: '未保存的效果',
     saveButton: '保存',
     saveAs: '另存为…',
@@ -36,7 +35,6 @@ export default {
     imported: '已导入 {{count, number}} 个 FX 预设。现有预设已保留。',
     imported_other: '已导入 {{count, number}} 个 FX 预设。现有预设已保留。',
     importEmpty: '文件中没有 FX 预设，因此没有导入任何内容。',
-    sendAgain: '再次发送',
     sending: '正在发送…',
     offline: '未选择 MIDI 输出。加载只会更改此浏览器。',
     ineligible: '此固件没有 V16 共享 FX 组。加载只会更改此浏览器。',

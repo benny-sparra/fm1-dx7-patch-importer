@@ -1,6 +1,5 @@
 export default {
   fxPresets: {
-    currentActions: 'Actions des effets actuels',
     unsavedEffects: 'Effets non enregistrés',
     saveButton: 'Enregistrer',
     saveAs: 'Enregistrer sous…',
@@ -38,7 +37,6 @@ export default {
     imported_other:
       '{{count, number}} presets FX importés. Les presets existants ont été conservés.',
     importEmpty: 'Le fichier ne contient aucun preset FX ; rien n’a été importé.',
-    sendAgain: 'Renvoyer',
     sending: 'Envoi…',
     offline: 'Aucune sortie MIDI sélectionnée. Le chargement ne modifie que ce navigateur.',
     ineligible:

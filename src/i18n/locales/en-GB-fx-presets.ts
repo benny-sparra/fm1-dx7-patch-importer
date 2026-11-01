@@ -1,7 +1,6 @@
 /** British English loaded with the standalone Effects view and its named-preset dialog. */
 export default {
   fxPresets: {
-    currentActions: 'Current effects actions',
     unsavedEffects: 'Unsaved effects',
     saveButton: 'Save',
     saveAs: 'Save as…',
@@ -38,7 +37,6 @@ export default {
     imported: 'Imported {{count, number}} FX preset. Existing presets were kept.',
     imported_other: 'Imported {{count, number}} FX presets. Existing presets were kept.',
     importEmpty: 'The file contains no FX presets, so nothing was imported.',
-    sendAgain: 'Send again',
     sending: 'Sending…',
     offline: 'No MIDI output is selected. Loading changes only this browser.',
     ineligible: 'This firmware has no shared V16 FX group. Loading changes only this browser.',
