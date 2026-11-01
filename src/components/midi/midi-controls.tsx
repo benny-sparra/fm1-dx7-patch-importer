@@ -232,6 +232,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           <p className="font-dot-matrix text-base font-semibold">{t('common.settings')}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">{t('settings.description')}</p>
         </div>
+        <FirmwareStatus midi={midi} />
         <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <Languages className="size-3.5" />
@@ -262,7 +263,6 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           onChange={midi.setSelectedInputId}
           value={midi.selectedInputId}
         />
-        <FirmwareStatus midi={midi} />
         <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-4 py-3">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
