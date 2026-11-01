@@ -1,4 +1,5 @@
-// Only the lazy Effects view opens a menu beside its trigger, so this stays out of the entry.
+// Layout for the Effects view's preset rail, which only its lazy chunk reads, so this stays out of
+// the entry.
 import type { MenuPosition } from '@/lib/help-popover'
 
 /**
@@ -22,4 +23,19 @@ export function positionMenuBeside(
     left,
     top: Math.max(margin, Math.min(trigger.top, viewportHeight - menuHeight - margin)),
   }
+}
+
+/**
+ * The scroll position that brings a row of a scrolling list into view while moving it as little
+ * as possible: unchanged when the row is already in sight. Offsets are within the list.
+ */
+export function scrollTopShowing(
+  rowTop: number,
+  rowHeight: number,
+  scrollTop: number,
+  clientHeight: number,
+) {
+  if (rowTop < scrollTop) return rowTop
+  if (rowTop + rowHeight > scrollTop + clientHeight) return rowTop + rowHeight - clientHeight
+  return scrollTop
 }

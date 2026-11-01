@@ -121,7 +121,7 @@ test('uses the independent Effects view and keeps a named FX preset across a rel
   await openEffects(page)
 
   await expect(page.getByRole('tab', { name: /Voice/ })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Save as…' }).click()
+  await page.getByRole('button', { name: 'New FX preset…' }).click()
   await expect(page.getByRole('dialog', { name: 'Save current effects' })).toBeVisible()
   await page.getByRole('textbox', { name: 'Preset name' }).fill('Stage hall')
   await page.getByRole('button', { name: 'Save preset' }).click()
@@ -166,13 +166,49 @@ test('uses the independent Effects view and keeps a named FX preset across a rel
   await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
 })
 
+test('scrolls a long FX preset list inside the rail, as tall as the rack, keeping the loaded preset and New FX preset… in sight', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await openEffects(page)
+  for (let index = 1; index <= 16; index += 1) {
+    await page.getByRole('button', { name: 'New FX preset…' }).click()
+    await page
+      .getByRole('textbox', { name: 'Preset name' })
+      .fill(`Hall ${String(index).padStart(2, '0')}`)
+    await page.getByRole('button', { name: 'Save preset' }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+  }
+
+  const list = page.getByRole('list', { name: 'FX presets' })
+  const { clientHeight, scrollHeight } = await list.evaluate((element) => ({
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }))
+  expect(scrollHeight).toBeGreaterThan(clientHeight)
+  const rail = await list.evaluate((element) => {
+    const railBox = element.closest('.w-\\[226px\\]')!.getBoundingClientRect()
+    const rackBox = element.closest('section')!.getBoundingClientRect()
+    return { railBottom: railBox.bottom, rackBottom: rackBox.bottom }
+  })
+  expect(Math.abs(rail.railBottom - rail.rackBottom)).toBeLessThanOrEqual(1)
+  await expect(page.getByRole('button', { name: 'New FX preset…' })).toBeInViewport()
+  // The last one saved is loaded, at the foot of an A–Z list, and scrolled into view.
+  await expect(page.getByRole('button', { name: 'Hall 16', exact: true })).toBeInViewport()
+  await page.getByRole('button', { name: 'Hall 01', exact: true }).scrollIntoViewIfNeeded()
+  await page.getByRole('button', { name: 'Hall 01', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Hall 01', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+})
+
 test('opens the FX preset list as a sheet from the name on a 320 px screen', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 640 })
   await openEffects(page)
 
   for (const control of [
     page.getByRole('button', { name: 'Unsaved effects' }),
-    page.getByRole('button', { name: 'Save as…' }),
     page.getByRole('button', { name: 'FX preset actions' }),
     page.getByRole('button', { name: 'Help: Effects' }),
   ]) {
@@ -184,7 +220,12 @@ test('opens the FX preset list as a sheet from the name on a 320 px screen', asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   )
-  await page.getByRole('button', { name: 'Save as…' }).click()
+  // On a phone New FX preset… sits at the foot of the sheet, as it does under the rail.
+  await page.getByRole('button', { name: 'Unsaved effects' }).click()
+  await page
+    .getByRole('dialog', { name: 'FX presets' })
+    .getByRole('button', { name: 'New FX preset…' })
+    .click()
   await page.getByRole('textbox', { name: 'Preset name' }).fill('Phone hall')
   await page.getByRole('button', { name: 'Save preset' }).click()
   await expect(page.getByRole('button', { name: 'Phone hall', exact: true })).toBeVisible()

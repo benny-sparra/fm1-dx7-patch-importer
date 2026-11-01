@@ -48,7 +48,11 @@ test('fits the independent Effects view and its preset controls on a narrow scre
   await page.getByRole('button', { name: 'Effects' }).tap()
   await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
   await expectNoSidewaysScroll(page)
-  await page.getByRole('button', { name: 'Save as…' }).tap()
+  await page.getByRole('button', { name: 'Unsaved effects' }).tap()
+  await page
+    .getByRole('dialog', { name: 'FX presets' })
+    .getByRole('button', { name: 'New FX preset…' })
+    .tap()
   await page.getByRole('textbox', { name: 'Preset name' }).fill('Mobile hall')
   await page.getByRole('button', { name: 'Save preset' }).tap()
   await expect(page.getByRole('dialog')).toHaveCount(0)
@@ -60,7 +64,7 @@ test('fits the independent Effects view and its preset controls on a narrow scre
   const menuBounds = await sheet
     .getByRole('button', { name: 'Actions for Mobile hall' })
     .boundingBox()
-  const saveBounds = await page.getByRole('button', { name: 'Save as…' }).boundingBox()
+  const saveBounds = await sheet.getByRole('button', { name: 'New FX preset…' }).boundingBox()
   expect(presetBounds?.height).toBeGreaterThanOrEqual(24)
   expect(saveBounds?.height).toBeGreaterThanOrEqual(24)
   expect(menuBounds?.height).toBeGreaterThanOrEqual(24)

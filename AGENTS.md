@@ -387,7 +387,9 @@ open everything an earlier release could have saved.
   as `PatchGrid` does, and its preset rows match a bank tab's: the same height, a bevelled ⋮
   (`PortalMenu`'s `triggerLook`) whose menu opens beside it (`placeMenu`, from `src/lib/menu-beside.ts`, which only lazy code
   imports, since `PortalMenu` is in the entry), and an icon on
-  every item. A send shows on the Send
+  every item. The rail is as tall as the rack beside it, never taller: the list takes the
+  room its rows need with **New FX preset…** under it, scrolls once it runs out of room, and
+  scrolls the loaded preset into view whenever it changes (`scrollTopShowing`). A send shows on the Send
   button, as the bank's does: a barber pole and **Sending…** in the same cell as **Send to FM1**,
   with the words read aloud from a status region that shows nothing, so nothing below the strip
   moves while the effects go out.

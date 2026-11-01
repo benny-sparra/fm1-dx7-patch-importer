@@ -46,7 +46,7 @@ import {
   makeFxPresetFile,
   readFxPresetFile,
 } from '@/lib/fx-preset-file'
-import { positionMenuBeside } from '@/lib/menu-beside'
+import { positionMenuBeside, scrollTopShowing } from '@/lib/menu-beside'
 import { cn } from '@/lib/utils'
 import { downloadFile } from '@/lib/download-file'
 import {
@@ -114,6 +114,7 @@ export function FxPresetLibrary({
   const [sheetOpen, setSheetOpen] = useState(false)
   // Below md the list is a sheet opened from the title strip, not a sidebar.
   const narrow = useMediaQuery('(max-width: 767.98px)')
+  const listRef = useRef<HTMLUListElement>(null)
   const mutationInFlight = useRef(false)
   const sendInFlight = useRef(false)
   const sendAbort = useRef<AbortController | null>(null)
@@ -150,6 +151,19 @@ export function FxPresetLibrary({
   }, [mode])
 
   useEffect(() => onSendingChange(sending), [onSendingChange, sending])
+
+  // Recall, Undo, Revert and saving all change the loaded preset; its lit row stays in sight.
+  useEffect(() => {
+    const list = listRef.current
+    const row = list?.querySelector<HTMLElement>('[aria-pressed="true"]')?.closest('li')
+    if (!list || !row) return
+    list.scrollTop = scrollTopShowing(
+      row.offsetTop,
+      row.offsetHeight,
+      list.scrollTop,
+      list.clientHeight,
+    )
+  }, [loadedId, visible])
   useEffect(
     () => () => {
       // Leaving the view drops the sends still waiting their turn, so none reaches the FM1 unseen.
@@ -392,7 +406,8 @@ export function FxPresetLibrary({
         visible.length ? (
           <ul
             aria-label={t('fxPresets.dialogTitle')}
-            className="-m-0.5 flex max-h-36 flex-col gap-1.5 overflow-y-auto p-0.5 md:max-h-[50dvh]"
+            className="relative -m-0.5 flex min-h-0 flex-col gap-1.5 overflow-y-auto p-0.5"
+            ref={listRef}
           >
             {visible.map((preset) => (
               <li
@@ -426,7 +441,7 @@ export function FxPresetLibrary({
                   portalTarget={menuTarget}
                   // A bevelled box, as a bank tab's ⋮ is, lit with the row it belongs to.
                   triggerLook={cn(
-                    'h-6 w-5 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] aria-expanded:bg-[var(--crt-bg-1)]',
+                    'size-6 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] aria-expanded:bg-[var(--crt-bg-1)]',
                     preset.id === loadedId ? 'text-[var(--crt-led)]' : 'text-[var(--crt-ink-2)]',
                   )}
                   triggerLabel={t('fxPresets.presetActions', { name: preset.name })}
@@ -505,12 +520,16 @@ export function FxPresetLibrary({
     >
       {menuSlot ? createPortal(menu, menuSlot) : null}
       {narrow ? null : (
-        <div className={cn('w-[226px] shrink-0', libraryRailClassName)}>
-          {!menuSlot ? menu : null}
-          <div className="flex min-w-0 flex-col gap-1.5 p-2 text-sm break-words">
-            {renderList()}
+        // The rack beside it sets the panel's height. The list takes the room it needs, with New FX
+        // preset… under it as Add new bank… is under the banks, and scrolls once it runs out.
+        <div className={cn('relative w-[226px] shrink-0', libraryRailClassName)}>
+          <div className="absolute inset-0 flex flex-col">
+            {!menuSlot ? menu : null}
+            <div className="flex min-h-0 min-w-0 flex-col gap-1.5 p-2 text-sm break-words">
+              {renderList()}
+            </div>
+            {newPresetButton}
           </div>
-          {newPresetButton}
         </div>
       )}
       <div className="min-w-0 flex-1">
