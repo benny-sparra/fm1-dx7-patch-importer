@@ -887,17 +887,17 @@ export function EffectsUnit({
         </SortableContext>
       </DndContext>
       {effectOrder?.notice || effectOrder?.order === null ? (
-        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+        <p className="col-span-full text-[11px] leading-4 text-[var(--crt-ink-3)]">
           {effectOrder.notice ?? t('effectOrder.noRecord')}
         </p>
       ) : null}
       {keepsBitcrush ? (
-        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+        <p className="col-span-full text-[11px] leading-4 text-[var(--crt-ink-3)]">
           {t('bitcrush.otherFirmware')}
         </p>
       ) : null}
       {keepsEffectOrder ? (
-        <p className="text-[11px] leading-4 text-[var(--crt-ink-3)] md:col-span-2 xl:col-span-3">
+        <p className="col-span-full text-[11px] leading-4 text-[var(--crt-ink-3)]">
           {t('effectOrder.otherFirmware')}
         </p>
       ) : null}

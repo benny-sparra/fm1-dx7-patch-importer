@@ -216,9 +216,6 @@ describe('V16 effects panel effect order', () => {
     if (answer?.type !== 'block') throw new Error('fixture')
     expect(writes()[0]).toEqual(makeEffectOrderWrite(answer.block, [0, 2, 1, 3, 5, 4]))
     expect(effectNames().slice(0, 2)).toEqual(['Filter', 'Delay'])
-    expect(
-      screen.getByText('A new order is not saved on the FM1 until you press SAVE.'),
-    ).toBeTruthy()
   })
 
   it('puts the order back and says so when the FM1 does not answer the read before a write', async () => {

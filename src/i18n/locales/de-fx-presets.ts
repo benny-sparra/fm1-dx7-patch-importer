@@ -50,7 +50,6 @@ export default {
       'Der FM1 hat seine Effektreihenfolge nicht geliefert, daher lässt sie sich hier nicht ändern.',
     effectOrderWriteFailed:
       'Der FM1 hat die neue Reihenfolge nicht übernommen. Versuche es erneut.',
-    effectOrderUnsaved: 'Eine neue Reihenfolge wird auf dem FM1 erst mit SAVE gespeichert.',
     effectOrderDragTitle:
       'Ziehen, um zu ändern, wo dieser Effekt in der Reihenfolge sitzt, die der Klang durchläuft, der erste oben links. Mit der Tastatur: Leertaste, dann die Pfeiltasten. Der FM1 spielt die neue Reihenfolge sofort.',
     sessionOnly:

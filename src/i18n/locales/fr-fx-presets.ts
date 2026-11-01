@@ -50,7 +50,6 @@ export default {
     effectOrderFailed:
       'Le FM1 n’a pas donné l’ordre de ses effets, il ne peut donc pas être changé ici.',
     effectOrderWriteFailed: 'Le FM1 n’a pas pris le nouvel ordre. Réessayez.',
-    effectOrderUnsaved: 'Un nouvel ordre n’est enregistré sur le FM1 qu’avec SAVE.',
     effectOrderDragTitle:
       'Faites glisser pour changer la place de cet effet dans l’ordre que traverse le son, le premier en haut à gauche. Au clavier, appuyez sur Espace, puis sur les flèches. Le FM1 joue le nouvel ordre aussitôt.',
     sessionOnly:

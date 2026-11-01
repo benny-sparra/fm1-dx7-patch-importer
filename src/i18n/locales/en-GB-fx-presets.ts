@@ -48,7 +48,6 @@ export default {
     effectOrderReading: 'Reading the effect order from the FM1…',
     effectOrderFailed: 'The FM1 did not give its effect order, so it cannot be changed here.',
     effectOrderWriteFailed: 'The FM1 did not take the new order. Try again.',
-    effectOrderUnsaved: 'A new order is not saved on the FM1 until you press SAVE.',
     effectOrderDragTitle:
       'Drag to change where this effect sits in the order the sound passes through, first at the top left. With the keyboard, press Space, then the arrow keys. The FM1 plays the new order at once.',
     sessionOnly:

@@ -46,7 +46,6 @@ export default {
     effectOrderReading: '正在从 FM1 读取效果顺序…',
     effectOrderFailed: 'FM1 没有返回效果顺序，因此无法在此更改。',
     effectOrderWriteFailed: 'FM1 没有接受新的顺序，请重试。',
-    effectOrderUnsaved: '新的顺序在 FM1 上按下 SAVE 之前不会保存。',
     effectOrderDragTitle:
       '拖动以改变此效果在声音所经顺序中的位置，第一个在左上角。使用键盘时，按空格键，再按方向键。FM1 会立即按新顺序播放。',
     sessionOnly: '浏览器存储无法保留这些效果，它们仅在此标签页保持打开时有效。',

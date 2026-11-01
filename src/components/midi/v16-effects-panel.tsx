@@ -75,9 +75,7 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
         ? t('fxPresets.effectOrderFailed')
         : chain.writeFailed
           ? t('fxPresets.effectOrderWriteFailed')
-          : chain.status === 'ready'
-            ? t('fxPresets.effectOrderUnsaved')
-            : undefined
+          : undefined
 
   useEffect(() => {
     if (route !== previousRoute.current) clearV16EffectsLastSent()
