@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { WarningNotice } from '@/components/ui/warning-notice'
+import '@/i18n/librarian-dialogs'
 import type { FxLibrary } from '@/hooks/use-fx-library'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import type { PatchLibrarySnapshot } from '@/lib/patch-library'

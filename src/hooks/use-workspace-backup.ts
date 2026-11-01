@@ -70,7 +70,8 @@ export function useDownloadWorkspaceBackup(library: BackupLibrary) {
         workspaceBanks: library.workspaceBanks,
       },
     })
-    toast.success(t(`backup.${downloaded}`))
+    // Joined, not templated: the restore dialog's lazy `backup.*` strings are not read here.
+    toast.success(t('backup.' + downloaded))
     return true
   }, [library, t, toast])
 }

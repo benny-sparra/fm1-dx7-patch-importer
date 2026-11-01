@@ -468,8 +468,6 @@ export default {
     loaded: 'Loaded “{{name}}” into “{{bank}}”.',
   },
   backup: {
-    fxPresets: 'FX presets',
-    notInOlderBackup: 'Not included (older backup)',
     menuOtherFiles: 'Other files',
     menuHeading: 'Backup',
     download: 'Download backup',
@@ -487,40 +485,6 @@ export default {
     unavailable: 'Backups could not be opened. Reload the page and try again.',
     unavailableUnsaved:
       'The backup could not be prepared. Keep this tab open, because your latest changes are not saved, and try again.',
-    restoreTitle: 'Restore from backup',
-    restoreIntro:
-      'Choose a backup file made with Download backup. Nothing changes until you confirm.',
-    chooseFile: 'Choose a backup file',
-    reading: 'Reading the backup…',
-    backedUpAt: 'Backed up',
-    workspaceBanks: 'Banks',
-    patches: 'Patches',
-    savedBanks: 'Saved banks',
-    toAdd: 'To add',
-    alreadyHere: 'Already here, kept',
-    unreadable: 'Could not be read',
-    workspaceEffect:
-      'Your banks and all their patches are replaced by the ones in the backup. Undo in the notification afterwards puts them back.',
-    savedBanksEffect:
-      'Saved banks are only added. One already in this browser is kept as it is, and Undo does not remove the ones added.',
-    fxPresetsEffect: 'FX presets are added. Ones already here are kept.',
-    restoreAction: 'Restore backup',
-    restoring: 'Restoring…',
     restored: 'Restored the backup from {{date}}.',
-    errors: {
-      format:
-        'This file is not a backup from this app. Choose a .json file made with Download backup.',
-      newer:
-        'This backup was made by a newer version of this app. Reload the page to update it, then try again.',
-      damaged: 'This backup is damaged and cannot be restored. Try another backup file.',
-      size: 'This file is too large to be a backup from this app.',
-      read: 'The file could not be read. Choose it again.',
-      restoreFailed:
-        'Browser storage could not finish the restore, so your library was not replaced. Saved banks already added from this backup were kept.',
-      restoreFxFailed:
-        'FX presets from this backup could not be saved, so your library was not replaced and no FX presets were added.',
-      restoreFxFailedBanksKept:
-        'FX presets from this backup could not be saved, so your library was not replaced and no FX presets were added. The saved banks from this backup were added first and were kept.',
-    },
   },
 } as const

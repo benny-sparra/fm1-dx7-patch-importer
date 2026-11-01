@@ -1102,10 +1102,11 @@ describe('saveStoredPatchLibrary across two tabs', () => {
   /** Puts a record straight into storage, as another tab or release would have written it. */
   async function putRecord(record: Record<string, unknown>) {
     const database = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('fm1-librarian', 2)
+      const request = indexedDB.open('fm1-librarian', 3)
       request.onupgradeneeded = () => {
         request.result.createObjectStore('library')
         request.result.createObjectStore('named-banks', { keyPath: 'id' })
+        request.result.createObjectStore('fx-presets', { keyPath: 'id' })
       }
       request.onsuccess = () => resolve(request.result)
       request.onerror = () => reject(new Error('open failed'))
