@@ -26,6 +26,8 @@ const listeners = new Set<() => void>()
 let current: Uint8Array | null = null
 let persistence: V16EffectsPersistence = 'persisted'
 let lastSent: V16EffectsLastSent | null = null
+// Session metadata belongs to the current rack, not to a tab that unmounts on navigation.
+let loadedPresetId = ''
 
 function normaliseEffects(record: unknown) {
   if (typeof record !== 'object' || record === null) return null
@@ -60,6 +62,17 @@ export function getV16Effects() {
 
 export function getV16EffectsPersistence() {
   return persistence
+}
+
+/** The named preset the rack was loaded from; never persisted as a claim about hardware state. */
+export function getV16EffectsPresetId() {
+  return loadedPresetId
+}
+
+export function setV16EffectsPresetId(next: string) {
+  if (loadedPresetId === next) return
+  loadedPresetId = next
+  listeners.forEach((listener) => listener())
 }
 
 export function getV16EffectsLastSent() {
@@ -125,4 +138,5 @@ export function resetV16EffectsForTests() {
   current = null
   persistence = 'persisted'
   lastSent = null
+  loadedPresetId = ''
 }

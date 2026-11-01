@@ -103,17 +103,26 @@ opening the view sends nothing. On M-VAVE V16, changing a control sends only tha
 the shared FX group on the **Effect channel**. Other firmware can still use the view locally, but
 the app sends it no shared-FX messages.
 
-Choose **FX presets…** to keep named snapshots of all 24 controls. **Save current as…** makes a new
-preset; Rename, Duplicate, Update, Delete, search, selection, import, and export are browser-library
-operations and send no MIDI. **Export selected** or **Export all** writes
+Use **+ New FX preset…** in the Effects sidebar to name and save a snapshot of the 24 controls
+currently shown. Enter its name in the modal and choose **Save preset**. A modal confirms the save. The new preset is selected in the searchable, alphabetically sorted list, which
+scrolls independently of the rack. Each preset’s **⋮** menu offers Rename, Duplicate, Export selected,
+and Delete. Deleting offers **Undo** in its completion toast and leaves the current effects unchanged.
+
+The rack header shows the loaded preset’s editable name, or **Custom settings**. Switching
+between Sounds and Effects keeps the selected FX preset and any unsaved effect edits. Edit the name
+and press Enter or leave the field to rename the saved preset. Escape discards the name edit.
+After changing effects, choose **Update “name”** in the rack header’s **⋮** menu to replace that saved snapshot, or
+**Save current as…** in the rack header’s **⋮** menu to create another. Updates save immediately, show a toast after storage commits, and offer **Undo** within that toast. Clicking a preset immediately loads its settings into the editing area. Opening its **⋮** menu
+leaves the current effects unchanged. Saving, updating, renaming, duplicating, deleting, Undo, searching,
+importing and exporting send no MIDI. **Export selected** or **Export all** writes
 `fm1-fx-presets.json`; **Import…** adds valid presets with new identities and keeps everything
 already present.
 
-Select a preset and use **Load into Effects** while offline or on other firmware. This replaces the
-browser's current Effects controls only and is not sent later when MIDI reconnects. With an
-identified M-VAVE V16 online, **Load and apply** also sends all 24 controls once, in their existing
-order, to the shared FX group. **Sent to FM1** means the browser handed over the messages; the FM1
-does not acknowledge or verify them. **Send again** deliberately repeats the full send.
+Click a preset to load it. While offline or on other firmware, this replaces only the browser’s
+current Effects controls and is not sent later when MIDI reconnects. With an identified M-VAVE V16
+online, the click also sends all 24 controls once, in their existing order, to the shared FX group.
+Repeated clicks do not resend unchanged settings. **Send again** in the rack header’s **⋮** menu
+deliberately repeats the full send. The FM1 does not acknowledge or verify these messages.
 
 FX presets do not contain the hardware's effect-chain order, and the editor cannot read changes
 made on the FM1's front panel. Loading does not select a Voice, change Voice setup, save on the FM1,

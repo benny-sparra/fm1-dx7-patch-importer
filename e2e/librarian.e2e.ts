@@ -110,26 +110,59 @@ test('uses the independent Effects view and keeps a named FX preset offline', as
   await openLibrarian(page)
 
   await page.getByRole('button', { name: 'Effects' }).click()
-  await expect(page.getByRole('heading', { name: 'Effects' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
   await expect(page.getByRole('tab', { name: /Voice/ })).toHaveCount(0)
-  await page.getByRole('button', { name: 'FX presets…' }).click()
-
-  const dialog = page.getByRole('dialog', { name: 'FX presets' })
-  await expect(dialog).toBeVisible()
-  await dialog.getByRole('button', { name: 'Save current as…' }).click()
-  await dialog.getByRole('textbox', { name: 'Preset name' }).fill('Offline hall')
-  await dialog.getByRole('button', { name: 'Save preset' }).click()
-  await expect(dialog.getByRole('option', { name: 'Offline hall' })).toBeVisible()
-  await dialog.getByRole('option', { name: 'Offline hall' }).click()
-  await dialog.getByRole('button', { name: 'Load into Effects' }).click()
-  await expect(dialog.getByText('Loaded into the browser’s V16 effects.')).toBeVisible()
-  await dialog.getByRole('button', { name: 'Close' }).click()
-  await expect(page.getByRole('button', { name: 'FX presets…' })).toBeFocused()
+  await page.getByRole('button', { name: 'New FX preset…' }).click()
+  await expect(page.getByRole('dialog', { name: 'Save current effects' })).toBeVisible()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Offline hall')
+  await page.getByRole('button', { name: 'Save preset' }).click()
+  await page
+    .getByRole('dialog', { name: 'FX presets' })
+    .getByRole('button', { name: 'Close' })
+    .click()
+  await expect(page.getByRole('button', { name: 'Offline hall', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await page.getByRole('button', { name: 'Offline hall', exact: true }).click()
+  await expect(page.getByRole('textbox', { name: 'Preset name' })).toHaveValue('Offline hall')
+  await expect(page.getByRole('button', { name: 'Load into Effects' })).toHaveCount(0)
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Renamed hall')
+  await page.getByRole('textbox', { name: 'Preset name' }).press('Enter')
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
+  await page.getByRole('switch', { name: 'Filter', exact: true }).press('Space')
+  await page.getByRole('button', { name: 'Sounds', exact: true }).click()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
+  await expect(page.getByRole('textbox', { name: 'Preset name' })).toHaveValue('Renamed hall')
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page.getByRole('switch', { name: 'Filter', exact: true })).toBeChecked()
+  await page.getByRole('button', { name: 'Current effects actions' }).click()
+  await page.getByRole('menuitem', { name: 'Update “Renamed hall”' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Completed actions' })).toContainText(
+    'Updated “Renamed hall” from the current effects.',
+  )
 
   await page.reload()
   await page.getByRole('button', { name: 'Effects' }).click()
-  await page.getByRole('button', { name: 'FX presets…' }).click()
-  await expect(page.getByRole('option', { name: 'Offline hall' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Renamed hall', exact: true }).click()
+  await expect(page.getByRole('switch', { name: 'Filter', exact: true })).toBeChecked()
+  await page.getByRole('button', { name: 'Actions for Renamed hall' }).click()
+  await page.getByRole('menuitem', { name: 'Delete…' }).click()
+  await page.getByRole('button', { name: 'Delete preset' }).click()
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Sounds', exact: true }).click()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
+  await page
+    .getByRole('status')
+    .filter({ hasText: 'Deleted “Renamed hall”.' })
+    .getByRole('button', { name: 'Undo', exact: true })
+    .click()
+  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
 })
 
 test('zooms out of the slot as a patch opens and back into it as the editor closes', async ({

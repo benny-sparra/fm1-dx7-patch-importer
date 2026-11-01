@@ -7,10 +7,12 @@ import {
   Files,
   HardDriveDownload,
   HardDriveUpload,
+  Music,
   Plus,
   RotateCcw,
   Save,
   Send,
+  Sparkles,
   Trash2,
   Upload,
 } from 'lucide-react'
@@ -48,7 +50,6 @@ import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import { MidiConnectionRequiredDialog } from '@/components/midi/midi-connection-required-dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { Button } from '@/components/ui/button'
 import { dx7BankVoiceCount, makeDx7BankFile, type Dx7Voice } from '@/lib/dx7'
 import {
   favouritesBank,
@@ -90,6 +91,7 @@ import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
+import { LoadingSection } from '@/components/ui/loading-section'
 import { useToast } from '@/components/ui/toast'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 
@@ -1092,24 +1094,37 @@ export function LibrarianPage({
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      <nav aria-label={t('libraryViews.label')} className="flex border-b border-[var(--crt-line)]">
+      <nav
+        aria-label={t('libraryViews.label')}
+        className="relative z-10 -mb-5 flex items-end gap-0.5"
+      >
         {(['sounds', 'effects'] as const).map((candidate) => (
-          <Button
+          <button
             aria-current={section === candidate ? 'page' : undefined}
+            className={cn(
+              'font-dot-matrix relative -mb-0.5 inline-flex min-h-11 cursor-pointer items-center gap-2 border border-b-2 border-l-2 px-3 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+              section === candidate
+                ? 'crt-hatch border-r-2 border-t-[var(--crt-led)] border-r-[var(--crt-bevel)] border-b-transparent border-l-[var(--crt-bevel)] before:absolute before:-top-px before:-right-0.5 before:-left-0.5 before:h-0.5 before:bg-[var(--crt-led)] before:content-[""]'
+                : 'border-t-[var(--crt-line-lt2)] border-r-[var(--crt-line-dk)] border-b-[var(--crt-bevel)] border-l-[var(--crt-line-lt2)] bg-[var(--crt-bg-1)] hover:bg-[var(--crt-btn-face)]',
+            )}
             key={candidate}
             onClick={() => setSection(candidate)}
             type="button"
-            variant={section === candidate ? 'pressed' : 'secondary'}
           >
+            {candidate === 'sounds' ? (
+              <Music aria-hidden="true" className="size-4 shrink-0" />
+            ) : (
+              <Sparkles aria-hidden="true" className="size-4 shrink-0" />
+            )}
             {t(`libraryViews.${candidate}`)}
-          </Button>
+          </button>
         ))}
       </nav>
       {section === 'effects' ? (
         <ErrorBoundary
           fallback={<LoadFailedNotice message={t('libraryViews.effectsLoadFailed')} />}
         >
-          <Suspense fallback={<p>{t('common.loading')}</p>}>
+          <Suspense fallback={<LoadingSection label={t('common.loading')} />}>
             <V16EffectsPanel fxLibrary={fxLibrary} midi={midi} />
           </Suspense>
         </ErrorBoundary>

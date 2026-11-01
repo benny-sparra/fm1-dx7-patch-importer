@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { createFxLibraryPreset } from '@/lib/fx-library-preset'
+import { getV16Effects, resetV16EffectsForTests } from '@/lib/v16-effects'
 import type { FxLibrary } from '@/hooks/use-fx-library'
 import { setLocale } from '@/i18n'
 import { ToastProvider } from '@/components/ui/toast'
@@ -18,6 +20,11 @@ beforeAll(async () => {
     this.open = false
     this.dispatchEvent(new Event('close'))
   }
+})
+
+beforeEach(() => {
+  localStorage.clear()
+  resetV16EffectsForTests()
 })
 
 afterEach(() => {
@@ -76,10 +83,73 @@ describe('independent Effects library view', () => {
     await user.click(screen.getByRole('button', { name: 'Effects' }))
 
     expect(await screen.findByRole('heading', { name: 'Effects' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'FX presets…' })).toBeTruthy()
+    expect(screen.getByRole('region', { name: 'FX presets' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'FX presets…' })).toBeNull()
     expect(screen.queryByRole('tab', { name: /Voice/ })).toBeNull()
     expect(sendParameter).not.toHaveBeenCalled()
     expect(sendSettings).not.toHaveBeenCalled()
+  })
+
+  it('keeps the loaded FX preset and unsaved edits when switching Sounds and Effects', async () => {
+    const user = userEvent.setup()
+    const effects = new Uint8Array(24)
+    effects[2] = 22
+    const fxLibrary = makeFxLibrary()
+    fxLibrary.presets = [
+      createFxLibraryPreset({ id: 'dave', name: 'dave', effects, now: '2026-10-31T12:00:00.000Z' }),
+    ]
+    const sendSettings = vi.fn()
+    setup(makeLibrarianMidi({ sendSharedEffectSettings: sendSettings }), fxLibrary)
+    await user.click(screen.getByRole('button', { name: 'Effects' }))
+    await user.click(await screen.findByRole('button', { name: 'dave' }))
+    await user.click(screen.getByRole('switch', { name: 'Filter' }))
+    await user.click(screen.getByRole('button', { name: 'Sounds' }))
+    await user.click(screen.getByRole('button', { name: 'Effects' }))
+
+    expect(getV16Effects()[0]).toBe(1)
+    expect(getV16Effects()[2]).toBe(22)
+    expect(screen.getByRole('button', { name: 'dave' }).getAttribute('aria-pressed')).toBe('true')
+    expect(
+      ((await screen.findByRole('textbox', { name: 'Preset name' })) as HTMLInputElement).value,
+    ).toBe('dave')
+    await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
+    expect(screen.getByRole('menuitem', { name: 'Update “dave”' })).toBeTruthy()
+    expect(sendSettings).not.toHaveBeenCalled()
+  })
+
+  it('does not resend the FX preset when returning to Effects with V16 online', async () => {
+    const user = userEvent.setup()
+    const fxLibrary = makeFxLibrary()
+    fxLibrary.presets = [
+      createFxLibraryPreset({
+        id: 'dave',
+        name: 'dave',
+        effects: new Uint8Array(24),
+        now: '2026-10-31T12:00:00.000Z',
+      }),
+    ]
+    const sendSettings = vi.fn(() => Promise.resolve({ ok: true as const, sent: 24 as const }))
+    setup(
+      makeLibrarianMidi({
+        firmware: { kind: 'mvave', identity: 'FM-1_016' },
+        hasMidiOutput: true,
+        selectedOutputId: 'fm1',
+        sendSharedEffectSettings: sendSettings,
+      }),
+      fxLibrary,
+    )
+    await user.click(screen.getByRole('button', { name: 'Effects' }))
+    await user.click(await screen.findByRole('button', { name: 'dave' }))
+    expect(sendSettings).toHaveBeenCalledOnce()
+    await user.click(screen.getByRole('switch', { name: 'Filter' }))
+    await user.click(screen.getByRole('button', { name: 'Sounds' }))
+    await user.click(screen.getByRole('button', { name: 'Effects' }))
+
+    expect(
+      ((await screen.findByRole('textbox', { name: 'Preset name' })) as HTMLInputElement).value,
+    ).toBe('dave')
+    expect(getV16Effects()[0]).toBe(1)
+    expect(sendSettings).toHaveBeenCalledOnce()
   })
 
   it('keeps live V16 editing on the changed-controller path', async () => {
@@ -101,17 +171,16 @@ describe('independent Effects library view', () => {
     expect(sendParameter.mock.calls[0]).toHaveLength(2)
   })
 
-  it('returns focus to the compact launcher after preset management closes', async () => {
+  it('shows preset management directly alongside the effects', async () => {
     const user = userEvent.setup()
     setup()
     await user.click(screen.getByRole('button', { name: 'Effects' }))
-    const launcher = await screen.findByRole('button', { name: 'FX presets…' })
 
-    await user.click(launcher)
-    const dialog = await screen.findByRole('dialog', { name: 'FX presets' })
-    await user.click(screen.getByRole('button', { name: 'Close' }))
-
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBe(dialog))
-    expect(document.activeElement).toBe(launcher)
+    expect(await screen.findByRole('searchbox', { name: 'Search FX presets' })).toBeTruthy()
+    await user.hover(screen.getByRole('button', { name: 'Help: Effects' }))
+    expect(screen.getByRole('note').textContent).toContain('Edit effects and save presets.')
+    await user.click(screen.getByRole('button', { name: 'FX presets' }))
+    expect(screen.getByRole('menuitem', { name: 'Save current as…' })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

@@ -1,11 +1,9 @@
-import { SlidersHorizontal, Sparkles } from 'lucide-react'
-import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { Search, Sparkles } from 'lucide-react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { EffectsUnit } from '@/components/editor/effects-unit'
-import { Button } from '@/components/ui/button'
-import { ErrorBoundary } from '@/components/ui/error-boundary'
-import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
+import { HelpPopover } from '@/components/ui/help-popover'
 import { RackPanelTitle } from '@/components/ui/rack-panel'
 import { useFxLibrary, type FxLibrary } from '@/hooks/use-fx-library'
 import type { MidiController } from '@/hooks/use-midi'
@@ -19,11 +17,7 @@ import {
   v16EffectsRouteKey,
 } from '@/lib/v16-effects'
 
-const FxPresetLibraryDialog = lazy(() =>
-  import('@/components/midi/fx-preset-library-dialog').then((module) => ({
-    default: module.FxPresetLibraryDialog,
-  })),
-)
+import { FxPresetLibraryDialog } from '@/components/midi/fx-preset-library-dialog'
 
 export type V16EffectsMidi = Pick<MidiController, 'firmware' | 'hasMidiOutput'> &
   Partial<
@@ -49,10 +43,9 @@ export function V16EffectsPanel({
   const ownedFxLibrary = useFxLibrary()
   const library = fxLibrary ?? ownedFxLibrary
   const effects = useSyncExternalStore(subscribeV16Effects, getV16Effects)
-  const [managing, setManaging] = useState(false)
   const [sending, setSending] = useState(false)
-  const [dialogLoadFailed, setDialogLoadFailed] = useState(false)
-  const manageButton = useRef<HTMLButtonElement>(null)
+  const [search, setSearch] = useState('')
+  const [menuSlot, setMenuSlot] = useState<HTMLSpanElement | null>(null)
   const route = v16EffectsRouteKey(midi.selectedOutputId, midi.effectChannel, midi.firmware)
   const previousRoute = useRef(route)
 
@@ -78,54 +71,58 @@ export function V16EffectsPanel({
     <section aria-labelledby="v16-effects-heading" className="synthwave-panel min-w-0">
       <RackPanelTitle
         action={
-          <Button
-            onClick={() => {
-              setDialogLoadFailed(false)
-              setManaging(true)
-            }}
-            ref={manageButton}
-            size="sm"
-            type="button"
-            variant="secondary"
-          >
-            <SlidersHorizontal aria-hidden="true" />
-            {t('fxPresets.manage')}
-          </Button>
+          <div className="flex min-w-0 items-center gap-2">
+            <label className="relative block w-40 min-w-0 sm:w-64">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-[var(--crt-ink-3)]"
+              />
+              <input
+                aria-label={t('fxPresets.search')}
+                className="patch-search-input crt-field h-7 w-full pr-2.5 pl-8 text-xs tracking-[0.06em] transition outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={sending}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Escape' || !search) return
+                  event.preventDefault()
+                  setSearch('')
+                }}
+                placeholder={t('fxPresets.search')}
+                type="search"
+                value={search}
+              />
+            </label>
+            <span ref={setMenuSlot} />
+          </div>
+        }
+        help={
+          <HelpPopover
+            className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
+            label={t('fxPresets.effectsTitle')}
+            text={t('fxPresets.help')}
+          />
         }
         icon={Sparkles}
         id="v16-effects-heading"
         title={t('fxPresets.effectsTitle')}
       />
-      <EffectsUnit
-        disabled={sending}
-        onApplyPreset={applyPreset}
-        onChange={setParameter}
-        onGestureEnd={noGesture}
-        onGestureStart={noGesture}
-        values={effects}
-      />
-      {dialogLoadFailed ? <LoadFailedNotice message={t('fxPresets.errors.load')} /> : null}
-      {managing ? (
-        <ErrorBoundary
-          onError={() => {
-            setManaging(false)
-            setDialogLoadFailed(true)
-            manageButton.current?.focus()
-          }}
-        >
-          <Suspense fallback={null}>
-            <FxPresetLibraryDialog
-              fxLibrary={library}
-              midi={midi}
-              onClose={() => {
-                setManaging(false)
-                manageButton.current?.focus()
-              }}
-              onSendingChange={setSending}
-            />
-          </Suspense>
-        </ErrorBoundary>
-      ) : null}
+      <FxPresetLibraryDialog
+        fxLibrary={library}
+        midi={midi}
+        menuSlot={menuSlot}
+        onSendingChange={setSending}
+        search={search}
+      >
+        <EffectsUnit
+          disabled={sending}
+          onApplyPreset={applyPreset}
+          onChange={setParameter}
+          onGestureEnd={noGesture}
+          onGestureStart={noGesture}
+          twoColumns
+          values={effects}
+        />
+      </FxPresetLibraryDialog>
     </section>
   )
 }

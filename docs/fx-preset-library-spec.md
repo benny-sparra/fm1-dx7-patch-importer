@@ -3,6 +3,17 @@
 Prepared 2026-10-30. Status: ready for implementation planning; no feature code implemented by
 this document. Audience: a lower-model executor working in the FM1 editor/librarian repository.
 
+## Preset recall — owner decision, 2026-10-31
+
+Clicking a named FX preset now loads its settings directly into the editing rack, applying them
+through the existing shared-effects sender when supported MIDI is online. Repeated clicks retain
+the existing send deduplication. The separate Load button and ordinary load/send success text are
+removed. Storage and partial-send failures still surface, and **Send again** is in the rack’s **⋮**
+menu. Opening a row’s management menu leaves the rack unchanged and sends nothing.
+
+This replaces the selection-only and separate Load-button requirements below. Saving, managing,
+searching and importing presets remain MIDI-silent.
+
 ## Standalone Effects view — owner decision
 
 Decision recorded 2026-10-30: provide two top-level views, **Sounds** and **Effects**. The FX
@@ -164,6 +175,9 @@ first-class view. Unsupported firmware may load saved values into the browser, b
 
 Keep brief shared-FX, unsaved-on-device and no-readback explanations in contextual help near
 Load; do not reintroduce the large notice intentionally removed from the Effects tab.
+
+**Copy follow-up:** The short Effects title help is provisional and likely to change. Revisit its
+explanation as the Effects feature develops, and update its translations alongside it.
 
 ### Current effects and saving
 

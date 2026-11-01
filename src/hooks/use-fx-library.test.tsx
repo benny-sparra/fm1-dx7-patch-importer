@@ -64,6 +64,20 @@ describe('useFxLibrary', () => {
     expect(second.result.current.presets[0].name).toBe('First tab')
   })
 
+  it('refreshes the current library when Undo from an unmounted view restores a record', async () => {
+    const first = await openLibrary()
+    await act(() => first.result.current.save('Original', new Uint8Array(24)))
+    const original = first.result.current.presets[0]
+    await act(() => first.result.current.delete(original))
+    const restore = first.result.current.restorePresets
+    first.unmount()
+    const current = await openLibrary()
+
+    await act(() => restore([original]))
+
+    await waitFor(() => expect(current.result.current.presets).toEqual([original]))
+  })
+
   it('imports snapshots with fresh local identities without changing the input arrays', async () => {
     const hook = await openLibrary()
     const effects = new Uint8Array(24)

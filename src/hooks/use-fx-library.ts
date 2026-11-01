@@ -20,6 +20,8 @@ import {
 
 type FxLibraryStatus = 'error' | 'loading' | 'ready'
 
+const retiredOwnerCommitListeners = new Set<() => void>()
+
 /** Owns the named browser FX collection. Current live values remain in `v16-effects.ts`. */
 export function useFxLibrary() {
   const [presets, setPresets] = useState<FxLibraryPreset[]>([])
@@ -65,7 +67,12 @@ export function useFxLibrary() {
 
   const serialize = useCallback(<T>(operation: () => Promise<T>) => {
     if (mounted.current) setPendingCount((count) => count + 1)
-    const result = mutationQueue.current.then(operation)
+    const result = mutationQueue.current.then(async () => {
+      const value = await operation()
+      // A toast's Undo can outlive its view; refresh the library that replaced that owner.
+      if (!mounted.current) retiredOwnerCommitListeners.forEach((refresh) => refresh())
+      return value
+    })
     mutationQueue.current = result.then(
       () => undefined,
       () => undefined,
@@ -194,7 +201,11 @@ export function useFxLibrary() {
       if (!pending) void reload().catch(() => undefined)
     }
     window.addEventListener('focus', refresh)
-    return () => window.removeEventListener('focus', refresh)
+    retiredOwnerCommitListeners.add(refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      retiredOwnerCommitListeners.delete(refresh)
+    }
   }, [pending, reload])
 
   useEffect(() => {

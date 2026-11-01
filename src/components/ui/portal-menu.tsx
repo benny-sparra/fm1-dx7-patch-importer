@@ -30,6 +30,8 @@ type PortalMenuItem = {
 }
 
 type PortalMenuProps = {
+  /** Extra space to the right of the trigger, such as a row’s trailing padding. */
+  alignOffset?: number
   /** A caption above the items, saying what the menu is for. */
   heading?: string
   items: readonly PortalMenuItem[]
@@ -67,6 +69,7 @@ const groupRuns = (items: readonly PortalMenuItem[]) => {
  * closes on scroll rather than following its trigger.
  */
 export function PortalMenu({
+  alignOffset = 0,
   heading,
   items,
   menuLabel,
@@ -94,12 +97,12 @@ export function PortalMenu({
     const { offsetHeight, offsetWidth } = menu
     const anchor = {
       bottom: trigger.bottom,
-      left: trigger.right - offsetWidth + 8,
+      left: trigger.right - offsetWidth + 8 + alignOffset,
       top: trigger.top,
     }
     setPosition(positionMenu(anchor, offsetWidth, offsetHeight, innerWidth, innerHeight))
     ;(enabledItems(menu)[0] ?? menu).focus()
-  }, [open])
+  }, [alignOffset, open])
 
   useEffect(() => {
     if (!open) return

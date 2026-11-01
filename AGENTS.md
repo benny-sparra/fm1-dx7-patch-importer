@@ -354,6 +354,29 @@ open everything an earlier release could have saved.
   and sending the patch again; it sends the patch itself only if that send fails or the patch is
   edited before it lands.
 
+### FX preset interactions
+
+- Keep the loaded FX preset ID in the current-effects session store so Sounds/Effects navigation
+  preserves selection and unsaved FX edits. Tab return never reloads a preset or sends MIDI; the ID
+  stays in memory and does not change the version-1 persisted effects format.
+- Clicking an FX preset loads it into the rack immediately and applies it through the existing
+  shared-effects sender when supported MIDI is online. Repeat clicks do not resend unchanged FX.
+  Opening a preset’s menu sends nothing and leaves the rack unchanged. Update targets the loaded
+  preset; capture the record when a management action opens so another tab cannot change its target.
+- The FX rack names its preset through a `name-caret` input with a pencil, as the patch editor does.
+  Enter or blur commits the rename; Escape discards it. Keep Update in the rack’s ⋮ menu and show
+  no Modified suffix beside the name. Update saves immediately without a confirmation dialog and
+  reports success through `toast.success` after storage commits. Update and Delete offer Undo as
+  an action in their completion toast, capturing that change’s record; never as a sidebar button.
+  A mutation completed by a disposed FX-library owner refreshes the active owner, so a toast’s
+  Undo still updates the visible list after switching Sounds/Effects. Renaming changes only
+  the saved name, never its effects.
+- Duplicate creates a named FX preset immediately, without a confirmation modal, and reports
+  success through `toast.success` after storage commits.
+- Confirm a successful named FX preset save in a modal, rather than a sidebar status line.
+- Creating an FX preset snapshots the current rack. Updating or deleting offers Undo; neither action,
+  nor Undo, sends MIDI. Deleting a loaded preset leaves the rack unchanged as Custom settings.
+
 ### Internationalisation
 
 - English is the dependable eager fallback. Other locales must remain separate dynamic imports.
@@ -655,6 +678,8 @@ open everything an earlier release could have saved.
 
 - Prefer semantic HTML and native dialog behavior. Preserve Escape-to-close, modal semantics, focus
   placement/restoration, and keyboard activation.
+- Modals use the title-bar Close control and Escape for dismissal. Do not add Cancel buttons to
+  modals; keep their footers for task actions.
 - **Add new bank…** is a wizard with one decision on each screen and **Back** and **Next** pinned in
   the footer, **Back** at the left and hidden on the first screen, and **Create bank** in place of
   **Next** on the last. The title and description come first, so the bank is named before its
@@ -801,7 +826,7 @@ open everything an earlier release could have saved.
 - Colour a button by whether the action can be undone. `danger`, solid red, marks only what
   nothing reverses, such as deleting a saved bank or writing presets to the FM1. `destructive`,
   red text, marks what replaces or removes data that Undo brings back, such as deleting a bank or
-  copying over a slot. An action that only adds stays plain. A Cancel or Close beside an action is
+  copying over a slot. An action that only adds stays plain. A footer Close button is
   `ghost`. A warning about what an action will replace is `WarningNotice`; an error is
   `ErrorNotice`; information the page or action works around, such as why an editor's changes
   are not playing on the FM1 yet, is `InfoNotice`: the sunken message box with the 8-bit info

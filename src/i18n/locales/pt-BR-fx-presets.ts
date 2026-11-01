@@ -1,5 +1,13 @@
 export default {
   fxPresets: {
+    currentActions: 'Ações dos efeitos atuais',
+    newPreset: 'Novo preset FX…',
+    customSettings: 'Configurações personalizadas',
+    updateNamed: 'Atualizar “{{name}}”',
+    presetActions: 'Ações de {{name}}',
+    saveHelp: 'Salva uma cópia dos efeitos exibidos agora.',
+    restored: '“{{name}}” restaurado.',
+
     effectsTitle: 'Efeitos',
     manage: 'Presets de FX…',
     dialogTitle: 'Presets de FX',
@@ -7,15 +15,12 @@ export default {
     loading: 'Carregando presets de FX…',
     retry: 'Tentar novamente',
     reload: 'Recarregar lista',
-    empty: 'Ainda não há presets de FX. Salve os controles exibidos em Efeitos para criar um.',
     noMatches: 'Nenhum preset de FX corresponde a esta pesquisa.',
     unreadable:
       '{{count, number}} preset de FX armazenado não pôde ser lido e foi mantido intacto.',
     unreadable_other:
       '{{count, number}} presets de FX armazenados não puderam ser lidos e foram mantidos intactos.',
     select: 'Selecionar {{name}}',
-    selected: 'Preset selecionado: {{name}}',
-    localMatch: 'Corresponde aos efeitos atuais do navegador.',
     saveCurrent: 'Salvar controles atuais…',
     saveTitle: 'Salvar efeitos atuais',
     name: 'Nome do preset',
@@ -23,13 +28,8 @@ export default {
     rename: 'Renomear…',
     renameTitle: 'Renomear “{{name}}”',
     renameAction: 'Renomear preset',
-    duplicate: 'Duplicar…',
-    duplicateConfirm: 'Criar “{{name}}” como um preset separado?',
-    duplicateAction: 'Criar duplicata',
+    duplicate: 'Duplicar',
     update: 'Atualizar com os efeitos atuais…',
-    updateConfirm:
-      'Substituir os controles salvos em “{{name}}” pelos controles atuais de Efeitos?',
-    updateAction: 'Atualizar preset',
     delete: 'Excluir…',
     deleteConfirm: 'Excluir “{{name}}” deste navegador?',
     deleteAction: 'Excluir preset',
@@ -41,22 +41,18 @@ export default {
     imported_other:
       '{{count, number}} presets de FX importados. Os presets existentes foram mantidos.',
     importEmpty: 'O arquivo não contém presets de FX; nada foi importado.',
-    loadApply: 'Carregar e aplicar',
-    loadLocal: 'Carregar em Efeitos',
     sendAgain: 'Enviar novamente',
     sending: 'Enviando…',
     destination: '{{output}}, canal de efeitos {{channel, number}}',
     offline: 'Nenhuma saída MIDI está selecionada. O carregamento altera somente este navegador.',
     ineligible:
       'Este firmware não tem o grupo de FX compartilhado da V16. O carregamento altera somente este navegador.',
-    help: 'O carregamento substitui os controles exibidos em Efeitos. Na V16 original, Carregar e aplicar envia todos os 24 controles ao grupo de FX compartilhado; não os salva nem verifica no FM1.',
+    help: 'Edite efeitos e salve presets. No V16, todas as Vozes compartilham os efeitos.',
     orderHelp:
       'Os presets contêm os controles de efeitos exibidos aqui. A ordem dos efeitos permanece como definida no FM1.',
     noReadback: 'As alterações feitas no painel do aparelho não são lidas de volta pelo editor.',
-    loadedLocal: 'Carregado nos efeitos V16 deste navegador.',
     loadedSessionOnly:
       'Carregado para esta sessão, mas o armazenamento do navegador não conseguiu manter os efeitos atuais. Mantenha esta aba aberta.',
-    sent: 'Enviado ao FM1.',
     partial: 'Nem todos os efeitos foram enviados. O FM1 pode ter sido alterado parcialmente.',
     saved: '“{{name}}” salvo.',
     renamed: 'Preset renomeado para “{{name}}”.',

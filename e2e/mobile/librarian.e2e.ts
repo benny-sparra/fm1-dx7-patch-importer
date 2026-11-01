@@ -38,16 +38,33 @@ test('fits the patch banks to the screen without sideways scrolling', async ({ p
   await expectNoSidewaysScroll(page)
 })
 
-test('fits the independent Effects view and its preset dialog on a narrow screen', async ({
+test('fits the independent Effects view and its preset controls on a narrow screen', async ({
   page,
 }) => {
   await openLibrarian(page)
 
   await page.getByRole('button', { name: 'Effects' }).tap()
-  await expect(page.getByRole('heading', { name: 'Effects' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
   await expectNoSidewaysScroll(page)
-  await page.getByRole('button', { name: 'FX presets…' }).tap()
-  await expect(page.getByRole('dialog', { name: 'FX presets' })).toBeVisible()
+  await page.getByRole('button', { name: 'New FX preset…' }).tap()
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Mobile hall')
+  await page.getByRole('button', { name: 'Save preset' }).tap()
+  await page
+    .getByRole('dialog', { name: 'FX presets' })
+    .getByRole('button', { name: 'Close' })
+    .tap()
+  await expect(page.getByRole('button', { name: 'Mobile hall', exact: true })).toBeVisible()
+  const presetBounds = await page
+    .getByRole('button', { name: 'Mobile hall', exact: true })
+    .boundingBox()
+  const addBounds = await page.getByRole('button', { name: 'New FX preset…' }).boundingBox()
+  const menuBounds = await page
+    .getByRole('button', { name: 'Actions for Mobile hall' })
+    .boundingBox()
+  expect(presetBounds?.height).toBeGreaterThanOrEqual(24)
+  expect(addBounds?.height).toBeGreaterThanOrEqual(24)
+  expect(menuBounds?.height).toBeGreaterThanOrEqual(24)
+  expect(menuBounds?.width).toBeGreaterThanOrEqual(24)
   await expectNoSidewaysScroll(page)
 })
 

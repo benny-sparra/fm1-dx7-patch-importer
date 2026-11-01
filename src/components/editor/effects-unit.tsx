@@ -54,6 +54,8 @@ import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
 type EffectsUnitProps = {
+  /** Keeps the shared-effects library to two columns at wide sizes. */
+  twoColumns?: boolean
   /** Temporarily prevents edits while one complete shared-effects snapshot is being sent. */
   disabled?: boolean
   /**
@@ -745,6 +747,7 @@ export function EffectsUnit({
   onChange,
   onGestureEnd,
   onGestureStart,
+  twoColumns = false,
   values,
 }: EffectsUnitProps) {
   const { t } = useTranslation()
@@ -830,7 +833,9 @@ export function EffectsUnit({
   }
 
   return (
-    <div className="grid gap-2 p-[9px] md:grid-cols-2 xl:grid-cols-3">
+    <div
+      className={cn('grid min-w-0 gap-2 p-[9px] md:grid-cols-2', !twoColumns && 'xl:grid-cols-3')}
+    >
       <DndContext
         accessibility={dragAccessibility}
         collisionDetection={closestCenter}

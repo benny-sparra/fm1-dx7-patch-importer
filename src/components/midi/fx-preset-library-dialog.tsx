@@ -1,7 +1,17 @@
-import { Download, Upload } from 'lucide-react'
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { Download, Plus, Upload } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import {
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { FxPresetName } from '@/components/midi/fx-preset-name'
 import type { V16EffectsMidi } from '@/components/midi/v16-effects-panel'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,11 +23,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ErrorNotice } from '@/components/ui/error-notice'
-import { InfoNotice } from '@/components/ui/info-notice'
+import { useToast } from '@/components/ui/toast'
+import { PortalMenu } from '@/components/ui/portal-menu'
 import type { FxLibrary } from '@/hooks/use-fx-library'
 import '@/i18n/fx-presets'
 import { hasSharedEffects, resolveFirmwareProfile } from '@/lib/firmware-profile'
-import { fxLibraryPresetCopyName } from '@/lib/fx-library-preset'
+import {
+  fxLibraryPresetCopyName,
+  fxLibraryPresetNameLength,
+  type FxLibraryPreset,
+} from '@/lib/fx-library-preset'
 import { FxLibraryPresetConflictError } from '@/lib/fx-library-storage'
 import {
   fxPresetFileAccept,
@@ -26,40 +41,55 @@ import {
   makeFxPresetFile,
   readFxPresetFile,
 } from '@/lib/fx-preset-file'
+import { cn } from '@/lib/utils'
 import { downloadFile } from '@/lib/download-file'
 import {
   clearV16EffectsLastSent,
   getV16Effects,
   getV16EffectsLastSent,
   getV16EffectsPersistence,
+  getV16EffectsPresetId,
   markV16EffectsSent,
   setV16Effects,
+  setV16EffectsPresetId,
   subscribeV16Effects,
   v16EffectsRouteKey,
 } from '@/lib/v16-effects'
 
+type FxPresetUndo =
+  | { kind: 'delete'; preset: FxLibraryPreset }
+  | { kind: 'update'; preset: FxLibraryPreset; updated: FxLibraryPreset }
+
 type Props = {
+  children?: ReactNode
   fxLibrary: FxLibrary
   midi: V16EffectsMidi
-  onClose: () => void
+  menuSlot?: HTMLElement | null
   onSendingChange: (sending: boolean) => void
+  search: string
 }
 
-export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChange }: Props) {
+export function FxPresetLibraryDialog({
+  children,
+  fxLibrary,
+  midi,
+  menuSlot,
+  onSendingChange,
+  search,
+}: Props) {
   const { i18n, t } = useTranslation()
-  const dialog = useRef<HTMLDialogElement>(null)
-  const titleId = useId()
+  const toast = useToast()
+  const nameInput = useRef<HTMLInputElement>(null)
   const importInput = useRef<HTMLInputElement>(null)
   const current = useSyncExternalStore(subscribeV16Effects, getV16Effects)
   const lastSent = useSyncExternalStore(subscribeV16Effects, getV16EffectsLastSent)
   const { pending: libraryPending, reload: reloadLibrary, status: libraryStatus } = fxLibrary
-  const [selectedId, setSelectedId] = useState('')
-  const [search, setSearch] = useState('')
+  const loadedId = useSyncExternalStore(subscribeV16Effects, getV16EffectsPresetId)
+  const [modePreset, setModePreset] = useState<FxLibraryPreset | null>(null)
   const [name, setName] = useState('')
-  const [mode, setMode] = useState<'delete' | 'duplicate' | 'rename' | 'save' | 'update' | null>(
-    null,
-  )
+  const [mode, setMode] = useState<'delete' | 'rename' | 'save' | null>(null)
   const [message, setMessage] = useState('')
+  const [savedMessage, setSavedMessage] = useState('')
   const [error, setError] = useState('')
   const [conflict, setConflict] = useState(false)
   const [sending, setSending] = useState(false)
@@ -67,20 +97,18 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
   const mutationInFlight = useRef(false)
   const sendInFlight = useRef(false)
   const saveCapture = useRef<Uint8Array | null>(null)
-  const selected = fxLibrary.presets.find((preset) => preset.id === selectedId)
-  const duplicateName = selected ? fxLibraryPresetCopyName(selected.name) : ''
-  const matchesCurrent = Boolean(
-    selected?.effects.every((value, index) => value === current[index]),
+  const loaded = fxLibrary.presets.find((preset) => preset.id === loadedId)
+  const modified = Boolean(
+    loaded && !loaded.effects.every((value, index) => value === current[index]),
   )
   const route = v16EffectsRouteKey(midi.selectedOutputId, midi.effectChannel, midi.firmware)
-  const outputName = midi.outputs?.find(({ id }) => id === midi.selectedOutputId)?.name
   const eligible =
     midi.hasMidiOutput &&
     Boolean(midi.sendSharedEffectSettings) &&
     hasSharedEffects(resolveFirmwareProfile(midi.firmware))
   const matchesLastSend = Boolean(
-    selected &&
-    lastSent?.presetId === selected.id &&
+    loaded &&
+    lastSent?.presetId === loaded.id &&
     lastSent.route === route &&
     lastSent.effects.every((value, index) => value === current[index]),
   )
@@ -94,21 +122,23 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
     const query = search.trim().toLocaleLowerCase(i18n.language)
     return ordered.filter((preset) => preset.name.toLocaleLowerCase(i18n.language).includes(query))
   }, [i18n.language, ordered, search])
-  const invalidName = !name.trim() || Array.from(name.trim()).length > 80
-  const busy = sending || working
+  const invalidName = !name.trim() || Array.from(name.trim()).length > fxLibraryPresetNameLength
+  const busy = sending || working || fxLibrary.pending
+  const unavailable = busy || fxLibrary.status !== 'ready'
 
-  useEffect(() => {
-    dialog.current?.showModal()
-  }, [])
   useEffect(() => {
     if (libraryStatus === 'ready' && !libraryPending) {
       void reloadLibrary().catch(() => undefined)
     }
   }, [libraryPending, libraryStatus, reloadLibrary])
+  useEffect(() => {
+    if (mode === 'save' || mode === 'rename') nameInput.current?.focus()
+  }, [mode])
+
   useEffect(() => onSendingChange(sending), [onSendingChange, sending])
   useEffect(() => () => onSendingChange(false), [onSendingChange])
 
-  const run = async (operation: () => Promise<unknown>, success: string) => {
+  const run = async (operation: () => Promise<unknown>, success: string, showModal = false) => {
     if (mutationInFlight.current) return false
     mutationInFlight.current = true
     setWorking(true)
@@ -116,7 +146,10 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
     setConflict(false)
     try {
       await operation()
-      setMessage(success)
+      if (showModal) {
+        setMessage('')
+        setSavedMessage(success)
+      } else setMessage(success)
       setMode(null)
       return true
     } catch (caughtError) {
@@ -130,21 +163,69 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
     }
   }
 
-  const load = async (sendAgain = false) => {
-    if (!selected || sendInFlight.current) return
-    setV16Effects(selected.effects)
-    setMessage(
-      getV16EffectsPersistence() === 'persisted'
-        ? t('fxPresets.loadedLocal')
-        : t('fxPresets.loadedSessionOnly'),
+  const startSave = () => {
+    saveCapture.current = current.slice()
+    setName('')
+    setMode('save')
+  }
+
+  const duplicatePreset = async (preset: FxLibraryPreset) => {
+    if (await run(() => fxLibrary.duplicate(preset), '')) {
+      toast.success(t('fxPresets.duplicated', { name: fxLibraryPresetCopyName(preset.name) }))
+    }
+  }
+
+  const showUndoToast = (entry: FxPresetUndo, successMessage: string) => {
+    toast.success(successMessage, {
+      action: { label: t('toasts.undo'), onAction: () => void undoChange(entry, successMessage) },
+    })
+  }
+
+  const updateCurrent = async () => {
+    if (!loaded) return
+    const preset = loaded
+    const effects = current.slice()
+    await run(async () => {
+      const updated = await fxLibrary.update(preset, effects)
+      showUndoToast(
+        { kind: 'update', preset, updated },
+        t('fxPresets.updated', { name: preset.name }),
+      )
+    }, '')
+  }
+
+  const undoChange = async (entry: FxPresetUndo, successMessage: string) => {
+    const { preset } = entry
+    if (
+      await run(
+        () =>
+          entry.kind === 'delete'
+            ? fxLibrary.restorePresets([preset])
+            : fxLibrary.update(entry.updated, preset.effects),
+        '',
+      )
     )
-    if (!eligible || (matchesLastSend && !sendAgain)) return
+      toast.success(t('fxPresets.restored', { name: preset.name }))
+    else showUndoToast(entry, successMessage)
+  }
+
+  const load = async (preset: FxLibraryPreset, sendAgain = false) => {
+    if (sendInFlight.current || mutationInFlight.current) return
+    setError('')
+    setV16Effects(preset.effects)
+    setV16EffectsPresetId(preset.id)
+    setMessage(getV16EffectsPersistence() === 'persisted' ? '' : t('fxPresets.loadedSessionOnly'))
+    const alreadySent =
+      lastSent?.presetId === preset.id &&
+      lastSent.route === route &&
+      lastSent.effects.every((value, index) => value === preset.effects[index])
+    if (!eligible || (alreadySent && !sendAgain)) return
     sendInFlight.current = true
     setSending(true)
     clearV16EffectsLastSent()
     let result
     try {
-      result = await midi.sendSharedEffectSettings?.(selected.effects.slice())
+      result = await midi.sendSharedEffectSettings?.(preset.effects.slice())
     } catch {
       setError(t('fxPresets.partial'))
       return
@@ -153,8 +234,7 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
       setSending(false)
     }
     if (result?.ok) {
-      markV16EffectsSent(selected.id, route)
-      setMessage(t('fxPresets.sent'))
+      markV16EffectsSent(preset.id, route)
     } else if (result) {
       setError(t('fxPresets.partial'))
     }
@@ -164,66 +244,110 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
     if (mode === 'save') {
       const captured = saveCapture.current
       if (!captured) return
-      await run(() => fxLibrary.save(name, captured), t('fxPresets.saved', { name: name.trim() }))
-    } else if (selected && mode === 'rename') {
       await run(
-        () => fxLibrary.rename(selected, name),
+        async () => {
+          const saved = await fxLibrary.save(name, captured)
+          setV16EffectsPresetId(saved.id)
+        },
+        t('fxPresets.saved', { name: name.trim() }),
+        true,
+      )
+    } else if (modePreset && mode === 'rename') {
+      await run(
+        () => fxLibrary.rename(modePreset, name),
         t('fxPresets.renamed', { name: name.trim() }),
       )
-    } else if (selected && mode === 'duplicate') {
-      await run(
-        () => fxLibrary.duplicate(selected),
-        t('fxPresets.duplicated', { name: duplicateName }),
-      )
-    } else if (selected && mode === 'update') {
-      await run(
-        () => fxLibrary.update(selected, getV16Effects().slice()),
-        t('fxPresets.updated', { name: selected.name }),
-      )
-    } else if (selected && mode === 'delete') {
-      if (
-        await run(() => fxLibrary.delete(selected), t('fxPresets.deleted', { name: selected.name }))
-      ) {
-        setSelectedId('')
+    } else if (modePreset && mode === 'delete') {
+      if (await run(() => fxLibrary.delete(modePreset), '')) {
+        showUndoToast(
+          { kind: 'delete', preset: modePreset },
+          t('fxPresets.deleted', { name: modePreset.name }),
+        )
+        if (loadedId === modePreset.id) setV16EffectsPresetId('')
       }
     }
   }
 
+  const failureNotice = (
+    <>
+      {error ? <ErrorNotice>{error}</ErrorNotice> : null}
+      {conflict ? (
+        <Button
+          className="min-h-8 w-full min-w-0 px-2 py-1 text-xs font-semibold break-words"
+          size="bare"
+          onClick={() => {
+            setMode(null)
+            setConflict(false)
+            setError('')
+            void fxLibrary.reload().catch(() => setError(t('fxPresets.errors.load')))
+          }}
+          type="button"
+          variant="outline"
+        >
+          {t('fxPresets.reload')}
+        </Button>
+      ) : null}
+    </>
+  )
+
+  const menu = (
+    <PortalMenu
+      triggerLabel={t('fxPresets.dialogTitle')}
+      triggerClassName="size-7 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] hover:bg-[var(--crt-sel-bg)]"
+      menuLabel={t('fxPresets.dialogTitle')}
+      items={[
+        {
+          label: t('fxPresets.saveCurrent'),
+          disabled: unavailable || mode !== null,
+          onSelect: startSave,
+        },
+        {
+          label: t('fxPresets.import'),
+          Icon: Upload,
+          disabled: unavailable || mode !== null,
+          onSelect: () => importInput.current?.click(),
+        },
+        {
+          label: t('fxPresets.exportAll'),
+          Icon: Download,
+          disabled: !ordered.length || sending,
+          onSelect: () =>
+            downloadFile(
+              new Blob([makeFxPresetFile(ordered)], { type: 'application/json' }),
+              fxPresetFileName,
+            ),
+        },
+      ]}
+    />
+  )
+
   return (
-    <Dialog
-      aria-labelledby={titleId}
-      closeOnBackdrop={!sending}
-      onCancel={(event) => sending && event.preventDefault()}
-      onClose={onClose}
-      ref={dialog}
-      size="3xl"
+    <section
+      aria-label={t('fxPresets.dialogTitle')}
+      aria-busy={sending}
+      className="patch-area-surface flex min-w-0 flex-col items-stretch md:flex-row"
     >
-      <DialogHeader>
-        <DialogTitle id={titleId}>{t('fxPresets.dialogTitle')}</DialogTitle>
-        <DialogCloseButton
-          disabled={sending}
-          label={t('common.close')}
-          onClick={() => dialog.current?.close()}
-        />
-      </DialogHeader>
-      <DialogBody>
-        <div className="grid gap-4 p-4">
-          <input
-            aria-label={t('fxPresets.search')}
-            className="crt-field h-9 px-3 text-sm"
-            disabled={sending}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder={t('fxPresets.search')}
-            type="search"
-            value={search}
-          />
+      {menuSlot ? createPortal(menu, menuSlot) : null}
+      <div className="min-w-0 shrink-0 border-b-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)] md:w-[226px] md:border-r-2 md:border-b-0">
+        {!menuSlot ? menu : null}
+        <div className="grid min-w-0 gap-2 p-2 text-sm break-words">
+          <button
+            className="font-dot-matrix flex w-full min-w-0 cursor-pointer items-center gap-2 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] px-2 py-[7px] text-left text-[14px] font-bold text-[var(--crt-ink-2)] transition-colors hover:bg-[var(--crt-sel-bg)] hover:text-[var(--crt-acc-lt)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={unavailable || mode !== null}
+            onClick={startSave}
+            type="button"
+          >
+            <Plus aria-hidden="true" className="size-4 shrink-0" />
+            <span>{t('fxPresets.newPreset')}</span>
+          </button>
           {fxLibrary.status === 'loading' ? <p>{t('fxPresets.loading')}</p> : null}
           {fxLibrary.status === 'error' ? (
             <div className="grid justify-items-start gap-2">
               <ErrorNotice>{t('fxPresets.errors.load')}</ErrorNotice>
               <Button
+                className="min-h-8 w-full min-w-0 px-2 py-1 text-xs font-semibold break-words"
+                size="bare"
                 onClick={() => void fxLibrary.reload().catch(() => undefined)}
-                size="sm"
                 type="button"
                 variant="outline"
               >
@@ -238,163 +362,139 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
           ) : null}
           {fxLibrary.status === 'ready' ? (
             visible.length ? (
-              <div
-                className="grid max-h-56 gap-1 overflow-y-auto border border-[var(--crt-line)] p-1"
-                role="listbox"
+              <ul
+                aria-label={t('fxPresets.dialogTitle')}
+                className="grid max-h-[50dvh] content-start gap-2 overflow-y-auto p-0.5"
               >
                 {visible.map((preset) => (
-                  <button
-                    aria-selected={preset.id === selectedId}
-                    className={
-                      preset.id === selectedId
-                        ? 'bg-[var(--crt-sel-bg)] px-3 py-2 text-left text-[var(--crt-acc-lt)]'
-                        : 'px-3 py-2 text-left text-[var(--crt-ink-2)] hover:bg-[var(--crt-bg-head)]'
-                    }
-                    disabled={sending}
+                  <li
+                    className={cn(
+                      'bank-tab flex min-w-0 items-center gap-2 border-t border-r border-b border-l border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] px-2 py-[7px] transition-colors',
+                      preset.id === loadedId
+                        ? 'bank-tab-active border-t-[var(--crt-bevel-lt)] border-l-[var(--crt-bevel-lt)] bg-[var(--crt-sel-bg)]'
+                        : 'border-t-[var(--crt-bevel)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] hover:bg-[var(--crt-bg-head)]',
+                    )}
                     key={preset.id}
-                    onClick={() => setSelectedId(preset.id)}
-                    role="option"
-                    type="button"
                   >
-                    {preset.name}
-                  </button>
+                    <button
+                      aria-pressed={preset.id === loadedId}
+                      className={cn(
+                        'font-dot-matrix min-h-6 min-w-0 flex-1 cursor-pointer truncate text-left text-[14px] font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50',
+                        preset.id === loadedId
+                          ? 'text-[var(--crt-led)]'
+                          : 'text-[var(--crt-ink-2)]',
+                      )}
+                      disabled={busy || mode !== null}
+                      onClick={() => void load(preset)}
+                      title={preset.name}
+                      type="button"
+                    >
+                      {preset.name}
+                    </button>
+                    <PortalMenu
+                      alignOffset={8}
+                      triggerLabel={t('fxPresets.presetActions', { name: preset.name })}
+                      menuLabel={t('fxPresets.presetActions', { name: preset.name })}
+                      items={[
+                        {
+                          label: t('fxPresets.rename'),
+                          disabled: unavailable || mode !== null,
+                          onSelect: () => {
+                            setModePreset(preset)
+                            setName(preset.name)
+                            setMode('rename')
+                          },
+                        },
+                        {
+                          label: t('fxPresets.duplicate'),
+                          disabled: unavailable || mode !== null,
+                          onSelect: () => void duplicatePreset(preset),
+                        },
+                        {
+                          label: t('fxPresets.exportSelected'),
+                          Icon: Download,
+                          disabled: busy,
+                          onSelect: () =>
+                            downloadFile(
+                              new Blob([makeFxPresetFile([preset])], { type: 'application/json' }),
+                              fxPresetFileName,
+                            ),
+                        },
+                        {
+                          label: t('fxPresets.delete'),
+                          disabled: unavailable || mode !== null,
+                          onSelect: () => {
+                            setModePreset(preset)
+                            setMode('delete')
+                          },
+                        },
+                      ]}
+                    />
+                  </li>
                 ))}
-              </div>
-            ) : (
-              <p>{fxLibrary.presets.length ? t('fxPresets.noMatches') : t('fxPresets.empty')}</p>
-            )
+              </ul>
+            ) : fxLibrary.presets.length ? (
+              <p>{t('fxPresets.noMatches')}</p>
+            ) : null
           ) : null}
-          {selected ? (
-            <p className="text-sm text-[var(--crt-ink-3)]">
-              {t('fxPresets.selected', { name: selected.name })}
-              {matchesCurrent ? ` ${t('fxPresets.localMatch')}` : null}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              disabled={busy || fxLibrary.status !== 'ready'}
-              onClick={() => {
-                saveCapture.current = current.slice()
-                setName('')
-                setMode('save')
-              }}
-              type="button"
-            >
-              {t('fxPresets.saveCurrent')}
-            </Button>
-            <Button
-              disabled={!selected || busy}
-              onClick={() => {
-                setName(selected?.name ?? '')
-                setMode('rename')
-              }}
-              type="button"
-              variant="secondary"
-            >
-              {t('fxPresets.rename')}
-            </Button>
-            <Button
-              disabled={!selected || busy}
-              onClick={() => setMode('duplicate')}
-              type="button"
-              variant="secondary"
-            >
-              {t('fxPresets.duplicate')}
-            </Button>
-            <Button
-              disabled={!selected || busy}
-              onClick={() => setMode('update')}
-              type="button"
-              variant="secondary"
-            >
-              {t('fxPresets.update')}
-            </Button>
-            <Button
-              disabled={!selected || busy}
-              onClick={() => setMode('delete')}
-              type="button"
-              variant="destructive"
-            >
-              {t('fxPresets.delete')}
-            </Button>
-          </div>
           {mode ? (
-            <div className="grid gap-3 border border-[var(--crt-line)] bg-[var(--crt-bg-panel2)] p-3">
+            <FxPresetDialog
+              busy={busy}
+              confirmDisabled={(mode === 'save' || mode === 'rename') && invalidName}
+              confirmLabel={t(mode === 'save' ? 'fxPresets.save' : `fxPresets.${mode}Action`)}
+              onClose={() => setMode(null)}
+              onConfirm={() => void confirm()}
+              title={t(
+                mode === 'save'
+                  ? 'fxPresets.saveTitle'
+                  : mode === 'rename'
+                    ? 'fxPresets.renameTitle'
+                    : `fxPresets.${mode}Action`,
+                { name: modePreset?.name },
+              )}
+            >
+              {mode === 'save' ? (
+                <p className="text-sm text-[var(--crt-ink-3)]">{t('fxPresets.saveHelp')}</p>
+              ) : null}
               {mode === 'save' || mode === 'rename' ? (
-                <input
-                  aria-label={t('fxPresets.name')}
-                  className="crt-field h-9 px-3"
-                  disabled={busy}
-                  onChange={(event) => setName(event.target.value)}
-                  value={name}
-                />
+                <label className="grid gap-2 text-sm font-semibold">
+                  {t('fxPresets.name')}
+                  <input
+                    ref={nameInput}
+                    className="crt-field h-9 w-full min-w-0 px-3 font-normal"
+                    disabled={busy}
+                    onChange={(event) => setName(event.target.value)}
+                    value={name}
+                  />
+                </label>
               ) : (
-                <p>
+                <p className="text-sm">
                   {t(`fxPresets.${mode}Confirm`, {
-                    name: mode === 'duplicate' ? duplicateName : selected?.name,
+                    name: modePreset?.name,
                   })}
                 </p>
               )}
               {(mode === 'save' || mode === 'rename') && name && invalidName ? (
                 <ErrorNotice>{t('fxPresets.errors.name')}</ErrorNotice>
               ) : null}
-              <div className="flex gap-2">
-                <Button
-                  disabled={busy || ((mode === 'save' || mode === 'rename') && invalidName)}
-                  onClick={() => void confirm()}
-                  type="button"
-                >
-                  {t(mode === 'save' ? 'fxPresets.save' : `fxPresets.${mode}Action`)}
-                </Button>
-                <Button
-                  disabled={busy}
-                  onClick={() => setMode(null)}
-                  type="button"
-                  variant="secondary"
-                >
-                  {t('common.cancel')}
-                </Button>
-              </div>
-            </div>
+              {failureNotice}
+            </FxPresetDialog>
           ) : null}
-          <InfoNotice>
-            {eligible && outputName ? (
-              <p>
-                {t('fxPresets.destination', {
-                  channel: midi.effectChannel ?? 1,
-                  output: outputName,
-                })}
-              </p>
-            ) : null}
-            {!midi.hasMidiOutput ? (
-              <p>{t('fxPresets.offline')}</p>
-            ) : !eligible ? (
-              <p>{t('fxPresets.ineligible')}</p>
-            ) : null}
-            <p>{t('fxPresets.help')}</p>
-            <p>{t('fxPresets.orderHelp')}</p>
-            <p>{t('fxPresets.noReadback')}</p>
-          </InfoNotice>
+          {savedMessage ? (
+            <FxPresetDialog
+              busy={false}
+              title={t('fxPresets.dialogTitle')}
+              onClose={() => setSavedMessage('')}
+            >
+              <p className="text-sm">{savedMessage}</p>
+            </FxPresetDialog>
+          ) : null}
           {message ? (
             <p aria-live="polite" className="text-sm text-[var(--crt-led)]">
               {message}
             </p>
           ) : null}
-          {error ? <ErrorNotice>{error}</ErrorNotice> : null}
-          {conflict ? (
-            <Button
-              onClick={() => {
-                setConflict(false)
-                setError('')
-                void fxLibrary.reload().catch(() => setError(t('fxPresets.errors.load')))
-              }}
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              {t('fxPresets.reload')}
-            </Button>
-          ) : null}
+          {!mode ? failureNotice : null}
           <input
             accept={fxPresetFileAccept}
             className="sr-only"
@@ -430,72 +530,130 @@ export function FxPresetLibraryDialog({ fxLibrary, midi, onClose, onSendingChang
             type="file"
           />
         </div>
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="crt-hatch flex min-h-[49px] min-w-0 flex-wrap items-center justify-between gap-2 border-b border-[var(--crt-line)] px-2 py-2">
+          <div className="min-w-0 flex-1">
+            {loaded ? (
+              <FxPresetName
+                disabled={unavailable || mode !== null}
+                key={loaded.id}
+                onRename={(preset, nextName) => run(() => fxLibrary.rename(preset, nextName), '')}
+                preset={loaded}
+              />
+            ) : (
+              <h3 className="font-dot-matrix text-sm font-bold break-words text-[var(--crt-acc-lt)]">
+                {t('fxPresets.customSettings')}
+              </h3>
+            )}
+          </div>
+          <div className="flex max-w-full min-w-0 flex-wrap gap-2">
+            <PortalMenu
+              triggerLabel={t('fxPresets.currentActions')}
+              menuLabel={t('fxPresets.currentActions')}
+              items={[
+                ...(modified
+                  ? [
+                      {
+                        label: t('fxPresets.updateNamed', { name: loaded?.name }),
+                        disabled: unavailable || mode !== null,
+                        onSelect: () => void updateCurrent(),
+                      },
+                    ]
+                  : []),
+                ...(matchesLastSend && loaded
+                  ? [
+                      {
+                        label: t('fxPresets.sendAgain'),
+                        disabled: unavailable || mode !== null,
+                        onSelect: () => void load(loaded, true),
+                      },
+                    ]
+                  : []),
+                {
+                  label: t('fxPresets.saveCurrent'),
+                  disabled: unavailable || mode !== null,
+                  onSelect: startSave,
+                },
+              ]}
+            />
+          </div>
+        </div>
+        {children}
+      </div>
+    </section>
+  )
+}
+
+function FxPresetDialog({
+  busy,
+  children,
+  confirmDisabled = false,
+  confirmLabel,
+  onClose,
+  onConfirm,
+  title,
+}: {
+  busy: boolean
+  children: ReactNode
+  confirmDisabled?: boolean
+  confirmLabel?: string
+  onClose: () => void
+  onConfirm?: () => void
+  title: string
+}) {
+  const { t } = useTranslation()
+  const dialog = useRef<HTMLDialogElement>(null)
+  const titleId = useId()
+  const formId = useId()
+
+  useEffect(() => {
+    const element = dialog.current
+    const trigger = document.activeElement
+    if (element && !element.open) element.showModal()
+    return () => {
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus()
+    }
+  }, [])
+
+  return (
+    <Dialog
+      aria-labelledby={titleId}
+      closeOnBackdrop={!busy}
+      onCancel={(event) => {
+        if (busy) event.preventDefault()
+      }}
+      onClose={onClose}
+      ref={dialog}
+      size="sm"
+    >
+      <DialogHeader>
+        <DialogTitle id={titleId}>{title}</DialogTitle>
+        <DialogCloseButton
+          disabled={busy}
+          label={t('common.close')}
+          onClick={() => dialog.current?.close()}
+        />
+      </DialogHeader>
+      <DialogBody>
+        <form
+          className="grid gap-4 p-4"
+          id={formId}
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!busy && !confirmDisabled) onConfirm?.()
+          }}
+        >
+          {children}
+        </form>
       </DialogBody>
-      <DialogFooter className="flex-wrap justify-between gap-2">
-        <div className="flex flex-wrap gap-2">
-          <Button
-            disabled={busy || fxLibrary.status !== 'ready'}
-            onClick={() => importInput.current?.click()}
-            type="button"
-            variant="secondary"
-          >
-            <Upload />
-            {t('fxPresets.import')}
+      {confirmLabel ? (
+        <DialogFooter>
+          <Button disabled={busy || confirmDisabled} form={formId} type="submit">
+            {confirmLabel}
           </Button>
-          <Button
-            disabled={!ordered.length || sending}
-            onClick={() =>
-              downloadFile(
-                new Blob([makeFxPresetFile(ordered)], { type: 'application/json' }),
-                fxPresetFileName,
-              )
-            }
-            type="button"
-            variant="secondary"
-          >
-            <Download />
-            {t('fxPresets.exportAll')}
-          </Button>
-          <Button
-            disabled={!selected || sending}
-            onClick={() => {
-              if (!selected) return
-              downloadFile(
-                new Blob([makeFxPresetFile([selected])], { type: 'application/json' }),
-                fxPresetFileName,
-              )
-            }}
-            type="button"
-            variant="secondary"
-          >
-            <Download />
-            {t('fxPresets.exportSelected')}
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {matchesLastSend ? (
-            <Button
-              disabled={busy || fxLibrary.pending}
-              onClick={() => void load(true)}
-              type="button"
-              variant="secondary"
-            >
-              {t('fxPresets.sendAgain')}
-            </Button>
-          ) : null}
-          <Button
-            disabled={!selected || busy || matchesLastSend || fxLibrary.pending}
-            onClick={() => void load()}
-            type="button"
-          >
-            {sending
-              ? t('fxPresets.sending')
-              : eligible
-                ? t('fxPresets.loadApply')
-                : t('fxPresets.loadLocal')}
-          </Button>
-        </div>
-      </DialogFooter>
+        </DialogFooter>
+      ) : null}
     </Dialog>
   )
 }

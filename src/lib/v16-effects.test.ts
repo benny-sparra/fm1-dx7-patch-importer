@@ -7,9 +7,11 @@ import {
   getV16Effects,
   getV16EffectsLastSent,
   getV16EffectsPersistence,
+  getV16EffectsPresetId,
   markV16EffectsSent,
   resetV16EffectsForTests,
   setV16Effects,
+  setV16EffectsPresetId,
   subscribeV16Effects,
   v16EffectsRouteKey,
 } from './v16-effects'
@@ -37,6 +39,22 @@ function changeTo(edit: (effects: Uint8Array) => void) {
 }
 
 describe('V16 effects', () => {
+  it('keeps preset selection with live edits without adding it to persisted effects', () => {
+    setV16EffectsPresetId('dave')
+    const effects = new Uint8Array(24)
+    effects[2] = 22
+    setV16Effects(effects)
+
+    expect(getV16EffectsPresetId()).toBe('dave')
+    expect(JSON.parse(localStorage.getItem(key) ?? '{}')).toEqual({
+      version: 1,
+      effects: [0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    })
+    resetV16EffectsForTests()
+    expect(getV16EffectsPresetId()).toBe('')
+    expect(getV16Effects()[2]).toBe(22)
+  })
+
   it('are all off when nothing is stored', () => {
     expect(Array.from(getV16Effects())).toEqual(Array.from({ length: 24 }, () => 0))
     expect(getV16EffectsPersistence()).toBe('persisted')
