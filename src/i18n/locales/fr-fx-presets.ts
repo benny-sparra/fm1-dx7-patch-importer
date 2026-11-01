@@ -42,9 +42,15 @@ export default {
     ineligible:
       'Ce firmware ne possède pas le groupe FX partagé de la V16. Le chargement reste local au navigateur.',
     help: 'Modifiez les effets et enregistrez des presets. Sur V16, les effets sont partagés par toutes les Voix.',
-    orderHelp:
-      'Les presets contiennent les réglages affichés ici. L’ordre des effets reste celui défini sur le FM1.',
+    orderHelp: 'Les presets contiennent les réglages affichés ici, pas l’ordre des effets.',
     noReadback: 'Les changements effectués sur la façade ne sont pas relus par l’éditeur.',
+    effectOrderReading: 'Lecture de l’ordre des effets depuis le FM1…',
+    effectOrderFailed:
+      'Le FM1 n’a pas donné l’ordre de ses effets, il ne peut donc pas être changé ici.',
+    effectOrderWriteFailed: 'Le FM1 n’a pas pris le nouvel ordre. Réessayez.',
+    effectOrderUnsaved: 'Un nouvel ordre n’est enregistré sur le FM1 qu’avec SAVE.',
+    effectOrderDragTitle:
+      'Faites glisser pour changer la place de cet effet dans l’ordre que traverse le son, le premier en haut à gauche. Au clavier, appuyez sur Espace, puis sur les flèches. Le FM1 joue le nouvel ordre aussitôt.',
     sessionOnly:
       'Le stockage du navigateur ne peut pas conserver ces effets : ils ne durent que tant que cet onglet reste ouvert.',
     partial: 'Tous les effets n’ont pas été envoyés. Le FM1 peut avoir été partiellement modifié.',

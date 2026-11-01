@@ -263,6 +263,24 @@ open everything an earlier release could have saved.
   The development FX probe's **V16 research** mode (`Fm1EffectProbeMode`) sends CC 0–23 or 70–93
   whatever the FM1 runs, with any 7-bit value; its default mode keeps to the controllers the
   profile places the effects at.
+- On M-VAVE's stock V16 the editor may send two more updater-protocol (`00 32`) frames, both on
+  object 4, the 176-byte settings block, approved by the owner on 2026-10-27 and narrowed the same
+  day: command `0x23`, a read of the block (offset 0, length 176), and command `0x22`, a write of
+  exactly the 27 FX table bytes at offset `0x92`, never the whole block, because a whole-block
+  write applies its preset, channel, bend, and glide to whichever Voice is selected when it
+  arrives. In those 27 bytes only byte 0 of entries 0–5 changes, as an arrangement of 0–5 (the
+  chain order); every other byte is written as read, entries 6–8 untouched. No other command,
+  object, offset, length, or value: object 5 writes the banks to Flash, `0x30`, object 8, and the
+  loader stay **Dangerous / excluded**, and the identity query rule stays. They live in
+  `src/lib/v16-settings-block.ts` (`readV16SettingsBlock`, `makeEffectOrderWrite`), which builds
+  the write only from a block a read produced, refuses a table that is not an order of the six
+  effects, and refuses any other order. A move reads the block immediately before its one write,
+  since the table also holds each effect's On/Off and Type, which CC 70–93 change. The profile's
+  `effectOrder` capability, listed for the `mvave` family from release 16 since the owner's run of
+  2026-11-01 reordered the FM1's FX chain from the editor
+  (`docs/hardware-runs/stock-v16-effect-order-2026-11-01.md`), gates the Effects view's
+  reordering (`useV16EffectOrder`). The order is live state, not part of an FX preset, and the
+  FM1 stores it only with its own SAVE.
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is
