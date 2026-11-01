@@ -264,8 +264,9 @@ firmware), so the library and the DX7 catalog suit it, and Official Open may fol
 arriving the week of 2026-10-19. Nothing below is known yet; every point waits for a hardware run,
 recorded in `docs/fm1-research.md` and `docs/hardware-runs/` before code depends on it.
 
-**First hardware run**, each message sent once with Ben's approval for that test, nothing stored on
-the keyboard that cannot be lost (there is no backup of its sounds yet):
+**First hardware run** (procedure: `docs/hardware-runs/smk37-run-sheet.md`), each message sent
+once with Ben's approval for that test, nothing stored on the keyboard that cannot be lost (there
+is no backup of its sounds yet):
 
 1. **Ports.** What its MIDI ports are called on macOS (and Linux or Windows if possible), and whether
    `resolveMidiPortSelection` picks them.
@@ -280,6 +281,36 @@ the keyboard that cannot be lost (there is no backup of its sounds yet):
 7. **32-voice bank dump.** Only if 6 shows dumps go to an edit buffer: does it replace a bank?
 8. **Effect controllers.** The FM1's FX Channel CC 0–23, one at a time, on a channel the engine does
    not play.
+
+**Known before the run (read 2026-11-01).** From genkigenki's port kit
+([fm1-to-smk37](https://github.com/genkigenki/fm1-to-smk37), `docs/01-hardware.md` and
+`docs/02-update-and-recovery.md`, read from stock v016 and checked on one SMK-37 Pro), the
+[SMK37 page](https://genkigenki.github.io/smk37/), and
+[Skiff 1.4](https://github.com/illuminus5/skiff/releases/tag/v1.4). **Likely** until our own run:
+
+- **One board, four names.** The SMK-37 Pro, SMK-37 Elite, MKE-P37, and Donner Starrykey 37 Play
+  share the board and run the same firmware, one package per model name. Same JieLi AC791N, boot
+  chain, update loader, audio path, and synth engines as the FM1; the panel (37 velocity keys, 16
+  RGB pads, 8 encoders, 4 faders, wheels), display wiring, and flash map differ. The TRS jack is
+  MIDI **out**, so the SMK receives MIDI over USB only. One user sample slot, not three.
+- **Identity.** The stock app answers `fm1IdentityQuery` in the same `00 59 11` reply with
+  `SMK-37 Pro_016` (the Elite presumably `SMK-37 Elite_016`; MKE-P37 not yet read). FM-1 firmware
+  ports keep the model name and their own number: `SMK-37 Pro_9XY` for Felucca-family ports,
+  `SMK-37_970` for NESynth, `SMK-37 Pro_714` / `SMK-37 Elite_714` / `MKE-P37_714` for Skiff. The
+  model is the text before the underscore, and may hold a space. `parseFm1IdentityReply` already
+  reads these; `classifyFm1Firmware` calls them all unidentified, so today an SMK gets the
+  cautious parameter changes. So the device can come from the identity's model, with no product
+  byte or setting needed.
+- **Ports.** USB strings `SMK-37 Pro Midi`, `SMK-37 Pro Audio` (VID:PID 4353:B64B, FM-1 4C4A:C755);
+  Felucca-family ports bring their own descriptors. `resolveMidiPortSelection` prefers only an
+  FM-1 name, so it should also prefer a name containing `SMK`, matched case-insensitively by
+  substring (Windows shows `MIDIIN2 (name)`).
+- **Firmware versions.** Stock V013 and V015 came before V016 (`SMK-37 Pro_016.fwsc`,
+  `SMK-37 Elite_016.fwsc`); the device shows 013 as 1.10. Its numbering is the SMK's own, not the
+  FM1's, so `016` on an SMK says nothing about FM1 V16's effect controllers or Voices.
+- **Unknown:** everything the run lists below about what the stock app does with Program Change,
+  DX7 parameter changes, dumps, and effect controllers. Engines unchanged does not mean the stock
+  SMK app maps MIDI as the stock FM1 does.
 
 **Then, in the editor:**
 
