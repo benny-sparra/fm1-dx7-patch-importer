@@ -384,7 +384,10 @@ open everything an earlier release could have saved.
   send; a click on a preset never resends what was last sent.
 - The Effects view sits beside the patch banks as a tab, so it takes the panel header, search,
   strip, Send button, rail, and content padding from `src/components/patches/library-panel.ts`,
-  as `PatchGrid` does, and its preset rows match a bank tab's height. A send shows on the Send
+  as `PatchGrid` does, and its preset rows match a bank tab's: the same height, a bevelled ⋮
+  (`PortalMenu`'s `triggerLook`) whose menu opens beside it (`placeMenu`, from `src/lib/menu-beside.ts`, which only lazy code
+  imports, since `PortalMenu` is in the entry), and an icon on
+  every item. A send shows on the Send
   button, as the bank's does: a barber pole and **Sending…** in the same cell as **Send to FM1**,
   with the words read aloud from a status region that shows nothing, so nothing below the strip
   moves while the effects go out.

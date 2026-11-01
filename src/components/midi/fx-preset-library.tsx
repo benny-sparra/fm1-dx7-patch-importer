@@ -1,4 +1,14 @@
-import { ChevronDown, Download, Plus, Search, Send, Upload } from 'lucide-react'
+import {
+  ChevronDown,
+  CopyPlus,
+  Download,
+  PencilLine,
+  Plus,
+  Search,
+  Send,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { type ReactNode, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -36,6 +46,7 @@ import {
   makeFxPresetFile,
   readFxPresetFile,
 } from '@/lib/fx-preset-file'
+import { positionMenuBeside } from '@/lib/menu-beside'
 import { cn } from '@/lib/utils'
 import { downloadFile } from '@/lib/download-file'
 import {
@@ -319,7 +330,7 @@ export function FxPresetLibrary({
   const menu = (
     <PortalMenu
       triggerLabel={t('fxPresets.actions')}
-      triggerClassName="size-7 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] hover:bg-[var(--crt-sel-bg)]"
+      triggerLook="size-7 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] hover:bg-[var(--crt-sel-bg)]"
       menuLabel={t('fxPresets.actions')}
       items={[
         {
@@ -337,6 +348,23 @@ export function FxPresetLibrary({
       ]}
     />
   )
+
+  // The rail's last row, under the list as **Add new bank…** is under the banks.
+  const newPresetButton =
+    fxLibrary.status === 'ready' ? (
+      <button
+        aria-disabled={unavailable || mode !== null}
+        className={libraryRailAddButtonClassName}
+        onClick={() => {
+          setSheetOpen(false)
+          startSave()
+        }}
+        type="button"
+      >
+        <Plus aria-hidden="true" className="size-4 shrink-0" />
+        <span>{t('fxPresets.newPreset')}</span>
+      </button>
+    ) : null
 
   const renderList = (menuTarget?: HTMLElement | null) => (
     <>
@@ -394,12 +422,19 @@ export function FxPresetLibrary({
                   {preset.name}
                 </button>
                 <PortalMenu
+                  placeMenu={placeBeside}
                   portalTarget={menuTarget}
+                  // A bevelled box, as a bank tab's ⋮ is, lit with the row it belongs to.
+                  triggerLook={cn(
+                    'h-6 w-5 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] aria-expanded:bg-[var(--crt-bg-1)]',
+                    preset.id === loadedId ? 'text-[var(--crt-led)]' : 'text-[var(--crt-ink-2)]',
+                  )}
                   triggerLabel={t('fxPresets.presetActions', { name: preset.name })}
                   menuLabel={t('fxPresets.presetActions', { name: preset.name })}
                   items={[
                     {
                       label: t('fxPresets.rename'),
+                      Icon: PencilLine,
                       disabled: unavailable || mode !== null,
                       onSelect: () => {
                         setModePreset(preset)
@@ -409,6 +444,7 @@ export function FxPresetLibrary({
                     },
                     {
                       label: t('fxPresets.duplicate'),
+                      Icon: CopyPlus,
                       disabled: unavailable || mode !== null,
                       onSelect: () => void duplicatePreset(preset),
                     },
@@ -420,6 +456,7 @@ export function FxPresetLibrary({
                     },
                     {
                       label: t('fxPresets.delete'),
+                      Icon: Trash2,
                       danger: true,
                       disabled: unavailable || mode !== null,
                       onSelect: () => {
@@ -437,20 +474,6 @@ export function FxPresetLibrary({
             {t(fxLibrary.presets.length ? 'fxPresets.noMatches' : 'fxPresets.empty')}
           </p>
         )
-      ) : null}
-      {fxLibrary.status === 'ready' ? (
-        <button
-          aria-disabled={unavailable || mode !== null}
-          className={libraryRailAddButtonClassName}
-          onClick={() => {
-            setSheetOpen(false)
-            startSave()
-          }}
-          type="button"
-        >
-          <Plus aria-hidden="true" className="size-4 shrink-0" />
-          <span>{t('fxPresets.newPreset')}</span>
-        </button>
       ) : null}
     </>
   )
@@ -487,6 +510,7 @@ export function FxPresetLibrary({
           <div className="flex min-w-0 flex-col gap-1.5 p-2 text-sm break-words">
             {renderList()}
           </div>
+          {newPresetButton}
         </div>
       )}
       <div className="min-w-0 flex-1">
@@ -596,10 +620,13 @@ export function FxPresetLibrary({
       {narrow && sheetOpen ? (
         <FxPresetSheet onClose={() => setSheetOpen(false)} title={t('fxPresets.dialogTitle')}>
           {(target) => (
-            <div className="grid min-w-0 gap-2 p-2 text-sm break-words">
-              {searchField}
-              {renderList(target)}
-            </div>
+            <>
+              <div className="grid min-w-0 gap-2 p-2 text-sm break-words">
+                {searchField}
+                {renderList(target)}
+              </div>
+              {newPresetButton}
+            </>
           )}
         </FxPresetSheet>
       ) : null}
@@ -682,4 +709,9 @@ export function FxPresetLibrary({
       />
     </section>
   )
+}
+
+/** Opens a row's menu beside it, as a bank tab's menu swings out of the rail. */
+function placeBeside(trigger: DOMRect, width: number, height: number) {
+  return positionMenuBeside(trigger, width, height, innerWidth, innerHeight)
 }

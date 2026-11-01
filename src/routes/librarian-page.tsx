@@ -1540,7 +1540,7 @@ export function LibrarianPage({
                   {nextBank ? (
                     <button
                       aria-label={t('banks.addBank')}
-                      className={cn('mx-2 mb-2', libraryRailAddButtonClassName)}
+                      className={libraryRailAddButtonClassName}
                       onClick={() => setIsAddingBank(true)}
                       ref={addBankButtonRef}
                       title={t('banks.addBank')}
