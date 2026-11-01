@@ -1376,7 +1376,7 @@ export default {
     bulkExportFailed: 'Error de exportación masiva.',
     gridTitle: 'Bancos de sonidos',
     gridDescription: 'Importa, edita y organiza cada banco antes de transferirlo al FM1.',
-    search: 'Buscar',
+    search: 'Buscar sonidos',
     noMatches: 'Ningún sonido coincide con la búsqueda',
     searchResults: 'Resultados de búsqueda: «{{search}}»',
     sendFromSearch: 'Elige un banco para enviarlo al FM1',

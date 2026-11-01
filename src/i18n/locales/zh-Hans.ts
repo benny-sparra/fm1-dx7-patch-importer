@@ -1251,7 +1251,7 @@ export default {
     bulkExportFailed: '批量导出失败。',
     gridTitle: '音色库',
     gridDescription: '先导入、编辑和排列每个音色库，再传输到 FM1。',
-    search: '搜索',
+    search: '搜索音色',
     noMatches: '没有符合搜索条件的音色',
     searchResults: '搜索结果：“{{search}}”',
     sendFromSearch: '请选择一个音色库以发送到 FM1',

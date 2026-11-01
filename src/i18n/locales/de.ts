@@ -1399,7 +1399,7 @@ export default {
     bulkExportFailed: 'Sammel-Export fehlgeschlagen.',
     gridTitle: 'Sound-Bänke',
     gridDescription: 'Importiere, bearbeite und sortiere jede Bank vor der Übertragung zum FM1.',
-    search: 'Suchen',
+    search: 'Sounds suchen',
     noMatches: 'Keine Sounds entsprechen der Suche',
     searchResults: 'Suchergebnisse: „{{search}}“',
     sendFromSearch: 'Wählen Sie eine Bank, um sie an den FM1 zu senden',

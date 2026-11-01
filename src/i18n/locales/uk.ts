@@ -1435,7 +1435,7 @@ export default {
     gridTitle: 'Банки',
     gridDescription:
       'Імпортуйте, редагуйте та упорядковуйте кожен банк, перш ніж надсилати його на FM1.',
-    search: 'Пошук',
+    search: 'Пошук патчів',
     noMatches: 'Жоден патч не відповідає пошуку',
     searchResults: 'Результати пошуку: «{{search}}»',
     sendFromSearch: 'Оберіть банк, щоб надіслати його на FM1',

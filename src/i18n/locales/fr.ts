@@ -1384,7 +1384,7 @@ export default {
     gridTitle: 'Banques de sons',
     gridDescription:
       'Importez, modifiez et organisez chaque banque avant de la transférer vers le FM1.',
-    search: 'Rechercher',
+    search: 'Rechercher des sons',
     noMatches: 'Aucun son ne correspond à cette recherche',
     searchResults: 'Résultats de recherche : « {{search}} »',
     sendFromSearch: 'Choisissez une banque pour l’envoyer au FM1',

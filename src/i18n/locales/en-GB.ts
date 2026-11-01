@@ -388,7 +388,7 @@ export default {
     bulkExportFailed: 'Bulk export failed.',
     gridTitle: 'Patch banks',
     gridDescription: 'Import, edit, and arrange each bank before transferring it to the FM1.',
-    search: 'Search',
+    search: 'Search patches',
     noMatches: 'No patches match this search',
     searchResults: 'Search results: “{{search}}”',
     sendFromSearch: 'Choose a bank to send it to the FM1',
