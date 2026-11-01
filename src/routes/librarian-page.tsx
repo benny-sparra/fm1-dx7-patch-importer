@@ -393,7 +393,7 @@ export function LibrarianPage({
   // arrives with the file chosen. A bank received over MIDI arrives with its patches and the slot
   // it was received from, for focus to return to.
   const [bankPendingImport, setBankPendingImport] = useState<
-    (BankMenuRequest & { file?: File }) | null
+    (Omit<BankMenuRequest, 'name'> & { file?: File }) | null
   >(null)
   // The bank menu toggle an import into an empty bank was started from, for focus to return to.
   const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
@@ -534,11 +534,7 @@ export function LibrarianPage({
   }
   const beginImport = (bank: string, opener?: HTMLElement) => {
     if (library.loadedBanks.includes(bank)) {
-      setBankPendingImport({
-        bank,
-        name: bankDisplayName(bank),
-        opener: menuToggleOf(opener),
-      })
+      setBankPendingImport({ bank, opener: menuToggleOf(opener) })
       return
     }
     emptyBankImportOpenerRef.current = menuToggleOf(opener)
@@ -734,7 +730,6 @@ export function LibrarianPage({
         setBankPendingImport({
           bank: importTarget,
           file,
-          name: bankDisplayName(importTarget),
           opener: emptyBankImportOpenerRef.current,
         })
         return
