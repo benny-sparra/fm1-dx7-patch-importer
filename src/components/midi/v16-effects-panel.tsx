@@ -13,6 +13,7 @@ import {
   librarySearchInputClassName,
 } from '@/components/patches/library-panel'
 import { useFxLibrary, type FxLibrary } from '@/hooks/use-fx-library'
+import { useV16EffectOrder } from '@/hooks/use-v16-effect-order'
 import type { MidiController } from '@/hooks/use-midi'
 import '@/i18n/fx-presets'
 import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
@@ -35,7 +36,10 @@ export type V16EffectsMidi = Pick<
   | 'sendSharedEffectSettings'
 >
 
-type PanelProps = { fxLibrary?: FxLibrary; midi: V16EffectsMidi }
+type PanelProps = {
+  fxLibrary?: FxLibrary
+  midi: V16EffectsMidi & Parameters<typeof useV16EffectOrder>[0]
+}
 
 /**
  * The V16 effects rack and its named presets. `fxLibrary` is a test seam; production owns the
@@ -63,6 +67,17 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
   const [menuSlot, setMenuSlot] = useState<HTMLSpanElement | null>(null)
   const route = v16EffectsRouteKey(midi.selectedOutputId, midi.effectChannel, midi.firmware)
   const previousRoute = useRef(route)
+  const chain = useV16EffectOrder(midi)
+  const orderNotice =
+    chain.status === 'reading'
+      ? t('fxPresets.effectOrderReading')
+      : chain.status === 'failed'
+        ? t('fxPresets.effectOrderFailed')
+        : chain.writeFailed
+          ? t('fxPresets.effectOrderWriteFailed')
+          : chain.status === 'ready'
+            ? t('fxPresets.effectOrderUnsaved')
+            : undefined
 
   useEffect(() => {
     if (route !== previousRoute.current) clearV16EffectsLastSent()
@@ -142,6 +157,17 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
         >
           <EffectsUnit
             disabled={sending}
+            effectOrder={
+              chain.status === 'unavailable'
+                ? undefined
+                : {
+                    disabled: chain.status !== 'ready',
+                    dragTitle: t('fxPresets.effectOrderDragTitle'),
+                    notice: orderNotice,
+                    onMove: chain.move,
+                    order: chain.order,
+                  }
+            }
             onApplyPreset={applyPreset}
             onChange={setParameter}
             onGestureEnd={noGesture}

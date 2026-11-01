@@ -43,9 +43,16 @@ export default {
     ineligible:
       'Diese Firmware hat keine gemeinsame V16-FX-Gruppe. Das Laden ändert nur diesen Browser.',
     help: 'Effekte bearbeiten und Presets speichern. Bei V16 teilen sich alle Voices die Effekte.',
-    orderHelp:
-      'Presets enthalten die hier gezeigten Effektregler. Die Effekt-Reihenfolge bleibt wie am FM1 eingestellt.',
+    orderHelp: 'Presets enthalten die hier gezeigten Effektregler, nicht die Effekt-Reihenfolge.',
     noReadback: 'Änderungen an der Gerätefront werden nicht in den Editor zurückgelesen.',
+    effectOrderReading: 'Die Effektreihenfolge wird vom FM1 gelesen…',
+    effectOrderFailed:
+      'Der FM1 hat seine Effektreihenfolge nicht geliefert, daher lässt sie sich hier nicht ändern.',
+    effectOrderWriteFailed:
+      'Der FM1 hat die neue Reihenfolge nicht übernommen. Versuche es erneut.',
+    effectOrderUnsaved: 'Eine neue Reihenfolge wird auf dem FM1 erst mit SAVE gespeichert.',
+    effectOrderDragTitle:
+      'Ziehen, um zu ändern, wo dieser Effekt in der Reihenfolge sitzt, die der Klang durchläuft, der erste oben links. Mit der Tastatur: Leertaste, dann die Pfeiltasten. Der FM1 spielt die neue Reihenfolge sofort.',
     sessionOnly:
       'Der Browserspeicher kann diese Effekte nicht behalten; sie gelten nur, solange dieser Tab geöffnet bleibt.',
     partial: 'Nicht alle Effekte wurden gesendet. Der FM1 kann teilweise geändert worden sein.',

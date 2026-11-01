@@ -2504,6 +2504,35 @@ saving a received bank first calls `FUN_02011fd0`, whose failure shows **FX save
 whether that sets the flag was not followed. That fits both runs, where it was set in normal use.
 **Likely**.
 
+**Object 4: the FX order** (2026-10-27). The owner approved sending command `0x23` (read) and
+`0x22` (write) on object 4 so the editor can reorder V16's effects, and narrowed it the same day:
+the write is exactly the 27 FX table bytes at offset `0x92`, never the whole block
+(`AGENTS.md`, "MIDI"). The firmware reading above (PR #402) decodes the table; what the editor
+relies on:
+
+| Fact                                                                                                                          | Confidence                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| A frame is `F0`, then `00 59 <cmd> <length, 3 bytes LE> <payload> <checksum>` packed seven bits at a time, LSB first, `F7`    | Confirmed (identity)                                                    |
+| The checksum is `~sum(payload) & 0xFF` (checked on V15's identity reply: `19`)                                                | Confirmed (identity)                                                    |
+| A request's payload is the object, a 32-bit LE offset, a 24-bit LE length, then for `0x22` the data (fits object 5's restore) | Confirmed (2026-11-01: the FM1 answered the read and took the write)    |
+| Object 4 is 176 bytes, byte 0 the version `0x0E`; `0x23` reads it, `0x22` takes a partial write laid over the current block   | Confirmed for the read and a 27-byte write (2026-11-01)                 |
+| The FX table is 27 bytes at `0x92`: nine 3-byte entries                                                                       | Confirmed (2026-11-01)                                                  |
+| Byte 0 of entry `p` (0–5) is the effect at chain position `p`: 0 Filter, 1 Reverb, 2 Delay, 3 Distortion, 4 Chorus, 5 Phaser  | Confirmed (2026-11-01: Reverb moved before Filter on the FX page)       |
+| Bytes 1–2 of entry `e` are effect `e`'s On/Off and Type, by number, not position; entries 6–8 hold 6–8                        | Likely (firmware)                                                       |
+| The write rejects the block unless the nine byte 0s are at most 8 and all different, byte 1 at most 1, byte 2 at most 2       | Likely (firmware)                                                       |
+| A write of the 27 bytes touches nothing else; it does not reach Flash, and the FM1's next SAVE stores the order               | Likely (firmware); Needs hardware test                                  |
+| Whether CC 70–93 edits between a read and a write are put back by the write's On/Off and Type bytes                           | By design: the editor reads just before each write; Needs hardware test |
+
+The editor's codec (`src/lib/v16-settings-block.ts`) reads a block and finds the chain order, and
+writes only the 27 table bytes at `0x92`, taken from a block read just before, with byte 0 of
+entries 0–5 replaced by an arrangement of 0–5 and every other byte as read. It refuses a table that
+is not an order of the six effects, since putting 6–8 among the first six passes the firmware's
+check and drops an effect. The Effects view offers the reordering through the profile's
+`effectOrder` capability, on for V16 since the owner's run of 2026-11-01
+([`hardware-runs/stock-v16-effect-order-2026-11-01.md`](hardware-runs/stock-v16-effect-order-2026-11-01.md)).
+The order is not part of an FX preset. Nothing here is the OTA or loader path: object 4 is the
+settings block, and objects 5 and 8, `0x30`, and the loader stay **Dangerous / excluded**.
+
 #### Codex firmware reading (2026-10-28)
 
 Independent offline reading of stock `FM-1_016.fwsc`. **Likely** denotes a static behavioural
@@ -2835,6 +2864,11 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
 11. Does M-VAVE's Windows updater send command `0x22` or `0x23` on object 4, the settings block
     that holds the selected Voice's channel? Capture only, nothing sent by the editor
     ([`hardware-runs/stock-v16-voice-settings-capture.md`](hardware-runs/stock-v16-voice-settings-capture.md)).
+12. Does object 4's FX table behave as the firmware reading says (chain order in byte 0 of entries
+    0–5), and does the 27-byte write touch anything else? **The order, yes** (2026-11-01:
+    dragging Reverb before Filter in the editor moved it on the FM1's FX page). Whether anything
+    else changes, and SAVE, were not checked. Run sheet:
+    [`hardware-runs/stock-v16-effect-order-run-sheet.md`](hardware-runs/stock-v16-effect-order-run-sheet.md).
 
 ### FM1 Editor
 

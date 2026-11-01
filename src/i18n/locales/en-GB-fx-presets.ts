@@ -43,9 +43,14 @@ export default {
     offline: 'No MIDI output is selected. Loading changes only this browser.',
     ineligible: 'This firmware has no shared V16 FX group. Loading changes only this browser.',
     help: 'Edit effects and save presets. On V16, all Voices share the effects.',
-    orderHelp:
-      'Presets contain the effect controls shown here. Effect order stays as set on the FM1.',
+    orderHelp: 'Presets hold the effect controls shown here, not the effect order.',
     noReadback: 'Front-panel changes are not read back by the editor.',
+    effectOrderReading: 'Reading the effect order from the FM1…',
+    effectOrderFailed: 'The FM1 did not give its effect order, so it cannot be changed here.',
+    effectOrderWriteFailed: 'The FM1 did not take the new order. Try again.',
+    effectOrderUnsaved: 'A new order is not saved on the FM1 until you press SAVE.',
+    effectOrderDragTitle:
+      'Drag to change where this effect sits in the order the sound passes through, first at the top left. With the keyboard, press Space, then the arrow keys. The FM1 plays the new order at once.',
     sessionOnly:
       'Browser storage can’t keep these effects, so they last only while this tab stays open.',
     partial: 'Not all effects were sent. The FM1 may have changed partially.',
