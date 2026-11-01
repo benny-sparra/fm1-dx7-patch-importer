@@ -38,20 +38,22 @@ export function useDownloadWorkspaceBackup(library: BackupLibrary) {
 
   return useCallback(async () => {
     let backup: typeof import('@/lib/workspace-backup')
-    let fxPresets: Awaited<
-      ReturnType<(typeof import('@/lib/fx-library-storage'))['listStoredFxLibraryPresets']>
-    >
     try {
-      ;[backup, fxPresets] = await Promise.all([
-        import('@/lib/workspace-backup'),
-        import('@/lib/fx-library-storage').then((storage) => storage.listStoredFxLibraryPresets()),
-      ])
+      backup = await import('@/lib/workspace-backup')
     } catch {
       return false
     }
+    // The FX presets wait for writes already started, and an unreadable store leaves them out of
+    // the file rather than blocking the backup of everything else.
+    const fx = await import('@/lib/fx-library-storage')
+      .then(async (storage) => {
+        await storage.whenFxMutationsSettled()
+        return storage.listStoredFxLibraryPresets()
+      })
+      .catch(() => null)
     const downloaded = backup.downloadWorkspaceBackup({
-      damagedFxPresetCount: fxPresets.damagedCount,
-      fxPresets: fxPresets.presets,
+      fxPresets: fx?.presets,
+      fxPresetsLeftOut: !fx || fx.damagedCount > 0,
       hasDamagedNamedBanks: library.hasDamagedNamedBanks,
       namedBanks: library.namedBanks,
       namedBanksLoadFailed: library.namedBanksLoadFailed,

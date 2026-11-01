@@ -18,11 +18,21 @@ type CreateFxLibraryPresetOptions = {
   now: string
 }
 
+/** A name that is empty or longer than `fxLibraryPresetNameLength`, so the user can fix it. */
+export class FxLibraryPresetNameError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'FxLibraryPresetNameError'
+  }
+}
+
 export function normalizeFxLibraryPresetName(name: string) {
   const normalized = name.trim()
-  if (!normalized) throw new Error('An FX preset needs a name.')
+  if (!normalized) throw new FxLibraryPresetNameError('An FX preset needs a name.')
   if (Array.from(normalized).length > fxLibraryPresetNameLength) {
-    throw new Error(`An FX preset name cannot exceed ${fxLibraryPresetNameLength} characters.`)
+    throw new FxLibraryPresetNameError(
+      `An FX preset name cannot exceed ${fxLibraryPresetNameLength} characters.`,
+    )
   }
   return normalized
 }

@@ -5,6 +5,7 @@ import { fm1EffectParameterMaximums } from '@/lib/fm1-effects'
 import {
   createFxLibraryPreset,
   duplicateFxLibraryPreset,
+  FxLibraryPresetNameError,
   fxLibraryPresetNameLength,
   readStoredFxLibraryPreset,
   renameFxLibraryPreset,
@@ -146,5 +147,14 @@ describe('FX library preset records', () => {
     expect(sameFxLibraryPreset(a1, { ...a1, effects: a1.effects.slice() })).toBe(true)
     expect(sameFxLibraryPreset(a1, { ...a1, name: 'Changed' })).toBe(false)
     expect(sortFxLibraryPresets([beta, a2, a1], new Intl.Collator('en-GB'))).toEqual([a1, a2, beta])
+  })
+
+  it('refuses an empty or over-long name with an error the page can translate', () => {
+    const source = createFxLibraryPreset({ effects: effects(), id: 'a', name: 'A', now })
+
+    expect(() => renameFxLibraryPreset(source, '  ', now)).toThrow(FxLibraryPresetNameError)
+    expect(() =>
+      renameFxLibraryPreset(source, 'x'.repeat(fxLibraryPresetNameLength + 1), now),
+    ).toThrow(FxLibraryPresetNameError)
   })
 })

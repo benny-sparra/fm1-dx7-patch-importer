@@ -220,7 +220,7 @@ open everything an earlier release could have saved.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
   `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
   `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`, `selectedVoiceEdits`,
-  `multitimbral`, `effectControllers`, `presetEffects`), where its effect controllers start
+  `multitimbral`, `effectControllers`, `presetEffects`, `sharedEffects`), where its effect controllers start
   (`effectControllerBase`), and its preset write timing. A family
   lists the first release with each capability, or a range ending `before` the release that took
   it away, so a new firmware, a release that adds or removes one, or another device's firmware is
@@ -356,26 +356,47 @@ open everything an earlier release could have saved.
 
 ### FX preset interactions
 
-- Keep the loaded FX preset ID in the current-effects session store so Sounds/Effects navigation
+- Keep the loaded FX preset ID in the current-effects session store so Patches/Effects navigation
   preserves selection and unsaved FX edits. Tab return never reloads a preset or sends MIDI; the ID
   stays in memory and does not change the version-1 persisted effects format.
+- The Effects view is offered only while the firmware profile has `sharedEffects` (M-VAVE V16 on),
+  and the page falls back to Patches if the firmware changes while it is open. The effects live in
+  `fm1-v16-effects`; a record this release cannot read, or one a newer release wrote, is never
+  written over: the session's edits stay in memory and the panel says, in a mounted `role="status"`
+  region, that they last only while the tab stays open.
 - Clicking an FX preset loads it into the rack immediately and applies it through the existing
   shared-effects sender when supported MIDI is online. Repeat clicks do not resend unchanged FX.
+  A load that does not reach the FM1 (offline, or no shared FX group) says so in one `InfoNotice`
+  line in the mounted status region under the title strip, where **Sending…** also shows.
   Opening a preset’s menu sends nothing and leaves the rack unchanged. Update targets the loaded
   preset; capture the record when a management action opens so another tab cannot change its target.
-- The FX rack names its preset through a `name-caret` input with a pencil, as the patch editor does.
-  Enter or blur commits the rename; Escape discards it. Keep Update in the rack’s ⋮ menu and show
-  no Modified suffix beside the name. Update saves immediately without a confirmation dialog and
-  reports success through `toast.success` after storage commits. Update and Delete offer Undo as
-  an action in their completion toast, capturing that change’s record; never as a sidebar button.
-  A mutation completed by a disposed FX-library owner refreshes the active owner, so a toast’s
-  Undo still updates the visible list after switching Sounds/Effects. Renaming changes only
-  the saved name, never its effects.
-- Duplicate creates a named FX preset immediately, without a confirmation modal, and reports
-  success through `toast.success` after storage commits.
-- Confirm a successful named FX preset save in a modal, rather than a sidebar status line.
-- Creating an FX preset snapshots the current rack. Updating or deleting offers Undo; neither action,
-  nor Undo, sends MIDI. Deleting a loaded preset leaves the rack unchanged as Custom settings.
+- Leaving the Effects view cancels the send still waiting its turn (`sendSharedEffectSettings` takes
+  an `AbortSignal`), and a send that finished after the view went records nothing. A finished send
+  records the snapshot that was sent (`markV16EffectsSent`), never the rack as it is by then.
+  **Send again** shows while the loaded preset matches its last send, and after a send that failed
+  or went out only in part.
+- There is one way to save and one to rename. **+ New FX preset…** names a snapshot of the rack in a
+  modal; Rename… is a modal too. The title strip shows the loaded preset’s name, with a dim “edited”
+  beside it while the rack differs, or **Unsaved effects**. Its ⋮ menu holds **Update “name”** and
+  **Send again**, and is absent when neither applies. The sidebar header’s ⋮ (**FX preset actions**)
+  holds Import… and Download all only. A row’s menu ends with Delete…, in the danger colour.
+  Update saves immediately without a confirmation dialog and reports success through
+  `toast.success` after storage commits. Update and Delete offer Undo as an action in their
+  completion toast, capturing that change’s record; never as a sidebar button. A mutation
+  completed by a disposed FX-library owner refreshes the active owner, so a toast’s Undo still
+  updates the visible list after switching Patches/Effects. Renaming changes only the saved name,
+  never its effects. A name the library refuses reaches the page as the name-length error
+  (`FxLibraryPresetNameError`), not as a storage failure.
+- Save, rename, duplicate and import report success through `toast.success` after storage commits;
+  only errors stay on the page, in `ErrorNotice`. Creating an FX preset snapshots the current rack.
+  Updating or deleting offers Undo; neither action, nor Undo, sends MIDI. Deleting a loaded preset
+  leaves the rack unchanged as **Unsaved effects**.
+- The FX library has one owner: a panel handed a library by the page never opens a second one. FX
+  writes share one queue (`serializeFxMutation`), so a backup can wait for the writes already
+  started (`whenFxMutationsSettled`). A backup whose FX store cannot be read is still downloaded
+  without its FX presets, and says so; a damaged preset inside a backup file is skipped and counted
+  in the restore dialog, not a reason to refuse the file. A restore that fails after the saved banks
+  were added names what stayed, and never says “may”.
 
 ### Internationalisation
 
@@ -678,8 +699,6 @@ open everything an earlier release could have saved.
 
 - Prefer semantic HTML and native dialog behavior. Preserve Escape-to-close, modal semantics, focus
   placement/restoration, and keyboard activation.
-- Modals use the title-bar Close control and Escape for dismissal. Do not add Cancel buttons to
-  modals; keep their footers for task actions.
 - **Add new bank…** is a wizard with one decision on each screen and **Back** and **Next** pinned in
   the footer, **Back** at the left and hidden on the first screen, and **Create bank** in place of
   **Next** on the last. The title and description come first, so the bank is named before its
@@ -826,7 +845,7 @@ open everything an earlier release could have saved.
 - Colour a button by whether the action can be undone. `danger`, solid red, marks only what
   nothing reverses, such as deleting a saved bank or writing presets to the FM1. `destructive`,
   red text, marks what replaces or removes data that Undo brings back, such as deleting a bank or
-  copying over a slot. An action that only adds stays plain. A footer Close button is
+  copying over a slot. An action that only adds stays plain. A Cancel or Close beside an action is
   `ghost`. A warning about what an action will replace is `WarningNotice`; an error is
   `ErrorNotice`; information the page or action works around, such as why an editor's changes
   are not playing on the FM1 yet, is `InfoNotice`: the sunken message box with the 8-bit info

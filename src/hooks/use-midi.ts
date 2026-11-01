@@ -10,7 +10,7 @@ import {
   unpackDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
-import { hasSharedEffects, resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import {
   fm1EffectParameterCount,
   fm1EffectParameterMaximums,
@@ -71,7 +71,7 @@ export type BankTransferResult =
     }
 
 export type SharedEffectTransferResult =
-  | { ok: true; sent: 24 }
+  | { ok: true; sent: typeof fm1EffectParameterCount }
   | {
       ok: false
       reason: 'cancelled' | 'ineligible' | 'invalid' | 'no-output' | 'transport'
@@ -726,7 +726,7 @@ export function useMidi() {
 
   const sendSharedEffectParameter = useCallback(
     (controller: number, value: number) => {
-      if (!hasSharedEffects(resolveFirmwareProfile(firmware))) return false
+      if (!resolveFirmwareProfile(firmware).capabilities.sharedEffects) return false
       return sendEffectParameter(controller, value)
     },
     [firmware, sendEffectParameter],
@@ -805,7 +805,7 @@ export function useMidi() {
   )
 
   const sendSharedEffectSettings = useCallback(
-    async (settings: Uint8Array): Promise<SharedEffectTransferResult> => {
+    async (settings: Uint8Array, signal?: AbortSignal): Promise<SharedEffectTransferResult> => {
       if (
         !(settings instanceof Uint8Array) ||
         settings.length !== fm1EffectParameterCount ||
@@ -819,13 +819,15 @@ export function useMidi() {
         return { ok: false, reason: 'no-output', sent: 0 }
       }
       const profile = resolveFirmwareProfile(firmware)
-      if (!hasSharedEffects(profile)) {
+      if (!profile.capabilities.sharedEffects) {
         return { ok: false, reason: 'ineligible', sent: 0 }
       }
 
       const captured = settings.slice()
       const group = `shared-effects-${++nextSharedEffectBatch.current}`
       sharedEffectBatches.current.add(group)
+      // The caller leaving drops the controls still waiting their turn, as a route change does.
+      const cancel = () => transferQueue.clearGroup(group, 'The shared FX transfer was cancelled.')
       let sent = 0
       let transportError: unknown
       const transfers = Array.from(captured, (value, controller) =>
@@ -851,10 +853,12 @@ export function useMidi() {
         ),
       )
       appendLog(makeLogEntry('out', `Sending shared FM1 effects on channel ${effectChannel}…`))
+      if (signal?.aborted) cancel()
+      else signal?.addEventListener('abort', cancel, { once: true })
       try {
         await Promise.all(transfers)
         appendLog(makeLogEntry('out', 'Sent the shared FM1 effects.'))
-        return { ok: true, sent: 24 }
+        return { ok: true, sent: fm1EffectParameterCount }
       } catch (caughtError) {
         const cancelled =
           transportError === undefined && caughtError instanceof MidiTransferCancelledError
@@ -873,6 +877,7 @@ export function useMidi() {
         )
         return { ok: false, reason: cancelled ? 'cancelled' : 'transport', sent }
       } finally {
+        signal?.removeEventListener('abort', cancel)
         sharedEffectBatches.current.delete(group)
       }
     },

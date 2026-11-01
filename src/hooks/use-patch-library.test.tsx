@@ -420,6 +420,7 @@ describe('usePatchLibrary restoring a backup', () => {
 
   function makeBackup(savedBanks: NamedBank[]): WorkspaceBackup {
     return {
+      damagedFxPresetCount: 0,
       damagedSavedBankCount: 0,
       savedAt: '2026-09-21T13:03:00.000Z',
       savedBanks,

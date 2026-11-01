@@ -16,6 +16,8 @@ import { cn } from '@/lib/utils'
 type PortalMenuItem = {
   /** Makes the item one of a set of choices, ticked while it is the one chosen. */
   checked?: boolean
+  /** Marks what replaces or removes data, in the danger colour; such an item goes last. */
+  danger?: boolean
   disabled?: boolean
   /**
    * Names the run of items this one starts, or sits in. A run of two or more shows its name as a
@@ -30,8 +32,6 @@ type PortalMenuItem = {
 }
 
 type PortalMenuProps = {
-  /** Extra space to the right of the trigger, such as a row’s trailing padding. */
-  alignOffset?: number
   /** A caption above the items, saying what the menu is for. */
   heading?: string
   items: readonly PortalMenuItem[]
@@ -69,7 +69,6 @@ const groupRuns = (items: readonly PortalMenuItem[]) => {
  * closes on scroll rather than following its trigger.
  */
 export function PortalMenu({
-  alignOffset = 0,
   heading,
   items,
   menuLabel,
@@ -97,12 +96,12 @@ export function PortalMenu({
     const { offsetHeight, offsetWidth } = menu
     const anchor = {
       bottom: trigger.bottom,
-      left: trigger.right - offsetWidth + 8 + alignOffset,
+      left: trigger.right - offsetWidth + 8,
       top: trigger.top,
     }
     setPosition(positionMenu(anchor, offsetWidth, offsetHeight, innerWidth, innerHeight))
     ;(enabledItems(menu)[0] ?? menu).focus()
-  }, [alignOffset, open])
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -150,6 +149,7 @@ export function PortalMenu({
   const renderItem = (
     {
       checked,
+      danger,
       disabled,
       hint,
       Icon = checked ? Check : undefined,
@@ -163,7 +163,12 @@ export function PortalMenu({
       aria-checked={checked}
       aria-describedby={hint ? `${hintId}-hint-${index}` : undefined}
       aria-labelledby={hint ? `${hintId}-label-${index}` : undefined}
-      className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50"
+      className={cn(
+        'flex w-full cursor-pointer items-center gap-2 rounded-sm px-3 py-2 text-left text-sm transition-colors outline-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:pointer-events-none disabled:opacity-50',
+        danger
+          ? 'text-destructive hover:bg-destructive hover:text-destructive-foreground focus-visible:bg-destructive focus-visible:text-destructive-foreground'
+          : 'hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground',
+      )}
       disabled={disabled}
       onClick={() => {
         // Focus returns to the trigger first, so a dialog the action opens restores it there.

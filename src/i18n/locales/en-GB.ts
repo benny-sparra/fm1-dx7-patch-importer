@@ -216,7 +216,7 @@ export default {
   },
   libraryViews: {
     label: 'Library view',
-    sounds: 'Sounds',
+    sounds: 'Patches',
     effects: 'Effects',
     effectsLoadFailed: 'Effects could not be opened. Reload the page and try again.',
   },
@@ -478,7 +478,9 @@ export default {
     downloadedWithoutDamaged:
       'Downloading a backup. Some saved banks could not be read, so they are not in it.',
     downloadedWithoutDamagedFx:
-      'Downloading a backup. Some FX presets could not be read, so they are not in it.',
+      'Downloading a backup. FX presets that could not be read are not in it.',
+    downloadedWithoutBanksAndFx:
+      'Downloading a backup. Saved banks and FX presets that could not be read are not in it.',
     unavailable: 'Backups could not be opened. Reload the page and try again.',
     unavailableUnsaved:
       'The backup could not be prepared. Keep this tab open, because your latest changes are not saved, and try again.',
@@ -498,8 +500,7 @@ export default {
       'Your banks and all their patches are replaced by the ones in the backup. Undo in the notification afterwards puts them back.',
     savedBanksEffect:
       'Saved banks are only added. One already in this browser is kept as it is, and Undo does not remove the ones added.',
-    fxPresetsEffect:
-      'FX presets are merged. Matching records are kept, ID conflicts become new copies, and local presets are never overwritten.',
+    fxPresetsEffect: 'FX presets are added. Ones already here are kept.',
     restoreAction: 'Restore backup',
     restoring: 'Restoring…',
     restored: 'Restored the backup from {{date}}.',
@@ -511,10 +512,12 @@ export default {
       damaged: 'This backup is damaged and cannot be restored. Try another backup file.',
       size: 'This file is too large to be a backup from this app.',
       read: 'The file could not be read. Choose it again.',
-      savedBanksFailed:
-        'Browser storage could not keep the saved banks from this backup, so your library was not changed. Try again.',
       restoreFailed:
-        'Browser storage could not finish the restore. The workspace was not replaced; any saved banks or FX presets already added were kept. Try again.',
+        'Browser storage could not finish the restore, so your library was not replaced. Saved banks already added from this backup were kept.',
+      restoreFxFailed:
+        'FX presets from this backup could not be saved, so your library was not replaced and no FX presets were added.',
+      restoreFxFailedBanksKept:
+        'FX presets from this backup could not be saved, so your library was not replaced and no FX presets were added. The saved banks from this backup were added first and were kept.',
     },
   },
 } as const

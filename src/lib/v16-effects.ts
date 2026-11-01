@@ -1,4 +1,8 @@
-import { FM1_EFFECT_PARAMETER_COUNT, fm1EffectParameters } from '@/lib/fm1-parameters'
+import {
+  fm1EffectParameterCount,
+  makeDefaultFm1Effects,
+  normalizeFm1Effects,
+} from '@/lib/fm1-effects'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
 
 type V16EffectsPersistence = 'persisted' | 'session-only'
@@ -16,45 +20,45 @@ type V16EffectsLastSent = {
  */
 const storageKey = 'fm1-v16-effects'
 const storedVersion = 1
-const fm1EffectParameterMaximums = Uint8Array.from(fm1EffectParameters.map(({ max }) => max))
-
-function makeDefaultFm1Effects() {
-  return new Uint8Array(FM1_EFFECT_PARAMETER_COUNT)
-}
 
 const listeners = new Set<() => void>()
 let current: Uint8Array | null = null
 let persistence: V16EffectsPersistence = 'persisted'
+// A stored record this release cannot read, or storage that would not open, is never written over.
+let storedRecordKept = false
 let lastSent: V16EffectsLastSent | null = null
 // Session metadata belongs to the current rack, not to a tab that unmounts on navigation.
 let loadedPresetId = ''
 
-function normaliseEffects(record: unknown) {
+function readRecord(record: unknown) {
   if (typeof record !== 'object' || record === null) return null
   const { effects, version } = record as Record<string, unknown>
   if (version !== storedVersion || !Array.isArray(effects)) return null
-  return Uint8Array.from({ length: FM1_EFFECT_PARAMETER_COUNT }, (_, index) => {
-    const value: unknown = effects[index]
-    return Number.isInteger(value) && (value as number) > 0
-      ? Math.min(value as number, fm1EffectParameterMaximums[index])
-      : 0
-  })
+  return normalizeFm1Effects(
+    Uint8Array.from({ length: fm1EffectParameterCount }, (_, index) => {
+      const value: unknown = effects[index]
+      return Number.isInteger(value) && (value as number) > 0 ? Math.min(value as number, 255) : 0
+    }),
+  )
 }
 
 function readStoredEffects() {
   try {
     const stored = localStorage.getItem(storageKey)
     if (stored === null) return makeDefaultFm1Effects()
-    const read = normaliseEffects(JSON.parse(stored))
+    const read = readRecord(JSON.parse(stored))
     if (read) return read
   } catch {
     // Current values remain usable in memory when storage is blocked or unreadable.
   }
+  // The record may be a newer release's or damaged, and is the user's only copy: keep it, and keep
+  // this session's edits in memory.
+  storedRecordKept = true
   persistence = 'session-only'
   return makeDefaultFm1Effects()
 }
 
-/** The 24 effect parameters, returned as the same array until an update replaces it. */
+/** The effect parameters, returned as the same array until an update replaces it. */
 export function getV16Effects() {
   current ??= readStoredEffects()
   return current
@@ -80,35 +84,36 @@ export function getV16EffectsLastSent() {
 }
 
 /**
- * Keeps `next`, 24 parameters cut to their limits, and returns the controllers whose value changed,
+ * Keeps `next`, the parameters cut to their limits, and returns the controllers whose value changed,
  * which are the only ones a live edit sends.
  */
 export function setV16Effects(next: Uint8Array) {
   const before = getV16Effects()
-  const effects = Uint8Array.from({ length: FM1_EFFECT_PARAMETER_COUNT }, (_, index) =>
-    Math.min(next[index] ?? 0, fm1EffectParameterMaximums[index]),
-  )
+  const effects = normalizeFm1Effects(next)
   const changed = Array.from(effects.keys()).filter(
     (controller) => effects[controller] !== before[controller],
   )
   if (changed.length === 0) return changed
   current = effects
   lastSent = null
-  try {
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({ effects: Array.from(effects), version: storedVersion }),
-    )
-    persistence = 'persisted'
-  } catch {
-    persistence = 'session-only'
+  if (!storedRecordKept) {
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({ effects: Array.from(effects), version: storedVersion }),
+      )
+      persistence = 'persisted'
+    } catch {
+      persistence = 'session-only'
+    }
   }
   listeners.forEach((listener) => listener())
   return changed
 }
 
-export function markV16EffectsSent(presetId: string, route: string) {
-  lastSent = { effects: getV16Effects().slice(), presetId, route }
+/** Records the snapshot that reached the FM1, which a later edit may already have replaced. */
+export function markV16EffectsSent(presetId: string, route: string, effects: Uint8Array) {
+  lastSent = { effects: effects.slice(), presetId, route }
   listeners.forEach((listener) => listener())
 }
 
@@ -137,6 +142,7 @@ export function subscribeV16Effects(listener: () => void) {
 export function resetV16EffectsForTests() {
   current = null
   persistence = 'persisted'
+  storedRecordKept = false
   lastSent = null
   loadedPresetId = ''
 }

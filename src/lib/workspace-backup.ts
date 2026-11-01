@@ -158,6 +158,8 @@ export class WorkspaceBackupError extends Error {
 }
 
 export type WorkspaceBackup = {
+  /** FX presets in the file that could not be read, and are left out of the restore. */
+  damagedFxPresetCount: number
   /** Saved banks in the file that could not be read, and are left out of the restore. */
   damagedSavedBankCount: number
   fxPresets?: FxLibraryPreset[]
@@ -288,11 +290,13 @@ export function makeWorkspaceBackupFilename(date: Date) {
 type WorkspaceBackupDownload =
   | 'downloaded'
   | 'downloadedWithoutDamaged'
+  | 'downloadedWithoutBanksAndFx'
   | 'downloadedWithoutDamagedFx'
   | 'downloadedWithoutSavedBanks'
 
 type BackupSource = {
-  damagedFxPresetCount?: number
+  /** FX presets that could not be read, or a store that could not be opened, are not in the file. */
+  fxPresetsLeftOut?: boolean
   fxPresets?: readonly FxLibraryPreset[]
   hasDamagedNamedBanks: boolean
   namedBanks: readonly NamedBank[]
@@ -312,8 +316,11 @@ export function downloadWorkspaceBackup(source: BackupSource): WorkspaceBackupDo
   downloadFile(new Blob([text], { type: 'application/json' }), makeWorkspaceBackupFilename(now))
   recordBackupTime(now.toISOString())
   trackAnalyticsEvent({ name: 'backup_downloaded' })
+  const banksLeftOut = source.namedBanksLoadFailed || source.hasDamagedNamedBanks
+  if (source.fxPresetsLeftOut) {
+    return banksLeftOut ? 'downloadedWithoutBanksAndFx' : 'downloadedWithoutDamagedFx'
+  }
   if (source.namedBanksLoadFailed) return 'downloadedWithoutSavedBanks'
-  if (source.damagedFxPresetCount) return 'downloadedWithoutDamagedFx'
   return source.hasDamagedNamedBanks ? 'downloadedWithoutDamaged' : 'downloaded'
 }
 
@@ -498,22 +505,30 @@ function readSavedBank(value: unknown, version: number): NamedBank | null {
   }
 }
 
-function readBackupFxPresets(value: unknown): FxLibraryPreset[] {
-  if (!Array.isArray(value)) damaged('The backup has no readable FX preset list.')
-  return value.map((entry) => {
-    if (!isRecord(entry)) damaged('The backup contains an unreadable FX preset.')
-    const effects = decodeBase64(entry.effects)
+/** Reads the FX presets that are readable, and counts the ones that are not. */
+function readBackupFxPresets(value: unknown) {
+  const presets: FxLibraryPreset[] = []
+  let damagedCount = 0
+  for (const entry of Array.isArray(value) ? value : []) {
     try {
-      return readStoredFxLibraryPreset({ ...entry, effects, version: 1 })
+      if (!isRecord(entry)) throw new Error('unreadable')
+      const preset = readStoredFxLibraryPreset({
+        ...entry,
+        effects: decodeBase64(entry.effects),
+        version: 1,
+      })
+      // A preset listed twice is kept once, as the first copy.
+      if (!presets.some(({ id }) => id === preset.id)) presets.push(preset)
     } catch {
-      damaged('The backup contains an unreadable FX preset.')
+      damagedCount += 1
     }
-  })
+  }
+  return { damagedCount, presets }
 }
 
 /**
  * Reads a backup file's text. A workspace that cannot be read refuses the whole file, because a
- * restore replaces the workspace; a damaged saved bank is left out and counted, as the saved-bank
+ * restore replaces the workspace; a damaged saved bank or FX preset is left out and counted, as the saved-bank
  * list does in browser storage.
  */
 export function parseWorkspaceBackup(text: string): WorkspaceBackup {
@@ -547,9 +562,11 @@ export function parseWorkspaceBackup(text: string): WorkspaceBackup {
   }
 
   const hasFxPresets = file.version >= 6
+  const fx = hasFxPresets ? readBackupFxPresets(file.fxPresets) : { damagedCount: 0, presets: [] }
   return {
+    damagedFxPresetCount: fx.damagedCount,
     damagedSavedBankCount,
-    fxPresets: hasFxPresets ? readBackupFxPresets(file.fxPresets) : [],
+    fxPresets: fx.presets,
     hasFxPresets,
     savedAt: file.savedAt,
     savedBanks,

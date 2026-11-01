@@ -1541,7 +1541,9 @@ export default {
     downloadedWithoutDamaged:
       'Téléchargement d’une sauvegarde. Certaines banques enregistrées sont illisibles et n’y figurent pas.',
     downloadedWithoutDamagedFx:
-      'Téléchargement d’une sauvegarde. Certains presets FX étaient illisibles et n’y figurent pas.',
+      'Téléchargement d’une sauvegarde. Les presets FX illisibles n’y figurent pas.',
+    downloadedWithoutBanksAndFx:
+      'Téléchargement d’une sauvegarde. Les banques enregistrées et les presets FX illisibles n’y figurent pas.',
     unavailable: 'Les sauvegardes n’ont pas pu s’ouvrir. Rechargez la page et réessayez.',
     unavailableUnsaved:
       'La sauvegarde n’a pas pu être préparée. Gardez cet onglet ouvert, car vos dernières modifications ne sont pas enregistrées, puis réessayez.',
@@ -1561,8 +1563,7 @@ export default {
       'Vos banques et tous leurs sons sont remplacés par ceux de la sauvegarde. Annuler dans la notification qui suit les rétablit.',
     savedBanksEffect:
       'Les banques enregistrées sont seulement ajoutées. Une banque déjà présente dans ce navigateur reste telle quelle, et Annuler ne retire pas celles ajoutées.',
-    fxPresetsEffect:
-      'Les presets FX sont fusionnés. Les entrées identiques sont conservées, les conflits d’identifiant deviennent de nouvelles copies et les presets locaux ne sont jamais remplacés.',
+    fxPresetsEffect: 'Les presets FX sont ajoutés. Ceux déjà présents sont conservés.',
     restoreAction: 'Restaurer la sauvegarde',
     restoring: 'Restauration…',
     restored: 'Sauvegarde du {{date}} restaurée.',
@@ -1575,10 +1576,12 @@ export default {
         'Cette sauvegarde est endommagée et ne peut pas être restaurée. Essayez un autre fichier de sauvegarde.',
       size: 'Ce fichier est trop volumineux pour être une sauvegarde de cette application.',
       read: 'Impossible de lire le fichier. Choisissez-le de nouveau.',
-      savedBanksFailed:
-        'Le stockage du navigateur n’a pas pu conserver les banques enregistrées de cette sauvegarde, votre bibliothèque n’a donc pas changé. Réessayez.',
       restoreFailed:
-        'Le stockage du navigateur n’a pas pu terminer la restauration. L’espace de travail n’a pas été remplacé ; les banques ou presets FX déjà ajoutés sont conservés. Réessayez.',
+        'Le stockage du navigateur n’a pas pu terminer la restauration, votre bibliothèque n’a donc pas été remplacée. Les banques enregistrées de cette sauvegarde déjà ajoutées ont été conservées.',
+      restoreFxFailed:
+        'Les presets FX de cette sauvegarde n’ont pas pu être enregistrés, votre bibliothèque n’a donc pas été remplacée et aucun preset FX n’a été ajouté.',
+      restoreFxFailedBanksKept:
+        'Les presets FX de cette sauvegarde n’ont pas pu être enregistrés, votre bibliothèque n’a donc pas été remplacée et aucun preset FX n’a été ajouté. Les banques enregistrées de cette sauvegarde ont été ajoutées d’abord et sont conservées.',
     },
   },
   officialOpenTracks: {

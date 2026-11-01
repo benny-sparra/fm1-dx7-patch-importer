@@ -3,6 +3,15 @@
 Prepared 2026-10-30. Status: ready for implementation planning; no feature code implemented by
 this document. Audience: a lower-model executor working in the FM1 editor/librarian repository.
 
+## Review decisions, 2026-11-01
+
+The first view is named **Patches**, not Sounds (the library calls a library item a patch), and
+**Effects** is offered only on firmware with the profile's `sharedEffects` capability. There is one
+way to save (**+ New FX preset…**) and one to rename (**Rename…**): the sidebar menu holds Import…
+and Download all, the title strip's menu **Update “name”** and **Send again**, and the loaded
+preset's name shows a dim “edited” while the rack differs. Success is a toast, not a modal. These
+supersede the matching requirements below.
+
 ## Preset recall — owner decision, 2026-10-31
 
 Clicking a named FX preset now loads its settings directly into the editing rack, applying them

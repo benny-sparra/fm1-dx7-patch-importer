@@ -1560,7 +1560,9 @@ export default {
     downloadedWithoutDamaged:
       'Eine Sicherung wird heruntergeladen. Einige gespeicherte Bänke konnten nicht gelesen werden und fehlen darin.',
     downloadedWithoutDamagedFx:
-      'Ein Backup wird heruntergeladen. Einige FX-Presets waren unlesbar und sind nicht enthalten.',
+      'Eine Sicherung wird heruntergeladen. FX-Presets, die nicht gelesen werden konnten, fehlen darin.',
+    downloadedWithoutBanksAndFx:
+      'Eine Sicherung wird heruntergeladen. Gespeicherte Bänke und FX-Presets, die nicht gelesen werden konnten, fehlen darin.',
     unavailable:
       'Sicherungen konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
     unavailableUnsaved:
@@ -1581,8 +1583,7 @@ export default {
       'Deine Bänke und alle ihre Sounds werden durch die aus der Sicherung ersetzt. Mit „Rückgängig“ in der Benachrichtigung danach holst du sie zurück.',
     savedBanksEffect:
       'Gespeicherte Bänke werden nur hinzugefügt. Eine Bank, die schon in diesem Browser liegt, bleibt unverändert, und „Rückgängig“ entfernt die hinzugefügten nicht.',
-    fxPresetsEffect:
-      'FX-Presets werden zusammengeführt. Gleiche Einträge bleiben, ID-Konflikte werden zu neuen Kopien und lokale Presets nie überschrieben.',
+    fxPresetsEffect: 'FX-Presets werden hinzugefügt. Die bereits vorhandenen bleiben erhalten.',
     restoreAction: 'Sicherung wiederherstellen',
     restoring: 'Wird wiederhergestellt…',
     restored: 'Die Sicherung vom {{date}} wurde wiederhergestellt.',
@@ -1595,10 +1596,12 @@ export default {
         'Diese Sicherung ist beschädigt und kann nicht wiederhergestellt werden. Versuche eine andere Sicherungsdatei.',
       size: 'Diese Datei ist zu groß für eine Sicherung aus dieser App.',
       read: 'Die Datei konnte nicht gelesen werden. Wähle sie erneut aus.',
-      savedBanksFailed:
-        'Der Browserspeicher konnte die gespeicherten Bänke aus dieser Sicherung nicht aufnehmen, deshalb wurde deine Bibliothek nicht geändert. Versuche es erneut.',
       restoreFailed:
-        'Der Browserspeicher konnte die Wiederherstellung nicht abschließen. Der Arbeitsbereich wurde nicht ersetzt; bereits hinzugefügte Bänke oder FX-Presets bleiben erhalten. Versuche es erneut.',
+        'Der Browserspeicher konnte die Wiederherstellung nicht abschließen, deshalb wurde deine Bibliothek nicht ersetzt. Bereits hinzugefügte gespeicherte Bänke aus dieser Sicherung bleiben erhalten.',
+      restoreFxFailed:
+        'Die FX-Presets aus dieser Sicherung konnten nicht gespeichert werden, deshalb wurde deine Bibliothek nicht ersetzt und keine FX-Presets hinzugefügt.',
+      restoreFxFailedBanksKept:
+        'Die FX-Presets aus dieser Sicherung konnten nicht gespeichert werden, deshalb wurde deine Bibliothek nicht ersetzt und keine FX-Presets hinzugefügt. Die gespeicherten Bänke aus dieser Sicherung wurden zuerst hinzugefügt und bleiben erhalten.',
     },
   },
   officialOpenTracks: {

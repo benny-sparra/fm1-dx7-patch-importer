@@ -111,6 +111,20 @@ describe('V16 effects', () => {
     expect(localStorage.getItem(key)).toBe(stored)
   })
 
+  it.each([
+    ['a newer release’s record', '{"version":2,"effects":[1,1,1]}'],
+    ['a damaged record', '{"version":1,"effects":'],
+  ])('keeps %s in storage when the session edits the effects', (_, stored) => {
+    localStorage.setItem(key, stored)
+    changeTo((effects) => {
+      effects[0] = 1
+    })
+
+    expect(getV16Effects()[0]).toBe(1)
+    expect(getV16EffectsPersistence()).toBe('session-only')
+    expect(localStorage.getItem(key)).toBe(stored)
+  })
+
   it('normalises each field: a value that is not a whole number is 0 and one too high is cut', () => {
     localStorage.setItem(
       key,
@@ -160,11 +174,13 @@ describe('V16 effects', () => {
 
   it('keeps only a copied last-send marker and invalidates it on a live change', () => {
     const route = v16EffectsRouteKey('fm1', 2, { identity: 'FM-1_016', kind: 'mvave' })
-    markV16EffectsSent('fx-1', route)
+    const snapshot = new Uint8Array(24).fill(1)
+    markV16EffectsSent('fx-1', route, snapshot)
     const sent = getV16EffectsLastSent()
 
     expect(sent).toMatchObject({ presetId: 'fx-1', route })
-    expect(sent?.effects).not.toBe(getV16Effects())
+    expect(sent?.effects).toEqual(snapshot)
+    expect(sent?.effects).not.toBe(snapshot)
     changeTo((effects) => {
       effects[0] = 1
     })

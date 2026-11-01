@@ -88,16 +88,23 @@ export function RestoreBackupDialog({
     if (!backup) return
     setWorking(true)
     setError('')
+    // The saved banks are stored first and kept, so a failed FX merge is reported with what stayed.
+    let fxFailed = false
     try {
       const { changed } = await library.restoreBackup(
         backup,
         backup.hasFxPresets
           ? async () => {
-              if (fxLibrary) {
-                await fxLibrary.restorePresets(backup.fxPresets ?? [])
-              } else {
-                const { mergeStoredFxLibraryPresets } = await import('@/lib/fx-library-storage')
-                await mergeStoredFxLibraryPresets(backup.fxPresets ?? [])
+              try {
+                if (fxLibrary) {
+                  await fxLibrary.restorePresets(backup.fxPresets ?? [])
+                } else {
+                  const { mergeStoredFxLibraryPresets } = await import('@/lib/fx-library-storage')
+                  await mergeStoredFxLibraryPresets(backup.fxPresets ?? [])
+                }
+              } catch (caughtError) {
+                fxFailed = true
+                throw caughtError
               }
             }
           : undefined,
@@ -105,7 +112,15 @@ export function RestoreBackupDialog({
       dialogRef.current?.close()
       onRestored(backup.savedAt, changed)
     } catch {
-      setError(t('backup.errors.restoreFailed'))
+      setError(
+        t(
+          !fxFailed
+            ? 'backup.errors.restoreFailed'
+            : backup.savedBanks.length > 0
+              ? 'backup.errors.restoreFxFailedBanksKept'
+              : 'backup.errors.restoreFxFailed',
+        ),
+      )
       setWorking(false)
     }
   }
@@ -139,9 +154,8 @@ export function RestoreBackupDialog({
         [t('backup.alreadyHere'), formatNumber(alreadyHere)],
       )
     }
-    if (backup.damagedSavedBankCount > 0) {
-      rows.push([t('backup.unreadable'), formatNumber(backup.damagedSavedBankCount)])
-    }
+    const unreadable = backup.damagedSavedBankCount + backup.damagedFxPresetCount
+    if (unreadable > 0) rows.push([t('backup.unreadable'), formatNumber(unreadable)])
   }
 
   return (

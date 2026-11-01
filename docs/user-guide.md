@@ -97,32 +97,34 @@ says **Receive Timeout**; start Export again while the app listens.
 
 ### Effects and FX presets
 
-The main library has separate **Sounds** and **Effects** views. Effects is available without
-selecting a sound or connecting MIDI, and keeps the 24 controls shown there in this browser. Merely
-opening the view sends nothing. On M-VAVE V16, changing a control sends only that changed effect to
-the shared FX group on the **Effect channel**. Other firmware can still use the view locally, but
-the app sends it no shared-FX messages.
+On M-VAVE V16 the main library has separate **Patches** and **Effects** views. Effects is available
+without selecting a patch or connecting MIDI, and keeps the 24 controls shown there in this
+browser. Merely opening the view sends nothing. Changing a control sends only that changed effect to
+the shared FX group on the **Effect channel**. Other firmware does not offer the view, since the app
+sends it no shared-FX messages.
 
 Use **+ New FX preset…** in the Effects sidebar to name and save a snapshot of the 24 controls
-currently shown. Enter its name in the modal and choose **Save preset**. A modal confirms the save. The new preset is selected in the searchable, alphabetically sorted list, which
-scrolls independently of the rack. Each preset’s **⋮** menu offers Rename, Duplicate, Export selected,
-and Delete. Deleting offers **Undo** in its completion toast and leaves the current effects unchanged.
+currently shown, then choose **Save preset**. A toast confirms the save, and the new preset is
+selected in the searchable, alphabetically sorted list. Each preset’s **⋮** menu offers Rename…,
+Duplicate, Download preset, and Delete…. Deleting offers **Undo** in its toast and leaves the
+current effects unchanged.
 
-The rack header shows the loaded preset’s editable name, or **Custom settings**. Switching
-between Sounds and Effects keeps the selected FX preset and any unsaved effect edits. Edit the name
-and press Enter or leave the field to rename the saved preset. Escape discards the name edit.
-After changing effects, choose **Update “name”** in the rack header’s **⋮** menu to replace that saved snapshot, or
-**Save current as…** in the rack header’s **⋮** menu to create another. Updates save immediately, show a toast after storage commits, and offer **Undo** within that toast. Clicking a preset immediately loads its settings into the editing area. Opening its **⋮** menu
-leaves the current effects unchanged. Saving, updating, renaming, duplicating, deleting, Undo, searching,
-importing and exporting send no MIDI. **Export selected** or **Export all** writes
-`fm1-fx-presets.json`; **Import…** adds valid presets with new identities and keeps everything
+The title strip above the rack shows the loaded preset’s name, with “edited” beside it once you
+change a control, or **Unsaved effects**. Switching between Patches and Effects keeps the selected
+FX preset and any unsaved effect edits. After changing effects, choose **Update “name”** in the
+strip’s **⋮** menu to replace that saved snapshot; updates save at once, show a toast, and offer
+**Undo** there. To keep the changes as another preset, use **+ New FX preset…**. Saving, updating,
+renaming, duplicating, deleting, Undo, searching, importing and downloading send no MIDI.
+**FX preset actions** (the **⋮** by the search field) has **Import…** and **Download all**, which
+writes `fm1-fx-presets.json`; Import adds valid presets with new identities and keeps everything
 already present.
 
-Click a preset to load it. While offline or on other firmware, this replaces only the browser’s
-current Effects controls and is not sent later when MIDI reconnects. With an identified M-VAVE V16
-online, the click also sends all 24 controls once, in their existing order, to the shared FX group.
-Repeated clicks do not resend unchanged settings. **Send again** in the rack header’s **⋮** menu
-deliberately repeats the full send. The FM1 does not acknowledge or verify these messages.
+Click a preset to load it. If the load cannot reach the FM1, because MIDI is offline, the notice
+under the strip says so, and it replaces only the browser’s current Effects controls; it is not
+sent later when MIDI reconnects. With an identified M-VAVE V16 online, the click also sends all 24
+controls once, in their existing order, to the shared FX group. Repeated clicks do not resend
+unchanged settings. **Send again** in the strip’s **⋮** menu deliberately repeats the full send,
+and also appears after a send that failed. The FM1 does not acknowledge or verify these messages.
 
 FX presets do not contain the hardware's effect-chain order, and the editor cannot read changes
 made on the FM1's front panel. Loading does not select a Voice, change Voice setup, save on the FM1,
@@ -470,7 +472,7 @@ pressing one releases any note held from the computer keyboard.
 
 Your patches, their FM1 effects, and your saved banks exist only in this browser. Clearing site data, or a browser that removes storage, loses them. The FM1 cannot send its banks back, so nothing else holds a copy.
 
-Open the menu in the patch-bank header and choose **Download backup**, under **Backup** at the top, to save everything in one `.json` file: every bank with its title and description, each patch's FM1 effects and FM-1+VA preset settings, your Favourites, every saved bank, and every readable named FX preset. The menu waits for pending FX saves. If an unreadable FX preset must be omitted, the notification says the backup is partial. The menu shows when you last made one. If the browser cannot save your work, the warning at the top of the page offers the same download.
+Open the menu in the patch-bank header and choose **Download backup**, under **Backup** at the top, to save everything in one `.json` file: every bank with its title and description, each patch's FM1 effects and FM-1+VA preset settings, your Favourites, every saved bank, and every readable named FX preset. The menu waits for pending FX saves. If FX presets cannot be read, the backup is still made without them and the notification says so. The menu shows when you last made one. If the browser cannot save your work, the warning at the top of the page offers the same download.
 
 A backup file can only be read by this app. To use patches in Dexed, a DX7, or another editor, choose **Download SysEx banks (.zip)** under **Other files** instead: a `.syx` file holds DX7 voice data only, without FM1 effects or saved banks.
 
@@ -478,7 +480,7 @@ To restore, choose **Restore from backup…** and pick the file. The dialog show
 
 - replaces your banks and their patches, and your Favourites, with the ones in the backup. A backup made before Favourites existed restores an empty Favourites. **Undo** in the notification, or `Cmd`/`Ctrl` + `Z`, puts your previous library back.
 - adds the backup's saved banks. A saved bank already in this browser is kept as it is and never overwritten. Undo does not remove saved banks that were added.
-- merges named FX presets from a current backup. An identical record is kept, an ID collision with different content becomes a new copy, and a local preset is never overwritten. Older backups have no FX section and leave local FX presets untouched. Restoring does not load a preset into the current Effects controls or send MIDI.
+- adds named FX presets from a current backup. One already here is kept, and a local preset is never overwritten; a preset in the file that cannot be read is left out and counted. Older backups have no FX section and leave local FX presets untouched. Restoring does not load a preset into the current Effects controls or send MIDI.
 
 A backup made by a newer version of the app cannot be restored until the page is reloaded to update it.
 

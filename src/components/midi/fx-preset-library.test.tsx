@@ -12,14 +12,23 @@ import { ToastProvider } from '@/components/ui/toast'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { FxPresetLibraryDialog } from '@/components/midi/fx-preset-library-dialog'
+import { FxPresetLibrary } from '@/components/midi/fx-preset-library'
 import type { V16EffectsMidi } from '@/components/midi/v16-effects-panel'
 import { useFxLibrary, type FxLibrary } from '@/hooks/use-fx-library'
 import { setLocale } from '@/i18n'
 import { installFakeIndexedDb } from '@/test/fake-indexed-db'
 import { listStoredFxLibraryPresets, updateStoredFxLibraryPreset } from '@/lib/fx-library-storage'
-import { createFxLibraryPreset, renameFxLibraryPreset } from '@/lib/fx-library-preset'
-import { getV16Effects, resetV16EffectsForTests, setV16Effects } from '@/lib/v16-effects'
+import {
+  createFxLibraryPreset,
+  FxLibraryPresetNameError,
+  renameFxLibraryPreset,
+} from '@/lib/fx-library-preset'
+import {
+  getV16Effects,
+  getV16EffectsLastSent,
+  resetV16EffectsForTests,
+  setV16Effects,
+} from '@/lib/v16-effects'
 
 function render(ui: ReactElement) {
   return renderTesting(ui, { wrapper: ToastProvider })
@@ -76,20 +85,22 @@ function makeLibrary(overrides: Partial<FxLibrary> = {}) {
 
 function makeMidi(overrides: Partial<V16EffectsMidi> = {}): V16EffectsMidi {
   return {
-    firmware: { identity: 'FM-1_015', kind: 'mvave' },
+    effectChannel: 1,
+    firmware: { identity: 'FM-1_016', kind: 'mvave' },
     hasMidiOutput: false,
+    selectedOutputId: '',
+    sendSharedEffectParameter: vi.fn(),
+    sendSharedEffectSettings: vi.fn(),
     ...overrides,
   }
 }
 
 function setup(library = makeLibrary(), midi = makeMidi()) {
-  render(
-    <FxPresetLibraryDialog fxLibrary={library} midi={midi} onSendingChange={vi.fn()} search="" />,
-  )
+  render(<FxPresetLibrary fxLibrary={library} midi={midi} onSendingChange={vi.fn()} search="" />)
   return { library, midi }
 }
 
-describe('FX preset library dialog', () => {
+describe('FX preset library', () => {
   it('loads a preset on double-click while offline without sending MIDI', async () => {
     const user = userEvent.setup()
     const send = vi.fn()
@@ -138,27 +149,87 @@ describe('FX preset library dialog', () => {
     await waitFor(() =>
       expect(screen.queryByRole('dialog', { name: 'Save current effects' })).toBeNull(),
     )
-    expect(screen.getByRole('dialog', { name: 'FX presets' }).textContent).toContain(
-      'Saved “Retry me”.',
-    )
+    expect(
+      within(screen.getByRole('region', { name: 'Completed actions' })).getByText(
+        'Saved “Retry me”.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
     expect(save).toHaveBeenCalledTimes(2)
   })
 
-  it('uses the loaded preset as the rack heading and keeps Save current as in its menu', async () => {
+  it('names the loaded preset in the title strip and offers Update only once the rack differs', async () => {
     const user = userEvent.setup()
     setup()
+    expect(screen.getByRole('heading', { name: 'Unsaved effects' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Current effects actions' })).toBeNull()
     await user.click(screen.getByRole('button', { name: 'Stage room' }))
 
-    expect((screen.getByRole('textbox', { name: 'Preset name' }) as HTMLInputElement).value).toBe(
-      'Stage room',
-    )
-    expect(screen.queryByText('Current effects')).toBeNull()
-    expect(screen.queryByText(/Selected preset:/)).toBeNull()
-    expect(screen.queryByText('Matches the current browser effects.')).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Save current as…' })).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Stage room' })).toBeTruthy()
+    expect(screen.queryByText('edited')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Current effects actions' })).toBeNull()
+    const edited = getV16Effects().slice()
+    edited[1] = 2
+    act(() => {
+      setV16Effects(edited)
+    })
+    expect(screen.getByRole('heading', { name: /^Stage room\s*edited$/ })).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
-    await user.click(screen.getByRole('menuitem', { name: 'Save current as…' }))
-    expect(screen.getByRole('dialog', { name: 'Save current effects' })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: 'Update “Stage room”' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: /Save current as/ })).toBeNull()
+  })
+
+  it('keeps Import and Download all in a menu of its own name, with no second save path', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByRole('button', { name: 'FX preset actions' }))
+
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Import…',
+      'Download all',
+    ])
+    expect(screen.getAllByRole('button', { name: 'New FX preset…' })).toHaveLength(1)
+  })
+
+  it('lists Delete last in a preset’s menu', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByRole('button', { name: 'Actions for Stage room' }))
+
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual([
+      'Rename…',
+      'Duplicate',
+      'Download preset',
+      'Delete…',
+    ])
+  })
+
+  it('says the library is empty apart from a search that matches nothing', () => {
+    const view = renderTesting(
+      <FxPresetLibrary
+        fxLibrary={makeLibrary({ presets: [] })}
+        midi={makeMidi()}
+        onSendingChange={() => undefined}
+        search=""
+      />,
+      { wrapper: ToastProvider },
+    )
+    expect(screen.getByText('No FX presets yet.')).toBeTruthy()
+    view.rerender(
+      <FxPresetLibrary
+        fxLibrary={makeLibrary()}
+        midi={makeMidi()}
+        onSendingChange={() => undefined}
+        search="zzz"
+      />,
+    )
+    expect(screen.getByText('No FX presets match this search.')).toBeTruthy()
+    expect(screen.queryByText('No FX presets yet.')).toBeNull()
+  })
+
+  it('loads the library once and does not reload it again when it is ready', () => {
+    const { library } = setup()
+    expect(library.reload).not.toHaveBeenCalled()
   })
 
   it('sorts the preset list by name and keeps its loaded effects when filtering', async () => {
@@ -171,7 +242,7 @@ describe('FX preset library dialog', () => {
       ],
     })
     const view = render(
-      <FxPresetLibraryDialog
+      <FxPresetLibrary
         fxLibrary={library}
         midi={makeMidi()}
         onSendingChange={() => undefined}
@@ -185,7 +256,7 @@ describe('FX preset library dialog', () => {
     ).toEqual(['Air', 'Mellow', 'Zebra'])
     await user.click(screen.getByRole('button', { name: 'Zebra' }))
     view.rerender(
-      <FxPresetLibraryDialog
+      <FxPresetLibrary
         fxLibrary={library}
         midi={makeMidi()}
         onSendingChange={() => undefined}
@@ -247,8 +318,9 @@ describe('FX preset library dialog', () => {
 
     expect(getV16Effects()).toEqual(preset.effects)
     expect(send).not.toHaveBeenCalled()
-    expect(screen.queryByRole('button', { name: 'Load into Effects' })).toBeNull()
-    expect(screen.queryByText('Loaded into the browser’s V16 effects.')).toBeNull()
+    expect(
+      screen.getByText('No MIDI output is selected. Loading changes only this browser.'),
+    ).toBeTruthy()
   })
 
   it('applies a clicked preset once and offers an explicit repeat in the rack menu', async () => {
@@ -272,6 +344,125 @@ describe('FX preset library dialog', () => {
     await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
     await user.click(screen.getByRole('menuitem', { name: 'Send again' }))
     await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+  })
+
+  it('says so when the firmware has no shared FX group, instead of staying silent', async () => {
+    const user = userEvent.setup()
+    setup(
+      makeLibrary(),
+      makeMidi({
+        firmware: { identity: 'FM-1_015', kind: 'mvave' },
+        hasMidiOutput: true,
+      }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Stage room' }))
+
+    expect(
+      screen.getByText(
+        'This firmware has no shared V16 FX group. Loading changes only this browser.',
+      ),
+    ).toBeTruthy()
+  })
+
+  it('shows Sending… in a status region while a preset goes out, then clears it', async () => {
+    const user = userEvent.setup()
+    let finishSend: (() => void) | undefined
+    const send = vi.fn(
+      () =>
+        new Promise<{ ok: true; sent: 24 }>((resolve) => {
+          finishSend = () => resolve({ ok: true, sent: 24 })
+        }),
+    )
+    setup(
+      makeLibrary(),
+      makeMidi({ hasMidiOutput: true, selectedOutputId: 'fm1', sendSharedEffectSettings: send }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Stage room' }))
+
+    expect(screen.getByText('Sending…')).toBeTruthy()
+    finishSend?.()
+    await waitFor(() => expect(screen.queryByText('Sending…')).toBeNull())
+  })
+
+  it('offers Send again after a failed send, and a later success marks the preset sent', async () => {
+    const user = userEvent.setup()
+    const send = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, reason: 'transport', sent: 3 })
+      .mockResolvedValueOnce({ ok: true, sent: 24 })
+    setup(
+      makeLibrary(),
+      makeMidi({ hasMidiOutput: true, selectedOutputId: 'fm1', sendSharedEffectSettings: send }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Stage room' }))
+    expect((await screen.findByRole('alert')).textContent).toContain('Not all effects were sent.')
+
+    await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Send again' }))
+
+    await waitFor(() => expect(send).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+  })
+
+  it('records the snapshot that was sent, not effects edited while it went out', async () => {
+    const user = userEvent.setup()
+    let finishSend: (() => void) | undefined
+    const send = vi.fn(
+      () =>
+        new Promise<{ ok: true; sent: 24 }>((resolve) => {
+          finishSend = () => resolve({ ok: true, sent: 24 })
+        }),
+    )
+    setup(
+      makeLibrary(),
+      makeMidi({ hasMidiOutput: true, selectedOutputId: 'fm1', sendSharedEffectSettings: send }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Stage room' }))
+    const edited = getV16Effects().slice()
+    edited[1] = 2
+    act(() => {
+      setV16Effects(edited)
+    })
+    await act(async () => {
+      finishSend?.()
+    })
+
+    expect(getV16EffectsLastSent()?.effects).toEqual(preset.effects)
+    expect(screen.queryByRole('menuitem', { name: 'Send again' })).toBeNull()
+  })
+
+  it('cancels its pending send when the view is left and records nothing', async () => {
+    const user = userEvent.setup()
+    let finishSend: (() => void) | undefined
+    let signal: AbortSignal | undefined
+    const send = vi.fn(
+      (_settings: Uint8Array, abort?: AbortSignal) =>
+        new Promise<{ ok: true; sent: 24 }>((resolve) => {
+          signal = abort
+          finishSend = () => resolve({ ok: true, sent: 24 })
+        }),
+    )
+    const view = renderTesting(
+      <FxPresetLibrary
+        fxLibrary={makeLibrary()}
+        midi={makeMidi({
+          hasMidiOutput: true,
+          selectedOutputId: 'fm1',
+          sendSharedEffectSettings: send,
+        })}
+        onSendingChange={() => undefined}
+        search=""
+      />,
+      { wrapper: ToastProvider },
+    )
+    await user.click(screen.getByRole('button', { name: 'Stage room' }))
+    view.unmount()
+
+    expect(signal?.aborted).toBe(true)
+    await act(async () => {
+      finishSend?.()
+    })
+    expect(getV16EffectsLastSent()).toBeNull()
   })
 
   it('starts a rapidly requested full send only once', async () => {
@@ -298,9 +489,9 @@ describe('FX preset library dialog', () => {
     expect(send).toHaveBeenCalledOnce()
     finishSend?.()
     await waitFor(() =>
-      expect(
-        (screen.getByRole('button', { name: 'Stage room' }) as HTMLButtonElement).disabled,
-      ).toBe(false),
+      expect(screen.getByRole('button', { name: 'Stage room' }).getAttribute('aria-disabled')).toBe(
+        'false',
+      ),
     )
   })
 
@@ -337,7 +528,7 @@ describe('FX preset library dialog', () => {
 function LiveLibrary() {
   const library = useFxLibrary()
   return (
-    <FxPresetLibraryDialog
+    <FxPresetLibrary
       fxLibrary={library}
       midi={makeMidi()}
       onSendingChange={() => undefined}
@@ -355,9 +546,10 @@ async function createPreset(user: ReturnType<typeof userEvent.setup>, name: stri
     name,
   )
   await user.click(screen.getByRole('button', { name: 'Save preset' }))
-  const savedDialog = await screen.findByRole('dialog', { name: 'FX presets' })
-  expect(within(savedDialog).getByText(`Saved “${name}”.`)).toBeTruthy()
-  await user.click(within(savedDialog).getByRole('button', { name: 'Close' }))
+  await within(screen.getByRole('region', { name: 'Completed actions' })).findByText(
+    `Saved “${name}”.`,
+  )
+  expect(screen.queryByRole('dialog')).toBeNull()
 }
 
 describe('FX preset working rack and persisted management', () => {
@@ -368,8 +560,8 @@ describe('FX preset working rack and persisted management', () => {
     render(<LiveLibrary />)
     await waitFor(() =>
       expect(
-        (screen.getByRole('button', { name: 'New FX preset…' }) as HTMLButtonElement).disabled,
-      ).toBe(false),
+        screen.getByRole('button', { name: 'New FX preset…' }).getAttribute('aria-disabled'),
+      ).toBe('false'),
     )
     await createPreset(user, 'Wide chorus')
     expect(screen.getByRole('button', { name: 'Wide chorus' }).getAttribute('aria-pressed')).toBe(
@@ -385,18 +577,15 @@ describe('FX preset working rack and persisted management', () => {
     await user.click(screen.getByRole('button', { name: 'Actions for Small room' }))
     await user.keyboard('{Escape}')
 
-    expect((screen.getByRole('textbox', { name: 'Preset name' }) as HTMLInputElement).value).toBe(
-      'Wide chorus',
-    )
+    expect(screen.getByRole('heading', { name: /^Wide chorus\s*edited$/ })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Update “Wide chorus”' })).toBeNull()
-    expect(screen.queryByText(/Modified/)).toBeNull()
     await user.click(screen.getByRole('button', { name: 'Current effects actions' }))
     await user.click(screen.getByRole('menuitem', { name: 'Update “Wide chorus”' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     const notification = within(screen.getByRole('region', { name: 'Completed actions' }))
-    expect((await notification.findByRole('status')).textContent).toContain(
-      'Updated “Wide chorus” from the current effects.',
-    )
+    expect(
+      await notification.findByText('Updated “Wide chorus” from the current effects.'),
+    ).toBeTruthy()
 
     expect(
       within(screen.getByRole('region', { name: 'FX presets' })).queryByRole('button', {
@@ -416,27 +605,26 @@ describe('FX preset working rack and persisted management', () => {
     const restored = await listStoredFxLibraryPresets()
     expect(restored.presets.find(({ name }) => name === 'Wide chorus')?.effects[1]).toBe(0)
     expect(getV16Effects()[1]).toBe(2)
-    expect((screen.getByRole('textbox', { name: 'Preset name' }) as HTMLInputElement).value).toBe(
-      'Wide chorus',
-    )
+    expect(screen.getByRole('heading', { name: /^Wide chorus\s*edited$/ })).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Small room' }))
     expect(getV16Effects()[1]).toBe(0)
-    expect((screen.getByRole('textbox', { name: 'Preset name' }) as HTMLInputElement).value).toBe(
-      'Small room',
-    )
+    expect(screen.getByRole('heading', { name: 'Small room' })).toBeTruthy()
   })
 
-  it('renames the loaded preset from its header with Enter and preserves its effects', async () => {
+  it('renames a preset from its menu, keeping its effects and confirming in a toast', async () => {
     const user = userEvent.setup()
     render(<LiveLibrary />)
     await waitFor(() =>
       expect(
-        (screen.getByRole('button', { name: 'New FX preset…' }) as HTMLButtonElement).disabled,
-      ).toBe(false),
+        screen.getByRole('button', { name: 'New FX preset…' }).getAttribute('aria-disabled'),
+      ).toBe('false'),
     )
     await createPreset(user, 'Original')
     const before = (await listStoredFxLibraryPresets()).presets[0]
-    const input = screen.getByRole('textbox', { name: 'Preset name' })
+    await user.click(screen.getByRole('button', { name: 'Actions for Original' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Rename…' }))
+    const dialog = screen.getByRole('dialog', { name: 'Rename “Original”' })
+    const input = within(dialog).getByRole('textbox', { name: 'Preset name' })
     await user.clear(input)
     await user.type(input, '  New name  {Enter}')
 
@@ -445,37 +633,60 @@ describe('FX preset working rack and persisted management', () => {
     expect(stored.id).toBe(before.id)
     expect(stored.name).toBe('New name')
     expect(stored.effects).toEqual(before.effects)
-    expect((input as HTMLInputElement).value).toBe('New name')
+    expect(
+      within(screen.getByRole('region', { name: 'Completed actions' })).getByText(
+        'Renamed the preset to “New name”.',
+      ),
+    ).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: 'Preset name' })).toBeNull()
   })
 
-  it('discards a header name edit with Escape and rejects an empty name', async () => {
+  it('refuses an empty or over-long name in the rename form without calling storage', async () => {
     const user = userEvent.setup()
     const library = makeLibrary()
     setup(library)
-    await user.click(screen.getByRole('button', { name: 'Stage room' }))
-    const input = screen.getByRole('textbox', { name: 'Preset name' })
+    await user.click(screen.getByRole('button', { name: 'Actions for Stage room' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Rename…' }))
+    const dialog = screen.getByRole('dialog', { name: 'Rename “Stage room”' })
+    const input = within(dialog).getByRole('textbox', { name: 'Preset name' })
     await user.clear(input)
-    await user.type(input, 'Discard{Escape}')
-    await user.tab()
-    expect((input as HTMLInputElement).value).toBe('Stage room')
-    expect(library.rename).not.toHaveBeenCalled()
+    await user.type(input, 'x'.repeat(81))
 
-    await user.clear(input)
-    await user.tab()
-    expect((await screen.findByRole('alert')).textContent).toContain(
+    expect((await within(dialog).findByRole('alert')).textContent).toContain(
       'Enter a name from 1 to 80 characters.',
     )
+    expect(
+      within(dialog).getByRole('button', { name: 'Rename preset' }).getAttribute('aria-disabled'),
+    ).toBe('true')
+    await user.type(input, '{Enter}')
     expect(library.rename).not.toHaveBeenCalled()
   })
 
-  it('keeps a failed header rename available to retry on blur', async () => {
+  it('shows the name-length error, not a storage error, when the library refuses a name', async () => {
+    const user = userEvent.setup()
+    const rename = vi
+      .fn<FxLibrary['rename']>()
+      .mockRejectedValue(new FxLibraryPresetNameError('too long'))
+    setup(makeLibrary({ rename }))
+    await user.click(screen.getByRole('button', { name: 'Actions for Stage room' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Rename…' }))
+    await user.type(screen.getByRole('textbox', { name: 'Preset name' }), '2{Enter}')
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Enter a name from 1 to 80 characters.',
+    )
+    expect(screen.queryByText(/Browser storage could not save/)).toBeNull()
+  })
+
+  it('keeps a failed rename in its form to retry', async () => {
     const user = userEvent.setup()
     const rename = vi
       .fn<FxLibrary['rename']>()
       .mockRejectedValueOnce(new Error('quota'))
       .mockResolvedValueOnce({ ...preset, name: 'Retry name' })
     setup(makeLibrary({ rename }))
-    await user.click(screen.getByRole('button', { name: 'Stage room' }))
+    await user.click(screen.getByRole('button', { name: 'Actions for Stage room' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Rename…' }))
     const input = screen.getByRole('textbox', { name: 'Preset name' })
     await user.clear(input)
     await user.type(input, 'Retry name{Enter}')
@@ -483,8 +694,7 @@ describe('FX preset working rack and persisted management', () => {
       'Browser storage could not save that change.',
     )
     expect((input as HTMLInputElement).value).toBe('Retry name')
-    await user.click(input)
-    await user.tab()
+    await user.type(input, '{Enter}')
     await waitFor(() => expect(rename).toHaveBeenCalledTimes(2))
   })
 
@@ -493,8 +703,8 @@ describe('FX preset working rack and persisted management', () => {
     render(<LiveLibrary />)
     await waitFor(() =>
       expect(
-        (screen.getByRole('button', { name: 'New FX preset…' }) as HTMLButtonElement).disabled,
-      ).toBe(false),
+        screen.getByRole('button', { name: 'New FX preset…' }).getAttribute('aria-disabled'),
+      ).toBe('false'),
     )
     await createPreset(user, 'Original')
     await user.click(screen.getByRole('button', { name: 'Actions for Original' }))
@@ -502,9 +712,7 @@ describe('FX preset working rack and persisted management', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
 
     const notifications = within(screen.getByRole('region', { name: 'Completed actions' }))
-    expect((await notifications.findByRole('status')).textContent).toContain(
-      'Created “Copy of Original”.',
-    )
+    expect(await notifications.findByText('Created “Copy of Original”.')).toBeTruthy()
     expect(
       within(screen.getByRole('region', { name: 'FX presets' })).queryByText(
         'Created “Copy of Original”.',
@@ -520,8 +728,8 @@ describe('FX preset working rack and persisted management', () => {
     render(<LiveLibrary />)
     await waitFor(() =>
       expect(
-        (screen.getByRole('button', { name: 'New FX preset…' }) as HTMLButtonElement).disabled,
-      ).toBe(false),
+        screen.getByRole('button', { name: 'New FX preset…' }).getAttribute('aria-disabled'),
+      ).toBe('false'),
     )
     await createPreset(user, 'Stage')
     const before = await listStoredFxLibraryPresets()
@@ -532,7 +740,7 @@ describe('FX preset working rack and persisted management', () => {
     await screen.findByText('Deleted “Stage”.')
 
     expect(screen.queryByRole('button', { name: 'Stage' })).toBeNull()
-    expect(screen.getByText('Custom settings')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Unsaved effects' })).toBeTruthy()
     expect(getV16Effects()).toEqual(effects)
     expect((await listStoredFxLibraryPresets()).presets).toEqual([])
     await user.click(
@@ -583,8 +791,8 @@ describe('FX preset working rack and persisted management', () => {
     render(<LiveLibrary />)
     await waitFor(() =>
       expect(
-        (screen.getByRole('button', { name: 'New FX preset…' }) as HTMLButtonElement).disabled,
-      ).toBe(false),
+        screen.getByRole('button', { name: 'New FX preset…' }).getAttribute('aria-disabled'),
+      ).toBe('false'),
     )
     await createPreset(user, 'Original')
     const edited = getV16Effects().slice()

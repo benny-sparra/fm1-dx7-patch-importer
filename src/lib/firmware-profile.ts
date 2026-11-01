@@ -51,6 +51,8 @@ export type EffectControllerBase = 0 | 70
  * - `presetEffects`: the effect unit follows the preset that plays, so a patch played from its slot
  *   sends its effects with its voice. M-VAVE's V16 gives every Voice one shared FX group, so there
  *   a patch's effects go only as they are edited, and playing a patch leaves the group alone.
+ * - `sharedEffects`: one FX group, shared by every Voice and edited live through the effect
+ *   controllers, which the standalone Effects view and its named presets drive. M-VAVE's V16.
  * - `selectedVoiceEdits`: the FM1 plays several Voices, each on its own channel, and a dump edits
  *   the Voice selected on its screen while parameter changes reach that Voice only on channel 1 or
  *   All, so the editor says which Voice it reaches. M-VAVE's V16 (docs/fm1-research.md,
@@ -69,6 +71,7 @@ type FirmwareCapability =
   | 'presetWrite'
   | 'programChanges'
   | 'selectedVoiceEdits'
+  | 'sharedEffects'
   | 'singleVoiceDumps'
   | 'soundControls'
   | 'trackEngineRead'
@@ -151,6 +154,8 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
       multitimbral: 16,
       // V16's eight Voices take a dump on the one selected on screen (2026-10-25).
       selectedVoiceEdits: 16,
+      // V16's one FX group is shared by all eight Voices.
+      sharedEffects: 16,
       singleVoiceDumps: 0,
     },
     effectControllerBase: { base: 70, from: 16 },
@@ -195,6 +200,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       presetWrite: from(capabilities.presetWrite),
       programChanges: from(capabilities.programChanges),
       selectedVoiceEdits: from(capabilities.selectedVoiceEdits),
+      sharedEffects: from(capabilities.sharedEffects),
       singleVoiceDumps: from(capabilities.singleVoiceDumps),
       soundControls: from(capabilities.soundControls),
       trackEngineRead: from(capabilities.trackEngineRead),
@@ -205,14 +211,4 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
     presetWriteTiming:
       fasterTiming && from(fasterTiming.from) ? fasterTiming.timing : presetsPageTiming,
   }
-}
-
-/**
- * The one shared FX group introduced by stock V16: it is multitimbral, takes effect controllers,
- * and those effects no longer follow each preset. Consumers use this capability combination rather
- * than naming a firmware or adding a second profile fact for the same behaviour.
- */
-export function hasSharedEffects(profile: FirmwareProfile) {
-  const { effectControllers, multitimbral, presetEffects } = profile.capabilities
-  return multitimbral && effectControllers && !presetEffects
 }

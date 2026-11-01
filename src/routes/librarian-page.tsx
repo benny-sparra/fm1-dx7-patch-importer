@@ -308,16 +308,8 @@ type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof WriteFm1VaPresetsDialog>['midi'] &
   ComponentProps<typeof ReceiveFromFm1Dialog>['midi'] &
   ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
-  Pick<MidiController, 'channel' | 'firmware' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'> &
-  Partial<
-    Pick<
-      MidiController,
-      | 'effectChannel'
-      | 'selectedOutputId'
-      | 'sendSharedEffectParameter'
-      | 'sendSharedEffectSettings'
-    >
-  >
+  ComponentProps<typeof V16EffectsPanel>['midi'] &
+  Pick<MidiController, 'channel' | 'firmware' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
   activePatchId: string
@@ -362,6 +354,12 @@ export function LibrarianPage({
     setSection,
     setSearch,
   } = view ?? ownView
+  // Effects exist only while the firmware has one shared FX group; losing it falls back to Patches.
+  const sharedEffects = resolveFirmwareProfile(midi.firmware).capabilities.sharedEffects
+  const activeSection = sharedEffects ? section : 'sounds'
+  useEffect(() => {
+    if (!sharedEffects && section === 'effects') setSection('sounds')
+  }, [section, setSection, sharedEffects])
   // A search can show 320 cards and look through every saved bank and the catalog, so the results
   // follow the box a render behind and a keystroke is never held up by them.
   const search = useDeferredValue(typedSearch)
@@ -1098,29 +1096,31 @@ export function LibrarianPage({
         aria-label={t('libraryViews.label')}
         className="relative z-10 -mb-5 flex items-end gap-0.5"
       >
-        {(['sounds', 'effects'] as const).map((candidate) => (
-          <button
-            aria-current={section === candidate ? 'page' : undefined}
-            className={cn(
-              'font-dot-matrix relative -mb-0.5 inline-flex min-h-11 cursor-pointer items-center gap-2 border border-b-2 border-l-2 px-3 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
-              section === candidate
-                ? 'crt-hatch border-r-2 border-t-[var(--crt-led)] border-r-[var(--crt-bevel)] border-b-transparent border-l-[var(--crt-bevel)] before:absolute before:-top-px before:-right-0.5 before:-left-0.5 before:h-0.5 before:bg-[var(--crt-led)] before:content-[""]'
-                : 'border-t-[var(--crt-line-lt2)] border-r-[var(--crt-line-dk)] border-b-[var(--crt-bevel)] border-l-[var(--crt-line-lt2)] bg-[var(--crt-bg-1)] hover:bg-[var(--crt-btn-face)]',
-            )}
-            key={candidate}
-            onClick={() => setSection(candidate)}
-            type="button"
-          >
-            {candidate === 'sounds' ? (
-              <Music aria-hidden="true" className="size-4 shrink-0" />
-            ) : (
-              <Sparkles aria-hidden="true" className="size-4 shrink-0" />
-            )}
-            {t(`libraryViews.${candidate}`)}
-          </button>
-        ))}
+        {(sharedEffects ? (['sounds', 'effects'] as const) : (['sounds'] as const)).map(
+          (candidate) => (
+            <button
+              aria-pressed={activeSection === candidate}
+              className={cn(
+                'font-dot-matrix relative -mb-0.5 inline-flex min-h-11 cursor-pointer items-center gap-2 border-t border-b-2 border-l-2 px-3 text-[13px] font-bold tracking-[0.14em] text-[var(--crt-acc-lt)] uppercase transition-colors focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]',
+                activeSection === candidate
+                  ? 'crt-hatch border-r-2 border-t-[var(--crt-led)] border-r-[var(--crt-bevel)] border-b-transparent border-l-[var(--crt-bevel)] before:absolute before:-top-px before:-right-0.5 before:-left-0.5 before:h-0.5 before:bg-[var(--crt-led)] before:content-[""]'
+                  : 'border-r border-t-[var(--crt-line-lt2)] border-r-[var(--crt-line-dk)] border-b-[var(--crt-bevel)] border-l-[var(--crt-line-lt2)] bg-[var(--crt-bg-1)] hover:bg-[var(--crt-btn-face)]',
+              )}
+              key={candidate}
+              onClick={() => setSection(candidate)}
+              type="button"
+            >
+              {candidate === 'sounds' ? (
+                <Music aria-hidden="true" className="size-4 shrink-0" />
+              ) : (
+                <Sparkles aria-hidden="true" className="size-4 shrink-0" />
+              )}
+              <span>{t(`libraryViews.${candidate}`)}</span>
+            </button>
+          ),
+        )}
       </nav>
-      {section === 'effects' ? (
+      {activeSection === 'effects' ? (
         <ErrorBoundary
           fallback={<LoadFailedNotice message={t('libraryViews.effectsLoadFailed')} />}
         >

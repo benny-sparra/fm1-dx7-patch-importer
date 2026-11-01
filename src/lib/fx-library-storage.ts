@@ -189,6 +189,30 @@ export async function mergeStoredFxLibraryPresets(presets: readonly FxLibraryPre
   }
 }
 
+/** Runs `write` only while the stored row still equals `expected`, as another tab may change it. */
+function runCheckedFxPresetMutation<T>(
+  expected: FxLibraryPreset,
+  write: (store: IDBObjectStore, setResult: (value: T) => void) => void,
+) {
+  return runFxPresetMutation<T>((store, transaction, setResult, fail) => {
+    const read = store.get(expected.id)
+    read.onsuccess = () => {
+      try {
+        if (sameFxLibraryPreset(readStoredFxLibraryPreset(read.result), expected)) {
+          write(store, setResult)
+          return
+        }
+      } catch {
+        // A row that cannot be read is not the preset the caller loaded.
+      }
+      fail(new FxLibraryPresetConflictError())
+    }
+    read.onerror = () => {
+      fail(read.error ?? transaction.error ?? new Error('The FX preset could not be read.'))
+    }
+  })
+}
+
 export async function updateStoredFxLibraryPreset(
   preset: FxLibraryPreset,
   expected: FxLibraryPreset,
@@ -197,26 +221,9 @@ export async function updateStoredFxLibraryPreset(
   const original = readStoredFxLibraryPreset(expected)
   if (record.id !== original.id) throw new Error('An FX preset update cannot change its ID.')
   try {
-    return await runFxPresetMutation<IDBValidKey>((store, transaction, setResult, fail) => {
-      const read = store.get(record.id)
-      read.onsuccess = () => {
-        let current: FxLibraryPreset
-        try {
-          current = readStoredFxLibraryPreset(read.result)
-        } catch {
-          fail(new FxLibraryPresetConflictError())
-          return
-        }
-        if (!sameFxLibraryPreset(current, original)) {
-          fail(new FxLibraryPresetConflictError())
-          return
-        }
-        const write = store.put(record)
-        write.onsuccess = () => setResult(write.result)
-      }
-      read.onerror = () => {
-        fail(read.error ?? transaction.error ?? new Error('The FX preset could not be read.'))
-      }
+    return await runCheckedFxPresetMutation<IDBValidKey>(original, (store, setResult) => {
+      const write = store.put(record)
+      write.onsuccess = () => setResult(write.result)
     })
   } catch (error) {
     throw fxWriteError(error)
@@ -226,28 +233,31 @@ export async function updateStoredFxLibraryPreset(
 export async function deleteStoredFxLibraryPreset(expected: FxLibraryPreset) {
   const original = readStoredFxLibraryPreset(expected)
   try {
-    return await runFxPresetMutation<undefined>((store, transaction, setResult, fail) => {
-      const read = store.get(original.id)
-      read.onsuccess = () => {
-        let current: FxLibraryPreset
-        try {
-          current = readStoredFxLibraryPreset(read.result)
-        } catch {
-          fail(new FxLibraryPresetConflictError())
-          return
-        }
-        if (!sameFxLibraryPreset(current, original)) {
-          fail(new FxLibraryPresetConflictError())
-          return
-        }
-        const remove = store.delete(original.id)
-        remove.onsuccess = () => setResult(undefined)
-      }
-      read.onerror = () => {
-        fail(read.error ?? transaction.error ?? new Error('The FX preset could not be read.'))
-      }
+    return await runCheckedFxPresetMutation<undefined>(original, (store, setResult) => {
+      const remove = store.delete(original.id)
+      remove.onsuccess = () => setResult(undefined)
     })
   } catch (error) {
     throw fxWriteError(error)
   }
+}
+
+let mutations: Promise<void> = Promise.resolve()
+
+/**
+ * Runs FX writes one after another, so an older snapshot cannot become final storage. The queue is
+ * shared by every library owner, so a backup can wait for the writes already started.
+ */
+export function serializeFxMutation<T>(operation: () => Promise<T>) {
+  const result = mutations.then(operation)
+  mutations = result.then(
+    () => undefined,
+    () => undefined,
+  )
+  return result
+}
+
+/** Resolves once every FX write queued so far has finished, whether it succeeded or not. */
+export function whenFxMutationsSettled() {
+  return mutations
 }

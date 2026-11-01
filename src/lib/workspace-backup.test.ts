@@ -426,11 +426,19 @@ describe('workspace backup', () => {
     expect(roundTrip.fxPresets).toEqual([preset])
   })
 
-  it('refuses the whole version 6 backup when any FX preset is damaged', () => {
+  it('leaves a damaged FX preset out of a version 6 backup and counts it, keeping the rest', () => {
     const fixture = versionSixFixture()
-    fixture.fxPresets[0].effects = btoa(String.fromCharCode(...new Uint8Array(23)))
+    const [readable] = fixture.fxPresets
+    fixture.fxPresets = [
+      { ...readable, effects: btoa(String.fromCharCode(...new Uint8Array(23))), id: 'short' },
+      readable,
+      { ...readable, id: 'bad-name', name: '' },
+    ]
 
-    expect(problemOf(() => parseWorkspaceBackup(JSON.stringify(fixture)))).toBe('damaged')
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.fxPresets?.map(({ id }) => id)).toEqual(['fx-backup-1'])
+    expect(backup.damagedFxPresetCount).toBe(2)
   })
 
   it('backs up 8-Bit presets and restores them exactly', () => {

@@ -15,6 +15,7 @@ import {
   deleteStoredFxLibraryPreset,
   listStoredFxLibraryPresets,
   mergeStoredFxLibraryPresets,
+  serializeFxMutation,
   updateStoredFxLibraryPreset,
 } from '@/lib/fx-library-storage'
 
@@ -31,7 +32,6 @@ export function useFxLibrary() {
   const [pendingCount, setPendingCount] = useState(0)
   const mounted = useRef(true)
   const loaded = useRef(false)
-  const mutationQueue = useRef<Promise<void>>(Promise.resolve())
 
   useEffect(() => {
     mounted.current = true
@@ -67,16 +67,12 @@ export function useFxLibrary() {
 
   const serialize = useCallback(<T>(operation: () => Promise<T>) => {
     if (mounted.current) setPendingCount((count) => count + 1)
-    const result = mutationQueue.current.then(async () => {
+    const result = serializeFxMutation(async () => {
       const value = await operation()
       // A toast's Undo can outlive its view; refresh the library that replaced that owner.
       if (!mounted.current) retiredOwnerCommitListeners.forEach((refresh) => refresh())
       return value
     })
-    mutationQueue.current = result.then(
-      () => undefined,
-      () => undefined,
-    )
     return result.finally(() => {
       if (mounted.current) setPendingCount((count) => Math.max(0, count - 1))
     })

@@ -106,56 +106,58 @@ test('opens the lazy editor and returns to the patch library', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
 })
 
-test('uses the independent Effects view and keeps a named FX preset offline', async ({ page }) => {
+/** Effects exist only for firmware with a shared FX group, so the journey connects a V16 FM1. */
+async function openEffects(page: Page) {
+  await installFakeMidi(page, { firmware: 'mvave-v16' })
   await openLibrarian(page)
-
-  await page.getByRole('button', { name: 'Effects' }).click()
+  await page.getByText('MIDI offline', { exact: true }).locator('visible=true').first().click()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
+}
+
+test('uses the independent Effects view and keeps a named FX preset across a reload', async ({
+  page,
+}) => {
+  await openEffects(page)
+
   await expect(page.getByRole('tab', { name: /Voice/ })).toHaveCount(0)
   await page.getByRole('button', { name: 'New FX preset…' }).click()
   await expect(page.getByRole('dialog', { name: 'Save current effects' })).toBeVisible()
-  await page.getByRole('textbox', { name: 'Preset name' }).fill('Offline hall')
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Stage hall')
   await page.getByRole('button', { name: 'Save preset' }).click()
-  await page
-    .getByRole('dialog', { name: 'FX presets' })
-    .getByRole('button', { name: 'Close' })
-    .click()
-  await expect(page.getByRole('button', { name: 'Offline hall', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Completed actions' })).toContainText(
+    'Saved “Stage hall”.',
+  )
+  await expect(page.getByRole('button', { name: 'Stage hall', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
   )
-  await page.getByRole('button', { name: 'Offline hall', exact: true }).click()
-  await expect(page.getByRole('textbox', { name: 'Preset name' })).toHaveValue('Offline hall')
-  await expect(page.getByRole('button', { name: 'Load into Effects' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Actions for Stage hall' }).click()
+  await page.getByRole('menuitem', { name: 'Rename…' }).click()
   await page.getByRole('textbox', { name: 'Preset name' }).fill('Renamed hall')
-  await page.getByRole('textbox', { name: 'Preset name' }).press('Enter')
+  await page.getByRole('button', { name: 'Rename preset' }).click()
   await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
   await page.getByRole('switch', { name: 'Filter', exact: true }).press('Space')
-  await page.getByRole('button', { name: 'Sounds', exact: true }).click()
+  await expect(page.getByRole('heading', { name: /Renamed hall\s*edited/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Patches', exact: true }).click()
   await page.getByRole('button', { name: 'Effects', exact: true }).click()
-  await expect(page.getByRole('textbox', { name: 'Preset name' })).toHaveValue('Renamed hall')
-  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  )
   await expect(page.getByRole('switch', { name: 'Filter', exact: true })).toBeChecked()
   await page.getByRole('button', { name: 'Current effects actions' }).click()
   await page.getByRole('menuitem', { name: 'Update “Renamed hall”' }).click()
-  await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.getByRole('region', { name: 'Completed actions' })).toContainText(
     'Updated “Renamed hall” from the current effects.',
   )
 
   await page.reload()
-  await page.getByRole('button', { name: 'Effects' }).click()
-  await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Effects', exact: true }).click()
   await page.getByRole('button', { name: 'Renamed hall', exact: true }).click()
   await expect(page.getByRole('switch', { name: 'Filter', exact: true })).toBeChecked()
   await page.getByRole('button', { name: 'Actions for Renamed hall' }).click()
   await page.getByRole('menuitem', { name: 'Delete…' }).click()
   await page.getByRole('button', { name: 'Delete preset' }).click()
   await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Sounds', exact: true }).click()
+  await page.getByRole('button', { name: 'Patches', exact: true }).click()
   await page.getByRole('button', { name: 'Effects', exact: true }).click()
   await page
     .getByRole('status')
@@ -163,6 +165,30 @@ test('uses the independent Effects view and keeps a named FX preset offline', as
     .getByRole('button', { name: 'Undo', exact: true })
     .click()
   await expect(page.getByRole('button', { name: 'Renamed hall', exact: true })).toBeVisible()
+})
+
+test('keeps the Effects title strip and its search, menu and help inside a 320 px screen', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 640 })
+  await openEffects(page)
+
+  const strip = page.getByRole('heading', { name: 'Effects', level: 2 }).locator('../..')
+  for (const control of [
+    page.getByRole('searchbox', { name: 'Search FX presets' }),
+    page.getByRole('button', { name: 'FX preset actions' }),
+    page.getByRole('button', { name: 'Help: Effects' }),
+  ]) {
+    const box = await control.boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.x).toBeGreaterThanOrEqual(0)
+    expect(box!.x + box!.width).toBeLessThanOrEqual(320)
+  }
+  const stripBox = await strip.boundingBox()
+  expect(stripBox!.x + stripBox!.width).toBeLessThanOrEqual(320)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  )
 })
 
 test('zooms out of the slot as a patch opens and back into it as the editor closes', async ({

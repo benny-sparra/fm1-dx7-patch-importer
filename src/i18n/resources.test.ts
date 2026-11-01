@@ -34,7 +34,7 @@ function mergeStrings<T extends object, U extends object>(target: T, source: U):
 const lazyBritishEnglish = [
   {
     module: '@/i18n/fx-presets',
-    reader: '/src/components/midi/fx-preset-library-dialog.tsx',
+    reader: '/src/components/midi/fx-preset-library.tsx',
     strings: britishEnglishFxPresets,
   },
   {

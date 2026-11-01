@@ -1523,7 +1523,9 @@ export default {
     downloadedWithoutDamaged:
       'Baixando um backup. Alguns bancos salvos não puderam ser lidos, então não estão incluídos.',
     downloadedWithoutDamagedFx:
-      'Baixando um backup. Alguns presets de FX não puderam ser lidos e não foram incluídos.',
+      'Baixando um backup. Os presets de FX que não puderam ser lidos não estão incluídos.',
+    downloadedWithoutBanksAndFx:
+      'Baixando um backup. Os bancos salvos e os presets de FX que não puderam ser lidos não estão incluídos.',
     unavailable: 'Não foi possível abrir os backups. Recarregue a página e tente novamente.',
     unavailableUnsaved:
       'Não foi possível preparar o backup. Mantenha esta aba aberta, porque suas últimas alterações não estão salvas, e tente novamente.',
@@ -1542,8 +1544,7 @@ export default {
       'Seus bancos e todos os seus sons são substituídos pelos do backup. Desfazer na notificação seguinte os traz de volta.',
     savedBanksEffect:
       'Os bancos salvos só são adicionados. Um que já esteja neste navegador fica como está, e Desfazer não remove os adicionados.',
-    fxPresetsEffect:
-      'Os presets de FX são mesclados. Registros iguais são mantidos, conflitos de ID viram novas cópias e os presets locais nunca são substituídos.',
+    fxPresetsEffect: 'Os presets de FX são adicionados. Os que já estão aqui são mantidos.',
     restoreAction: 'Restaurar backup',
     restoring: 'Restaurando…',
     restored: 'O backup de {{date}} foi restaurado.',
@@ -1556,10 +1557,12 @@ export default {
         'Este backup está danificado e não pode ser restaurado. Tente outro arquivo de backup.',
       size: 'Este arquivo é grande demais para ser um backup deste app.',
       read: 'Não foi possível ler o arquivo. Escolha-o de novo.',
-      savedBanksFailed:
-        'O armazenamento do navegador não conseguiu guardar os bancos salvos deste backup, então sua biblioteca não mudou. Tente novamente.',
       restoreFailed:
-        'O armazenamento do navegador não conseguiu concluir a restauração. O espaço de trabalho não foi substituído; bancos ou presets de FX já adicionados foram mantidos. Tente novamente.',
+        'O armazenamento do navegador não conseguiu concluir a restauração, então sua biblioteca não foi substituída. Os bancos salvos deste backup que já tinham sido adicionados foram mantidos.',
+      restoreFxFailed:
+        'Não foi possível salvar os presets de FX deste backup, então sua biblioteca não foi substituída e nenhum preset de FX foi adicionado.',
+      restoreFxFailedBanksKept:
+        'Não foi possível salvar os presets de FX deste backup, então sua biblioteca não foi substituída e nenhum preset de FX foi adicionado. Os bancos salvos deste backup foram adicionados antes e foram mantidos.',
     },
   },
   officialOpenTracks: {

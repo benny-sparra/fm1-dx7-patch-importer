@@ -177,6 +177,23 @@ describe('useMidi shared FX transport', () => {
     ).toBe(true)
   })
 
+  it('drops the unsent controls when the caller aborts, as leaving the Effects view does', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] })
+    const { ports, result } = await connectFirmware(mvaveV16IdentityReply)
+    const abort = new AbortController()
+
+    const sending = result.current.sendSharedEffectSettings(
+      new Uint8Array(24).fill(1),
+      abort.signal,
+    )
+    await vi.advanceTimersByTimeAsync(40)
+    abort.abort()
+    await vi.runAllTimersAsync()
+
+    await expect(sending).resolves.toMatchObject({ ok: false, reason: 'cancelled' })
+    expect(ports.output.sendControlChange.mock.calls.length).toBeLessThan(24)
+  })
+
   it('stops the unsent controls after a partial transport failure', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'performance'] })
     const { ports, result } = await connectFirmware(mvaveV16IdentityReply)
