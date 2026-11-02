@@ -281,6 +281,18 @@ open everything an earlier release could have saved.
   (`docs/hardware-runs/stock-v16-effect-order-2026-11-01.md`), gates the Effects view's
   reordering (`useV16EffectOrder`). The order is live state, not part of an FX preset, and the
   FM1 stores it only with its own SAVE.
+- On stock V16 (`FM-1_016`) the owner approved, on 2026-11-02, one read of the live FX settings:
+  object 5's low-offset live read (`FUN_0200c970`, at most 215 bytes, offset below `0x10000000`),
+  to fill **Read effects from FM1** in the Effects view (docs/v16-fx-readback-handoff.md). It
+  changes nothing on the FM1. This approves the operation, not yet its bytes: the exact request,
+  reply framing, and the 24-control mapping are first written in `docs/fm1-research.md` and
+  tested with synthetic fixtures, and nothing is sent until a development-only probe sends that
+  one fixed read on an explicit action, on stock V16 only, through the transfer queue. A read
+  never triggers the live-edit sender, updates only browser state on a complete valid reply, and
+  never overwrites a named preset. Every other `00 32` command stays **Dangerous / excluded**:
+  object 5's write, offsets from `0x10000000` (raw storage), command `0x15`, any hardware SAVE
+  or save helper, and object 8. Reading the group's name or number is not approved: no normal
+  MIDI path gives it.
 - On Official Open the editor may send two things, both approved on 2026-10-16. The DX7
   single-voice dump goes only on note channels 1–7 or 10, the channels of tracks 1–8, and only
   after command 0 has shown that channel's track running DX7, since a dump to another engine is
