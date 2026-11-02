@@ -22,7 +22,7 @@ export function SettingsSelect(props: Omit<ComponentProps<'select'>, 'className'
     <span className="relative">
       <select
         {...props}
-        className="settings-option-select h-8 w-full appearance-none truncate rounded-md border border-input py-0 pr-8 pl-2 text-sm"
+        className="settings-option-select h-8 w-full appearance-none truncate rounded-md border border-input py-0 pr-7 pl-2 text-sm"
       />
       <ChevronDown
         aria-hidden="true"
@@ -38,7 +38,7 @@ export function DeviceSelect({ devices, icon, label, onChange, value }: DeviceSe
   // A port's name, such as macOS's USB Composite Device, needs the panel's full width; one longer
   // still ends in an ellipsis, with the whole name in the tooltip.
   return (
-    <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
+    <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-3 py-3">
       <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
         <span className="[&_svg]:size-3.5">{icon}</span>
         {label}
