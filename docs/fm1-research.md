@@ -2728,6 +2728,14 @@ check and drops an effect. The Effects view offers the reordering through the pr
 The order is not part of an FX preset. Nothing here is the OTA or loader path: object 4 is the
 settings block, and objects 5 and 8, `0x30`, and the loader stay **Dangerous / excluded**.
 
+#### Live FX read: offline preparation (2026-11-02)
+
+Object 5's low-offset live read, approved as an operation on 2026-11-02, has its request, reply
+framing, 24-control mapping, checklist, and approval request in
+[`v16-fx-readback-validation.md`](v16-fx-readback-validation.md). **Likely** (static, with the
+framing **Confirmed** from object 4's hardware read); the order of each effect's three values and
+whether the reply echoes the request's eight bytes are **Needs hardware test**. Nothing was sent.
+
 #### Codex firmware reading (2026-10-28)
 
 Independent offline reading of stock `FM-1_016.fwsc`. **Likely** denotes a static behavioural

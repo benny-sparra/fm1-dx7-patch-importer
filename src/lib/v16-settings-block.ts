@@ -63,11 +63,11 @@ function packSevenBitStream(bytes: readonly number[]) {
   return packed
 }
 
-function checksumOf(payload: ArrayLike<number>) {
+export function checksumOf(payload: ArrayLike<number>) {
   return ~Array.from(payload).reduce((sum, byte) => sum + byte, 0) & 0xff
 }
 
-function makeUpdaterFrame(command: number, payload: ArrayLike<number>) {
+export function makeUpdaterFrame(command: number, payload: ArrayLike<number>) {
   const body = [
     ...updaterHeader,
     command,

@@ -286,8 +286,14 @@ open everything an earlier release could have saved.
   to fill **Read effects from FM1** in the Effects view (docs/v16-fx-readback-handoff.md). It
   changes nothing on the FM1. This approves the operation, not yet its bytes: the exact request,
   reply framing, and the 24-control mapping are first written in `docs/fm1-research.md` and
-  tested with synthetic fixtures, and nothing is sent until a development-only probe sends that
-  one fixed read on an explicit action, on stock V16 only, through the transfer queue. A read
+  tested with synthetic fixtures (prepared in `docs/v16-fx-readback-validation.md` and
+  `src/lib/v16-live-effects.ts`), and nothing is sent until a development-only probe sends that
+  one fixed read on an explicit action, on stock V16 only, through the transfer queue. The owner
+  approved its bytes on 2026-11-02: `F0 00 32 0D 41 00 00 40 02 1C 01 00 00 60 06 00 00 28 00 F7`
+  (command `0x23`, object 5, offset `0x9C`, 54 bytes, `makeV16LiveEffectsReadRequest`), once on an
+  explicit action, then once per front-panel change in the run of
+  `docs/v16-fx-readback-validation.md`, with no retry and nothing sent after a failure. A longer
+  read, up to the 215 bytes, needs its own approval. A read
   never triggers the live-edit sender, updates only browser state on a complete valid reply, and
   never overwrites a named preset. Every other `00 32` command stays **Dangerous / excluded**:
   object 5's write, offsets from `0x10000000` (raw storage), command `0x15`, any hardware SAVE

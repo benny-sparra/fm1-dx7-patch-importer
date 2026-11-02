@@ -47,6 +47,16 @@ const Fm1VaPresetProbe = import.meta.env.DEV
     )
   : null
 
+// Development builds alone load the V16 live FX read probe, behind the same gate and for the same
+// reason.
+const V16LiveEffectsProbe = import.meta.env.DEV
+  ? lazy(() =>
+      import('@/components/midi/v16-live-effects-probe').then((module) => ({
+        default: module.V16LiveEffectsProbe,
+      })),
+    )
+  : null
+
 // Only an FM1 on Official Open, where a patch goes to a track, loads what it says about the track.
 const OfficialOpenTrackStatus = lazy(() =>
   import('@/components/midi/official-open-track-status').then((module) => ({
@@ -330,6 +340,13 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             {import.meta.env.DEV ? (
               <span className="flex flex-wrap gap-x-4 gap-y-2">
                 <FxHardwareProbe send={midi.sendEffectDiagnosticControl} />
+                {V16LiveEffectsProbe ? (
+                  <ErrorBoundary>
+                    <Suspense fallback={null}>
+                      <V16LiveEffectsProbe midi={midi} />
+                    </Suspense>
+                  </ErrorBoundary>
+                ) : null}
                 {Fm1VaPresetProbe ? (
                   <ErrorBoundary>
                     <Suspense fallback={null}>
