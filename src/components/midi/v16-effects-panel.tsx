@@ -78,6 +78,10 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
           : undefined
 
   useEffect(() => {
+    clearV16EffectsLastSent()
+  }, [])
+
+  useEffect(() => {
     if (route !== previousRoute.current) clearV16EffectsLastSent()
     previousRoute.current = route
   }, [route])

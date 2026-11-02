@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import { fm1VaStoredVoice } from '@/lib/fm1-va-preset-message'
 import type { Fm1VaStoredPreset } from '@/lib/fm1-va-preset-read'
 
@@ -84,10 +85,6 @@ function pause(ms: number, signal?: AbortSignal) {
   })
 }
 
-function sameBytes(bytes: Uint8Array, other: Uint8Array) {
-  return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
-}
-
 /**
  * Writes each of `presets`, as read from the FM1, back to its own slot unchanged, reading each
  * back straight after its write and waiting `gapMs` before the next. Resolves with a result for
@@ -108,8 +105,8 @@ export async function runFm1VaWriteTiming(
     const readBack = await read(preset.slot)
     const result = {
       matches:
-        sameBytes(readBack.voice, fm1VaStoredVoice(preset.voice)) &&
-        sameBytes(readBack.record, preset.record),
+        bytesEqual(readBack.voice, fm1VaStoredVoice(preset.voice)) &&
+        bytesEqual(readBack.record, preset.record),
       readBackMs: now() - sentAt,
       sentAtMs: sentAt - start,
       slot: preset.slot,

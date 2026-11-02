@@ -77,6 +77,31 @@ async function connectFirmware(reply?: Uint8Array) {
 }
 
 describe('useMidi FM1 effect transport', () => {
+  it('drops an aborted order operation waiting behind another transfer', async () => {
+    const { result } = renderHook(() => useMidi())
+    let release: (() => void) | undefined
+    const firstController = new AbortController()
+    const secondController = new AbortController()
+    const first = result.current.queueEffectOrder(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve
+        }),
+      firstController.signal,
+    )
+    const run = vi.fn(async () => undefined)
+    const waiting = result.current.queueEffectOrder(run, secondController.signal)
+    const outcome = waiting.then(
+      () => 'resolved',
+      (error: unknown) => error,
+    )
+    secondController.abort()
+    await expect(outcome).resolves.toMatchObject({ name: 'MidiTransferCancelledError' })
+    release?.()
+    await first
+    expect(run).not.toHaveBeenCalled()
+  })
+
   it('transmits the complete normalized FX state in ascending controller order', async () => {
     const sendControlChange = installOutput()
     const { result } = await connectMidiOutput()

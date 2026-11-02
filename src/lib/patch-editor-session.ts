@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { makeDx7VoiceNameEdits, packDx7Voice, type Dx7Voice } from '@/lib/dx7'
 import {
@@ -77,10 +78,6 @@ function voiceNameParameters(parameters: Uint8Array) {
   return parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH)
 }
 
-function parametersMatch(left: Uint8Array, right: Uint8Array) {
-  return left.length === right.length && left.every((value, index) => value === right[index])
-}
-
 function editsToReach(present: Uint8Array, replacement: Uint8Array): ParameterEdit[] {
   return Array.from(replacement.entries())
     .filter(([index, value]) => present[index] !== value)
@@ -93,7 +90,7 @@ export function displayedParameters(state: PatchEditorState) {
 }
 
 export function hasUnsavedEdits(state: PatchEditorState) {
-  return !parametersMatch(state.history.present, state.savedParameters)
+  return !bytesEqual(state.history.present, state.savedParameters)
 }
 
 /**
@@ -272,7 +269,7 @@ export class PatchEditorSession {
     if (!start) return
 
     const current = this.state.history
-    if (parametersMatch(start.present, current.present)) return
+    if (bytesEqual(start.present, current.present)) return
     this.commitHistory(finishParameterGesture(start, current))
     if (this.sendsWholeVoice() && this.isLive()) void this.requestSync()
   }
@@ -293,7 +290,7 @@ export class PatchEditorSession {
     if (!this.isLive()) return
     if (this.sendsWholeVoice()) {
       const typed = voiceNameParameters(displayedParameters(this.state))
-      if (!parametersMatch(typed, this.sentName)) void this.requestSync()
+      if (!bytesEqual(typed, this.sentName)) void this.requestSync()
       return
     }
     const lastSentName = this.sentName
@@ -539,7 +536,7 @@ export class PatchEditorSession {
     const current = this.state.history
     if (next === current) return false
 
-    if (!parametersMatch(current.present, next.present)) {
+    if (!bytesEqual(current.present, next.present)) {
       this.revision += 1
     }
     this.update({ history: next })

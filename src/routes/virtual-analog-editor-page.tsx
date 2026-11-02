@@ -41,10 +41,11 @@ import {
 } from '@/components/ui/rack-panel'
 import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useFm1VaLiveStatus } from '@/hooks/use-fm1-va-live-status'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaSoundControl } from '@/hooks/use-fm1-va-sound-control'
 import { useInfoToast } from '@/hooks/use-info-toast'
-import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { useFm1VaEditorNavigation } from '@/hooks/use-fm1-va-editor-navigation'
 import type { MidiController } from '@/hooks/use-midi'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { getFm1EffectParameters } from '@/lib/fm1-effects'
@@ -58,14 +59,9 @@ import {
   FM1_VOICE_NAME_LENGTH,
   FM1_VOICE_NAME_START,
 } from '@/lib/fm1-parameters'
-import { fm1VaRecordEngine } from '@/lib/fm1-va-engine'
+import { fm1VaEditedRecord } from '@/lib/fm1-va-edited-record'
 import { fm1VaPresetNumber } from '@/lib/fm1-va-preset-read'
-import {
-  fm1VaRecordWithBitcrush,
-  fm1VaRecordWithDistortionType,
-  fm1VaRecordWithEffectOrder,
-} from '@/lib/fm1-va-record-effects'
-import { fm1VaRecordWithKnobChoices, virtualAnalogKnobChoice } from '@/lib/fm1-va-knob-choices'
+import { virtualAnalogKnobChoice } from '@/lib/fm1-va-knob-choices'
 import {
   makeVirtualAnalogEditorParameters,
   virtualAnalogCutoffHertz,
@@ -74,7 +70,6 @@ import {
   virtualAnalogRows,
   type VirtualAnalogRowId,
 } from '@/lib/fm1-va-virtual-analog-editor'
-import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { cn } from '@/lib/utils'
 import {
   applyVirtualAnalogPreset,
@@ -112,9 +107,6 @@ type VirtualAnalogEditorPageProps = {
   record: Uint8Array
   voice: Uint8Array
 }
-
-/** Whether, and why not, the editor's changes play on the FM1 as they are made. */
-type LiveStatus = 'checking' | 'live' | 'noFirmware' | 'noProgram' | 'otherEngine' | 'readFailed'
 
 /** Draws an LFO wave of the oscillator waveform's shape at the size the picker gives it. */
 const wavePicture = (wave: number) => (className: string) => (
@@ -183,13 +175,6 @@ export function VirtualAnalogEditorPage({
   const parameters = displayedFm1VaParameters(state)
   const isDirty = hasUnsavedFm1VaEdits(state)
   const [nameDraft, setNameDraft] = useState<string | null>(null)
-  const [isNavigationPending, setIsNavigationPending] = useState(false)
-  const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
-  const [checked, setChecked] = useState<{
-    readPreset: typeof reader.readPreset
-    result: LiveStatus
-  } | null>(null)
-  const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const saveMenuRef = useDismissableDetails()
   const presetsMenuRef = useDismissableDetails()
   const program = patch.program
@@ -202,7 +187,6 @@ export function VirtualAnalogEditorPage({
   // same controllers as other settings, so going live selects the program again first.
   const outputConnected = midi.outputs.some((device) => device.id === midi.selectedOutputId)
   const programRoute = outputConnected ? `${midi.selectedOutputId}/${midi.channel}` : ''
-  const programSelectedOn = useRef(programRoute)
 
   // The session sends through this ref. It follows committed renders only, and a layout effect
   // updates it before the passive effects below or any later event can send through it.
@@ -216,60 +200,15 @@ export function VirtualAnalogEditorPage({
     window.scrollTo({ top: 0 })
   }, [])
 
-  useEffect(() => {
-    if (!isDirty) return
-    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
-      event.returnValue = ''
-    }
-    window.addEventListener('beforeunload', warnBeforeUnload)
-    return () => window.removeEventListener('beforeunload', warnBeforeUnload)
-  }, [isDirty])
-
-  // Changes play on the FM1 only while it plays this preset: the slot's own, read first to make
-  // sure it is a Virtual Analog one, since FM presets read some of the same controllers as their
-  // own settings. Changing the ports reads it again.
-  const { readPreset } = reader
-  const { sendProgramChange } = midi
-  useEffect(() => {
-    if (programSelectedOn.current !== programRoute) programSelectedOn.current = ''
-  }, [programRoute])
-  useEffect(() => {
-    if (program === undefined || !canCheck) {
-      editor.goLocal()
-      return
-    }
-    const read = new AbortController()
-    editor.checking()
-    const check = async () => {
-      let result: LiveStatus
-      try {
-        const preset = await readPreset(program, read.signal)
-        result = fm1VaRecordEngine(preset.record) === 'virtual-analog' ? 'live' : 'otherEngine'
-      } catch {
-        result = 'readFailed'
-      }
-      if (read.signal.aborted) return
-      if (result === 'live' && programSelectedOn.current !== programRoute) {
-        if (sendProgramChange(program)) programSelectedOn.current = programRoute
-        else result = 'readFailed'
-      }
-      setChecked({ readPreset, result })
-      if (result === 'live') editor.goLive()
-      else editor.goLocal()
-    }
-    void check()
-    return () => read.abort()
-  }, [canCheck, editor, program, programRoute, readPreset, sendProgramChange])
-
-  const liveStatus: LiveStatus =
-    program === undefined
-      ? 'noProgram'
-      : !canCheck
-        ? 'noFirmware'
-        : checked?.readPreset === readPreset
-          ? checked.result
-          : 'checking'
+  const liveStatus = useFm1VaLiveStatus({
+    canCheck,
+    editor,
+    engine: 'virtual-analog',
+    program,
+    programRoute,
+    reader,
+    sendProgramChange: midi.sendProgramChange,
+  })
 
   const storedName = String.fromCharCode(
     ...parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH),
@@ -307,48 +246,18 @@ export function VirtualAnalogEditorPage({
       onSave(
         stored.voice,
         getFm1EffectParameters(saved),
-        fm1VaRecordWithKnobChoices(
-          fm1VaRecordWithEffectOrder(
-            fm1VaRecordWithBitcrush(
-              fm1VaRecordWithDistortionType(stored.record, saved[FM1_VA_DISTORTION_TYPE_INDEX]),
-              Array.from(saved.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
-            ),
-            Array.from(saved.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START)),
+        fm1VaEditedRecord(stored.record, 'virtual-analog', {
+          distortionType: saved[FM1_VA_DISTORTION_TYPE_INDEX],
+          bitcrush: Array.from(saved.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
+          effectOrder: Array.from(
+            saved.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
           ),
-          Array.from(saved.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT)),
-          'virtual-analog',
-        ),
+          knobChoices: Array.from(
+            saved.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT),
+          ),
+        }),
       )
     })
-
-  const requestNavigation = () => {
-    if (editor.getState().isComparing || isNavigationPending) return
-    if (!isDirty) {
-      onBack()
-      return
-    }
-    setIsNavigationPending(true)
-    unsavedDialogRef.current?.showModal()
-  }
-
-  const finishPendingNavigation = (choice: 'discard' | 'save') => {
-    if (!isNavigationPending) return
-    setIsResolvingNavigation(true)
-    if (choice === 'save') saveToLibrary()
-    else editor.revertToSaved()
-    setIsResolvingNavigation(false)
-    unsavedDialogRef.current?.close()
-    setIsNavigationPending(false)
-    onBack()
-  }
-
-  useEffect(() => {
-    if (!browserBackRef) return
-    browserBackRef.current = requestNavigation
-    return () => {
-      browserBackRef.current = null
-    }
-  })
 
   const toggleCompare = () => {
     if (!editor.toggleCompare()) return
@@ -361,26 +270,23 @@ export function VirtualAnalogEditorPage({
     editor.replaceParameters(replace)
   }
 
-  const stopComparing = () => {
-    if (editor.getState().isComparing) toggleCompare()
-  }
-
-  useKeyboardShortcuts([
-    { ...editorShortcuts.redo, onTrigger: editor.redo },
-    { ...editorShortcuts.undo, onTrigger: editor.undo },
-    {
-      ...editorShortcuts.save,
-      onTrigger: () => {
-        if (isDirty) saveToLibrary()
-      },
-    },
-    { ...editorShortcuts.stopComparing, enabled: isComparing, onTrigger: stopComparing },
-    {
-      ...editorShortcuts.back,
-      enabled: syncState !== 'sending' && !isComparing,
-      onTrigger: requestNavigation,
-    },
-  ])
+  const {
+    finishPendingNavigation,
+    isResolvingNavigation,
+    requestNavigation,
+    setIsNavigationPending,
+    stopComparing,
+    unsavedDialogRef,
+  } = useFm1VaEditorNavigation({
+    browserBackRef,
+    editor,
+    isComparing,
+    isDirty,
+    onBack,
+    saveToLibrary,
+    syncState,
+    toggleCompare,
+  })
 
   const value = (id: VirtualAnalogRowId) => parameters[virtualAnalogRow(id).index]
   const format = (number: number, digits: number) =>

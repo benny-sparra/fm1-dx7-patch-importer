@@ -20,6 +20,7 @@ type EffectOrderMidi = Pick<
   | 'inputs'
   | 'logStore'
   | 'outputs'
+  | 'queueEffectOrder'
   | 'selectedInputId'
   | 'selectedOutputId'
   | 'sysexAvailable'
@@ -54,7 +55,7 @@ type Read = { input: Input; order: number[] | null; output: Output }
  * the profile's `effectOrder` allows (AGENTS.md, "MIDI").
  */
 export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
-  const { firmware, logStore } = midi
+  const { firmware, logStore, queueEffectOrder } = midi
   const input = midi.inputs.find((device) => device.id === midi.selectedInputId)?.port
   const output = midi.outputs.find((device) => device.id === midi.selectedOutputId)?.port
   const offered =
@@ -66,9 +67,7 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
   const [read, setRead] = useState<Read | null>(null)
   const [order, setOrder] = useState<number[] | null>(null)
   const [writeFailed, setWriteFailed] = useState(false)
-  const session = useRef<{ confirmed: number[]; queue: Promise<void>; signal: AbortSignal } | null>(
-    null,
-  )
+  const session = useRef<{ confirmed: number[]; signal: AbortSignal } | null>(null)
 
   const makeLink = useCallback(
     (from: Input, to: Output): V16SettingsLink => ({
@@ -91,7 +90,6 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
     const controller = new AbortController()
     session.current = {
       confirmed: defaultOrder,
-      queue: Promise.resolve(),
       signal: controller.signal,
     }
     const load = async () => {
@@ -134,13 +132,14 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
       next.splice(to, 0, ...next.splice(from, 1))
       setOrder(next)
       setWriteFailed(false)
-      active.queue = active.queue.then(async () => {
+      void queueEffectOrder(async () => {
         if (active.signal.aborted) return
         try {
           // Fresh, so a switch or type changed since the last read is written as it now is.
           const block = await readV16SettingsBlock(makeLink(input, output), {
             signal: active.signal,
           })
+          if (active.signal.aborted) return
           const message = makeEffectOrderWrite(block, next)
           output.send(message)
           midiActivity.signal('out')
@@ -151,9 +150,13 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
           setOrder(active.confirmed)
           setWriteFailed(true)
         }
+      }, active.signal).catch(() => {
+        if (active.signal.aborted) return
+        setOrder(active.confirmed)
+        setWriteFailed(true)
       })
     },
-    [input, logStore, makeLink, order, output],
+    [input, logStore, makeLink, order, output, queueEffectOrder],
   )
 
   return {

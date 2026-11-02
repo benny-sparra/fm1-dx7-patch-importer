@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import { makeDx7VoiceFilename } from '@/lib/dx7-voice-file'
 import { fm1VaStoredVoice, makeFm1VaPresetWrite } from '@/lib/fm1-va-preset-message'
 import { fm1VaRecordWithEffects } from '@/lib/fm1-va-record-effects'
@@ -22,10 +23,6 @@ export class Fm1VaPresetFileInexactError extends Error {
   }
 }
 
-function sameBytes(bytes: Uint8Array, other: Uint8Array) {
-  return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
-}
-
 /**
  * A Virtual Analog or 8-Bit patch as a presets file of one preset, the file Baud Girl's Device
  * Manager saves with **Save as a file**: one preset write, holding the voice bytes as read and the
@@ -34,7 +31,7 @@ function sameBytes(bytes: Uint8Array, other: Uint8Array) {
  * importing the file puts it. Nothing is sent to the FM1.
  */
 export function makeFm1VaPresetFile(patch: PresetPatch) {
-  if (!sameBytes(fm1VaStoredVoice(patch.voice), patch.voice)) {
+  if (!bytesEqual(fm1VaStoredVoice(patch.voice), patch.voice)) {
     throw new Fm1VaPresetFileInexactError()
   }
   const record = fm1VaRecordWithEffects(patch.record, patch.effects ?? new Uint8Array())

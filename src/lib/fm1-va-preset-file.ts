@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import {
   decodeVoiceName,
   dx7BankVoiceCount,
@@ -124,10 +125,6 @@ export function importableSounds({ presets }: Fm1VaPresetFileBank): (FetchedSoun
   })
 }
 
-function sameBytes(bytes: Uint8Array, other: Uint8Array) {
-  return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
-}
-
 /** A voice's packed bytes as the FM1 stores it: the packed form of its edit buffer. */
 function storedVoiceBytes(voice: Dx7Voice) {
   return packDx7Voice(Uint8Array.from(unpackDx7Voice(voice))).data
@@ -166,13 +163,13 @@ export function differsFromLibrary(
   const sameVoice =
     preset.kind === 'fm'
       ? slot.voice !== undefined &&
-        sameBytes(storedVoiceBytes(preset.voice), storedVoiceBytes(slot.voice))
+        bytesEqual(storedVoiceBytes(preset.voice), storedVoiceBytes(slot.voice))
       : preset.kind === 'virtual-analog'
-        ? slot.virtualAnalog !== undefined && sameBytes(preset.virtualAnalog, slot.virtualAnalog)
-        : slot.eightBit !== undefined && sameBytes(preset.eightBit, slot.eightBit)
+        ? slot.virtualAnalog !== undefined && bytesEqual(preset.virtualAnalog, slot.virtualAnalog)
+        : slot.eightBit !== undefined && bytesEqual(preset.eightBit, slot.eightBit)
   return (
     !sameVoice ||
-    !sameBytes(preset.effects, normalizeFm1Effects(slot.effects)) ||
+    !bytesEqual(preset.effects, normalizeFm1Effects(slot.effects)) ||
     !sameSettings(preset.record, slot.record)
   )
 }

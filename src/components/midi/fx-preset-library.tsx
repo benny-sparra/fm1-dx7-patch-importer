@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import {
   ChevronDown,
   CopyPlus,
@@ -75,9 +76,6 @@ type Props = {
   search: string
 }
 
-const sameBytes = (left: Uint8Array, right: Uint8Array) =>
-  left.length === right.length && left.every((value, index) => value === right[index])
-
 function downloadPresets(presets: readonly FxLibraryPreset[]) {
   downloadFile(
     new Blob([makeFxPresetFile(presets)], { type: 'application/json' }),
@@ -120,14 +118,14 @@ export function FxPresetLibrary({
   const sendAbort = useRef<AbortController | null>(null)
   const saveCapture = useRef<Uint8Array | null>(null)
   const loaded = fxLibrary.presets.find((preset) => preset.id === loadedId)
-  const modified = Boolean(loaded && !sameBytes(loaded.effects, current))
+  const modified = Boolean(loaded && !bytesEqual(loaded.effects, current))
   const route = v16EffectsRouteKey(midi.selectedOutputId, midi.effectChannel, midi.firmware)
   const sharedEffects = resolveFirmwareProfile(midi.firmware).capabilities.sharedEffects
   const eligible = midi.hasMidiOutput && sharedEffects
   const isSent = (presetId: string, effects: Uint8Array) =>
     lastSent?.presetId === presetId &&
     lastSent.route === route &&
-    sameBytes(lastSent.effects, effects)
+    bytesEqual(lastSent.effects, effects)
   const ordered = useMemo(() => {
     const collator = new Intl.Collator(i18n.resolvedLanguage, { sensitivity: 'base' })
     return fxLibrary.presets.toSorted(
@@ -282,7 +280,7 @@ export function FxPresetLibrary({
   ) => {
     if (sendInFlight.current || mutationInFlight.current) return
     const before = { effects: current.slice(), id: loadedId }
-    const changed = preset.id !== loadedId || !sameBytes(preset.effects, current)
+    const changed = preset.id !== loadedId || !bytesEqual(preset.effects, current)
     const done = recall(preset.effects, preset.id, false)
     if (changed) {
       toast.success(message, {
