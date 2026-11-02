@@ -197,7 +197,7 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
   const needsInput = midi.firmware.kind === 'unidentified' && !midi.selectedInputId
 
   return (
-    <div className="settings-option flex flex-col gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
+    <div className="settings-option flex flex-col gap-2 rounded-lg border px-3 py-3 sm:col-span-2">
       <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
         <Cpu className="size-3.5" />
         <span>{t('settings.firmware')}</span>
@@ -233,7 +233,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           <p className="mt-0.5 text-xs text-muted-foreground">{t('settings.description')}</p>
         </div>
         <FirmwareStatus midi={midi} />
-        <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3 sm:col-span-2">
+        <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-3 py-3 sm:col-span-2">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <Languages className="size-3.5" />
             {t('language')}
@@ -263,7 +263,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           onChange={midi.setSelectedInputId}
           value={midi.selectedInputId}
         />
-        <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-4 py-3">
+        <label className="settings-option flex min-h-16 flex-col justify-start gap-2 rounded-lg border px-3 py-3">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.noteChannel')}
@@ -279,7 +279,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
             ))}
           </SettingsSelect>
         </label>
-        <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-4 py-3">
+        <label className="settings-option flex min-h-16 flex-col justify-center gap-2 rounded-lg border px-3 py-3">
           <span className="flex items-center gap-2 text-[11px] tracking-[0.1em] text-muted-foreground uppercase">
             <SlidersHorizontal className="size-3.5" />
             {t('settings.fxChannel')}
