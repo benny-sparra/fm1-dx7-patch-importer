@@ -2164,10 +2164,9 @@ MIDI routing, Tap Tempo, synchronised delay):
   free times to 2.04 s (137–253), the project layout unchanged; Tap Tempo is on the screen.
 
 **What this changes for the editor.** The identity query, command 0, and the single-voice dump
-work as on V12 and V13 with the default channel map (the 2026-10-20 run). Open: whether
-Program Change now selects one of the 128 library voices for a track (the source diff for the
-router does not handle it, and `track_session.inc` stores the program in the track, so the screen
-may); the profile keeps `programChanges` off until a hardware run says. The kind 4 read gives
+work as on V12 and V13 with the default channel map (the 2026-10-20 run). Program Change selects
+one of the 128 library voices for a DX7 track, on the reading of 2026-11-03 below (**Likely**); the
+profile keeps `programChanges` off until a hardware run confirms it. The kind 4 read gives
 Phase 1 a way to import the FM1's four banks into the library, which the plan should weigh against
 reading a track's voice. No OTA, loader, or Flash path is sent by anything this note adds; a kind 4
 write is a Flash write and stays excluded.
@@ -2187,10 +2186,74 @@ Open questions:
 1. Does a dump on a remapped input channel reach the track or tracks the source says it does, and
    does command 0 say which? A hardware run with a track's input channel changed on the FM1.
 2. What does Program Change do on V14: select one of the 128 library voices for a track, or still
-   one of the built-in sounds?
+   one of the built-in sounds? Answered from the engine source on 2026-11-03 (below): a library
+   voice, on a DX7 track only. **Likely** until a hardware run, since the source is the browser
+   engine's (open question 1 of the second reading).
 3. ~~Does a kind 4 read return the four banks' voices?~~ Yes, read 2026-10-20; whether the order is
    the screen's is not checked.
 4. ~~Does command 22 answer as the source says?~~ Yes, read 2026-10-20.
+
+#### Official Open after V14, and other sources (read 2026-11-03)
+
+Source: https://github.com/m-vave/fm1_open commit `4c7496da` ("Fix Quick Edit display and support
+JieLi 2.5.3", 2026-10-21), the only commit after V14's `4d266850` as of 2026-11-03, together with a
+search of the M-VAVE forum and the web. **Confirmed** from source only; nothing here was sent to an
+FM1.
+
+**Program Change (V14 question 2).** A Program Change on a track's channel restores the track's
+parameter locks and then, only when the track runs DX7: silences the track, sets its program to
+`m[1] % 128`, clears its `modified` flag, loads the voice with `groove_fm_program`, and resets the
+track's FM controls (`web/engine/sound.c:739–752`). `groove_fm_program` (`app/fm_library.c:118`)
+takes the voice from the library bank `program / 32` when the user has saved one, and otherwise
+from the V15 factory voices (`groove_fm_factory`). On any other engine the program is ignored. While
+step recording on a Normal track, the step recorder takes a DX7 Program Change as a reset, as it
+does CC 120 and 123 (`web/engine/edit.c:205–206`). This is the browser engine's source; the device runs the same
+application through `libfm1_engine.a`, so it is **Likely** until a hardware run.
+
+**What `4c7496da` changes.** `app/version.h` is unchanged, so the build still names itself V14 and
+`FM-1_8000014`, and the editor cannot tell it from the release of 2026-10-19. It changes:
+
+- the Quick Edit screen, which now shows all three digits of a DX7 program and `/128` (issue 8);
+- `app/midi_router.c`: a track's release event (`0xF6`, internal to the router) is queued even
+  when the track routes to no port, it now also resets the panel's held keys for that track
+  (`groove_midi_panel_track_reset`), and the Note Offs it sends walk only the held notes;
+- `libfm1_engine.a`, rebuilt with JieLi Windows toolchain 2.5.3 (new hash in `sdk/manifest.json`).
+  The closed library's changes cannot be read; the commit message names LCD rendering, simulator
+  caching, and MIDI routing fixes.
+
+None of this touches the transfer protocol, the track preset, or the project layout.
+
+**Other sources.** The M-VAVE forum's FM1 Open post (https://forum.m-vave.com/topic/4) gives the file
+types (`.fm1`, `.fm1t`, `.syx`, `.fm1s`) and V14's notes, and says the eight sample slots share
+about 20.45 seconds, where the README says 19.55 seconds of new storage. No forum thread, issue, or
+web page found on 2026-11-03 documents the protocol, the 808 variants, parameter units, or the
+port's name on Windows or Linux; the threads asking about Program Change and external keyboards
+have no answers. The open questions above and in the earlier sections still need the FM1. The green
+FM1 runs Official Open from 2026-11-03, so those runs can be planned on it.
+
+#### SMK37 OPEN, Official Open for the SMK-37 (read 2026-11-03)
+
+Source: https://github.com/m-vave/smk37_open commit `b2d6bcbc` ("SMK37 OPEN V01", 2026-10-23), with
+its workbench at https://open.m-vave.com/smk37-workbench. **Confirmed** from source only; no SMK-37
+has run it for this project.
+
+- **The same application.** Eight tracks with the same six engines, a 128-voice DX7 library in four
+  groups of 32, and the same sequencer. `app/transfer.c` is byte for byte the same file as fm1_open
+  at `4c7496da`, so the transfer protocol (`F0 7D 46 4D 02 …`, commands, kinds, and sizes) is the
+  one `src/lib/official-open-transfer.ts` and `src/lib/official-open-read.ts` speak.
+  `app/fm_library.c` differs, and takes its factory voices from `factory_dx7.inc` rather than
+  fm1_open's `fm_factory.inc`; which voices those are was not compared.
+- **Identity.** `app/version.h` names release `V01` and two update products, `SMK-37 Pro_8000001`
+  and `SMK-37 Elite_8000001`. `classifyFm1Firmware` matches none of them, so the editor treats an
+  SMK-37 on it as unidentified firmware today. A family for it, or a device axis that keeps the
+  Official Open family, waits for a hardware run of the identity query (the plan's SMK-37 item 2).
+- **Track modes** are PROJECT, LIVE, and OFF rather than V14's Normal, Play, and Off. Input channels
+  default to 1–7 for tracks 1–7 and 10 for track 8, as on the FM1, and tracks on one channel layer.
+- **MIDI.** USB and BLE input, DIN, USB, and BLE output; the Pro and Elite have no DIN input. Its
+  BLE MIDI names are `SMK37 Pro Open_BLE` and `SMK37 Elite Open_BLE`. The USB port's name is not
+  in the source.
+- **Recovery** restores the SMK-37's own factory V016 package, dated 2026-08-12, and the firmware is
+  specific to the Pro or the Elite.
 
 ### M-VAVE's V16 stock firmware
 
