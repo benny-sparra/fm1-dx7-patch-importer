@@ -309,6 +309,59 @@ describe('RootLayout hardware photo', () => {
 
     expect(photo.getAttribute('src')).not.toContain('fm1-va-')
   })
+  it('shows the SMK-37 photo once an SMK-37 is identified', async () => {
+    render(
+      <RootLayout midi={{ ...midi, firmware: { identity: 'SMK-37 Pro_015', kind: 'smk37' } }}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+    const photo = screen.getByRole('img', { name: 'M-VAVE SMK-37 synthesiser front panel' })
+
+    await waitFor(() => expect(photo.getAttribute('src')).toContain('smk37-white'))
+    expect(photo.getAttribute('srcset')).toContain('smk37-white-460')
+  })
+})
+
+describe('RootLayout SMK-37 finish', () => {
+  afterEach(() => {
+    localStorage.removeItem('fm1-colourway')
+    localStorage.removeItem('smk37-colourway')
+  })
+
+  const smk37 = { identity: 'SMK-37 Pro_015', kind: 'smk37' } as const
+
+  it('shows no colour picker for the SMK-37, which has one finish so far', () => {
+    render(
+      <RootLayout midi={{ ...midi, firmware: smk37 }}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(screen.queryByRole('group', { name: /colour$/ })).toBeNull()
+    expect(document.documentElement.dataset.fm1Colorway).toBe('smk-white')
+  })
+
+  it('brings back the FM1’s own finish when an FM1 replaces the SMK-37', () => {
+    localStorage.setItem('fm1-colourway', 'orange')
+    const { rerender } = render(
+      <RootLayout midi={{ ...midi, firmware: smk37 }}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+    expect(document.documentElement.dataset.fm1Colorway).toBe('smk-white')
+
+    rerender(
+      <RootLayout midi={{ ...midi, firmware: { identity: 'FM-1_015', kind: 'mvave' } }}>
+        <div>Library</div>
+      </RootLayout>,
+    )
+
+    expect(document.documentElement.dataset.fm1Colorway).toBe('orange')
+    expect(localStorage.getItem('fm1-colourway')).toBe('orange')
+  })
 })
 
 describe('RootLayout hardware photo screen', () => {

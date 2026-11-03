@@ -1103,6 +1103,7 @@ export default {
     blackGreen: 'Negro-verde',
     coolGray: 'Gris frío',
     whiteBlue: 'Blanco-azul',
+    smkWhite: 'Blanco',
   },
   editor: {
     selectedVoiceNotice:

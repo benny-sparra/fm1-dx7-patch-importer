@@ -204,6 +204,18 @@
   }
 
   /*
+   * The SMK-37's white finish: a near-neutral grey-white like Cool Gray, lit by the cyan of its
+   * pads. Offered only while an SMK-37 is identified.
+   */
+  :root[data-fm1-colorway='smk-white'] {
+    --crt-h: 186;
+    --crt-s-bg: 8%;
+    --crt-s-bevel: 8%;
+    --crt-s-acc: 40%;
+    --crt-s-ink: 10%;
+  }
+
+  /*
    * Users who ask for less transparency get a flat shell: the scanline
    * overlay is the one purely decorative layer here, and it sits over
    * everything.

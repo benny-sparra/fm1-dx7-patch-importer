@@ -273,6 +273,7 @@ export default {
     blackGreen: 'Black-Green',
     coolGray: 'Cool Gray',
     whiteBlue: 'White-Blue',
+    smkWhite: 'White',
   },
   editor: {
     back: 'Back to patch banks',

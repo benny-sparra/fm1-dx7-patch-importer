@@ -990,6 +990,7 @@ export default {
     blackGreen: '黑绿',
     coolGray: '冷灰',
     whiteBlue: '白蓝',
+    smkWhite: '白色',
   },
   editor: {
     selectedVoiceNotice:

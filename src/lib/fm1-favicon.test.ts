@@ -5,14 +5,15 @@ import path from 'node:path'
 
 import { afterEach, describe, expect, it } from 'vitest'
 
-import { fm1Colorways } from './fm1-colorway'
+import { fm1Colorways, smk37Colorways } from './fm1-colorway'
 import { applyFm1Favicon } from './fm1-favicon'
 
 // jsdom's import.meta.url is not a file: URL, so these resolve from the repository root.
 const stylesheet = readFileSync(path.resolve('src/index.css'), 'utf8')
 
 // Every icon file, including the default the document loads with.
-const faviconFiles = ['favicon.svg', ...fm1Colorways.map(({ value }) => `favicon-${value}.svg`)]
+const everyColorway = [...fm1Colorways, ...smk37Colorways]
+const faviconFiles = ['favicon.svg', ...everyColorway.map(({ value }) => `favicon-${value}.svg`)]
 
 function polylineLength(d: string) {
   const points = [...d.matchAll(/[ML]([\d.]+) ([\d.]+)/g)].map(([, x, y]) => [+x, +y])
@@ -69,7 +70,7 @@ describe('applyFm1Favicon', () => {
     expect(() => applyFm1Favicon('orange')).not.toThrow()
   })
 
-  it.each(fm1Colorways.map(({ value }) => value))(
+  it.each(everyColorway.map(({ value }) => value))(
     'paints favicon-%s.svg in that colourway’s tokens',
     (colorway) => {
       const tokens = {

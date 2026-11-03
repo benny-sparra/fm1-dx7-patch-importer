@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { operatorColors } from '@/lib/editor-visuals'
-import { fm1Colorways, type Fm1Colorway } from '@/lib/fm1-colorway'
+import { fm1Colorways, smk37Colorways, type Colorway } from '@/lib/fm1-colorway'
 
 /*
  * WCAG 2.2 AA contrast for the CRT shell, checked against the tokens in
@@ -284,7 +284,7 @@ function declarations(selector: string) {
 
 const themeTokens = { ...declarations('@theme {'), ...declarations(':root {') }
 
-function tokensFor(colorway: Fm1Colorway) {
+function tokensFor(colorway: Colorway) {
   return { ...themeTokens, ...declarations(`:root[data-fm1-colorway='${colorway}']`) }
 }
 
@@ -377,22 +377,25 @@ describe('contrast calculation', () => {
   })
 })
 
-describe.each(fm1Colorways.map(({ value }) => value))('%s colourway', (colorway) => {
-  it('meets WCAG AA contrast for every pairing the shell renders', () => {
-    const tokens = tokensFor(colorway)
-    const failures = pairings.flatMap((pairing) => {
-      const ratio = pairingContrast(tokens, pairing)
-      return ratio >= pairing.minimum
-        ? []
-        : [
-            `${pairing.foreground} on ${pairing.background} (${pairing.where}): ` +
-              `${ratio.toFixed(2)}:1, needs ${pairing.minimum}:1`,
-          ]
-    })
+describe.each([...fm1Colorways, ...smk37Colorways].map(({ value }) => value))(
+  '%s colourway',
+  (colorway) => {
+    it('meets WCAG AA contrast for every pairing the shell renders', () => {
+      const tokens = tokensFor(colorway)
+      const failures = pairings.flatMap((pairing) => {
+        const ratio = pairingContrast(tokens, pairing)
+        return ratio >= pairing.minimum
+          ? []
+          : [
+              `${pairing.foreground} on ${pairing.background} (${pairing.where}): ` +
+                `${ratio.toFixed(2)}:1, needs ${pairing.minimum}:1`,
+            ]
+      })
 
-    expect(failures).toEqual([])
-  })
-})
+      expect(failures).toEqual([])
+    })
+  },
+)
 
 describe('field edges', () => {
   const source = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8')

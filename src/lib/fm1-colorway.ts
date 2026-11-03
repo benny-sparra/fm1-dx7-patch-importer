@@ -14,3 +14,20 @@ export function normalizeFm1Colorway(value: string | null): Fm1Colorway {
     ? (value as Fm1Colorway)
     : 'black'
 }
+
+/**
+ * The SMK-37's finishes, offered while an SMK-37 is identified. White is the one photographed so
+ * far; another is added with its photo.
+ */
+export const smk37Colorways = [{ label: 'White', swatch: '#e4e5e2', value: 'smk-white' }] as const
+
+export type Smk37Colorway = (typeof smk37Colorways)[number]['value']
+
+/** A finish of either device, as the page's tokens and favicon name it. */
+export type Colorway = Fm1Colorway | Smk37Colorway
+
+export function normalizeSmk37Colorway(value: string | null): Smk37Colorway {
+  return smk37Colorways.some((colorway) => colorway.value === value)
+    ? (value as Smk37Colorway)
+    : 'smk-white'
+}

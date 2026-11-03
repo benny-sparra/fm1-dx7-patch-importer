@@ -1,4 +1,4 @@
-import type { Fm1Colorway } from './fm1-colorway'
+import type { Colorway } from './fm1-colorway'
 
 /*
  * The static favicon is a white tile carrying a black waveform trace. Once
@@ -10,7 +10,7 @@ import type { Fm1Colorway } from './fm1-colorway'
  * admits images from 'self'; fm1-favicon.test.ts keeps their colours in step
  * with the tokens in index.css.
  */
-export function applyFm1Favicon(colorway: Fm1Colorway) {
+export function applyFm1Favicon(colorway: Colorway) {
   const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
 
   if (!link) {
