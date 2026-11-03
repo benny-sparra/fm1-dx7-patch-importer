@@ -67,6 +67,9 @@ Site and manual:
 - https://baudgirl.com/work/FM-1+VA
 - https://baudgirl.com/work/FM-1+VA/manual
 
+[`fm1-va-editing-reference.md`](fm1-va-editing-reference.md) gathers this section into one byte
+map, code map, and list of open questions for editor work. This section stays the source of truth.
+
 FM-1+VA is Madeline Hoyle's (Baud Girl) replacement firmware for the FM1, installed through the
 updater, reviewed here on 2026-09-28 at release `FM-1_089`. It keeps M-VAVE's Dexed engine and
 effects, fixes four engine bugs (§1.3), and adds a Virtual Analog engine, a 64-step sequencer, and
