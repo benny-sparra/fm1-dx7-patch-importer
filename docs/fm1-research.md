@@ -3094,6 +3094,54 @@ The SMK-37 Pro is a 37-key controller on the FM1's board family (chip, loader, a
   on FM-1+VA. **Dangerous** to send: there is no bank export to back the presets up.
 - **Effect controllers:** CC 0–1 and 70–71 on channel 2 did nothing audible.
 
+#### SMK-37 Pro FX page
+
+Read 2026-11-03 from Ben's photo of the FX screen on V015, M-VAVE's SMK-37 Pro manual
+([ManualsLib](https://www.manualslib.com/manual/4132288/M-Vave-Smk-37-Pro.html), English p. 10,
+Chinese p. 23), the community firmware notes in
+[jonathaslacerda/smk-37-pro-docs](https://github.com/jonathaslacerda/smk-37-pro-docs)
+(`firmware/FIRMWARE.md`, M-VAVE's release notes per version), genkigenki's
+[port kit](https://github.com/genkigenki/fm1-to-smk37) and
+[SMK37 page](https://genkigenki.github.io/smk37/), [Skiff](https://github.com/illuminus5/skiff)'s
+`SMK37.md`, and the Elektronauts thread. None of them gives a received CC for the FX page. The run
+sheet is [`hardware-runs/smk37-fx-run-sheet.md`](hardware-runs/smk37-fx-run-sheet.md).
+
+- **Five settings on K1–K5. Confirmed** (photo, and the manual's picture): **Cut Off** (K1,
+  shown 100 on a stock preset), **Distortion** (K2), **Reverb** (K3), **Delay** (K4), each shown 0,
+  and **Latch** (K5, On or Off). PAD BANK, KNOB BANK, and FADER BANK sit under the screen.
+- **What each does. Likely** (manual only, not heard): Cut Off sets the low-pass filter's cutoff;
+  Distortion, Reverb, and Delay each set that effect's dry/wet mix. The manual says the FX values
+  can be saved in a preset, so they look per preset, as on FM1 V15, not shared as on V16. Whether
+  a preset change restores them is **Needs hardware test**.
+- **Macros over the FM1's effect unit? Needs hardware test.** The SMK runs the FM1's engines
+  (port kit), and the four names are four of the FM1's six effects, so each knob probably drives
+  one FM1 parameter, perhaps switching its effect on as well: Cut Off the Filter's Cutoff (FM1
+  CC 2, 0–107) with the type at low-pass, Reverb its Mix (CC 7), Delay its Mix (CC 11), and
+  Distortion its Gain or Level (CC 13 or 15), since the FM1's Distortion has no mix. The SMK
+  shows 0–100 where the FM1's Cutoff is 0–107. Chorus, Phaser, resonance, decays, and types have
+  no knob. This is a guess from the names; nothing public confirms it.
+- **Latch is not an effect. Likely.** The manual: on, it keeps the FX page on screen after its
+  button is released. M-VAVE's notes for V012 and V015 add a Latch toggle to the Patch, Para, and
+  FX pages and say that with Latch off "the knobs send standard MIDI messages". So Latch decides
+  whether K1–K8 edit the synth on that page or act as a MIDI controller. The editor has nothing to
+  send for it. The arpeggiator has a Latch of its own (§4.2), unrelated.
+- **Received messages. Unknown.** No source documents a CC, channel, or range that sets the FX
+  page. The first run's CC 0 and 1 (channel 2) are the FM1's Filter switch and type, and 70 and
+  71 V16's same two, so the Filter's Cutoff (CC 2 or 72) and every Mix controller are untried.
+  Notes play on all 16 channels and on FM-1+VA the effect controllers answered only on GLOBE's
+  MIDI channel, so channel 1 and the GLOBE channels (the manual's picture shows `Chn-1` and
+  `Chn-10`) are the next candidates.
+- **Knobs sending CCs. Likely, with Latch off.** By the release notes, released from the FX page
+  with Latch off, the knobs send standard MIDI, whose CC numbers MIDI Suite assigns (manual:
+  "Aftertouch, MIDI CC, or pitch"). Those are controller assignments and need not be what the
+  synth receives. Whether turning an FX knob with Latch on sends anything is **Needs hardware
+  test**; the first run heard nothing from the SMK, but no knob was turned.
+- **V016. Not read.** Its notes add Local Control on the Patch page ("can disable local MIDI
+  control over the FM sound source") and nothing about effects.
+
+Until a run finds a controller that moves the FX page, the SMK's profile keeps no
+`effectControllers`, and the editor sends it no effects.
+
 ### FM1 Editor
 
 Repository:
