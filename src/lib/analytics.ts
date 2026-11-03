@@ -14,14 +14,16 @@ type AnalyticsEvent =
     }
   | {
       data: {
-        reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport'
+        reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport' | 'unsupported'
       }
       name: 'bank_transfer_failed'
     }
   | {
       // The firmware family only. Its name, such as FM-1_089, would single out the few FM1s on
       // each release, so it never leaves the browser.
-      data: { firmware: 'felucca' | 'fm1-va' | 'mvave' | 'official-open' | 'unidentified' }
+      data: {
+        firmware: 'felucca' | 'fm1-va' | 'mvave' | 'official-open' | 'smk37' | 'unidentified'
+      }
       name: 'fm1_identified'
     }
   | {

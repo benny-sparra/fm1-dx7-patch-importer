@@ -195,6 +195,21 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByText(/^Felucca ignores DX7 banks/)).toBeNull()
   })
 
+  it('offers an SMK-37 no bank, since it would save one over its presets', () => {
+    render(renderDialog(true, { identity: 'SMK-37 Pro_015', kind: 'smk37' }))
+
+    expect(
+      screen.getByRole('dialog', {
+        hidden: true,
+        name: 'The SMK-37 would save a bank over its presets, so none is sent',
+      }),
+    ).toBeTruthy()
+    expect(screen.queryByRole('button', { hidden: true, name: 'Send to FM1' })).toBeNull()
+    expect(
+      screen.getByRole('button', { hidden: true, name: 'Close bank selection instructions' }),
+    ).toBeTruthy()
+  })
+
   it('changes to the FM-1+VA steps once identified, after a page translator replaces its text', () => {
     const view = render(renderDialog(true, { kind: 'checking' }))
     translatePageText(view.container)

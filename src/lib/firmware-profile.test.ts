@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { resolveFirmwareProfile } from './firmware-profile'
 
 const nothing = {
+  bankDumps: false,
   bitcrush: false,
   effectControllers: false,
   effectOrder: false,
@@ -23,6 +24,7 @@ const nothing = {
 // What every firmware but Official Open takes, whatever else it can do.
 const cautious = {
   ...nothing,
+  bankDumps: true,
   effectControllers: true,
   parameterChanges: true,
   presetEffects: true,
@@ -251,7 +253,12 @@ describe('resolveFirmwareProfile', () => {
       'FM1_OFFICIAL_OPEN',
     ]) {
       expect(resolveFirmwareProfile({ identity, kind: 'official-open' })).toEqual({
-        capabilities: { ...nothing, singleVoiceDumps: true, trackEngineRead: true },
+        capabilities: {
+          ...nothing,
+          bankDumps: true,
+          singleVoiceDumps: true,
+          trackEngineRead: true,
+        },
         effectControllerBase: 0,
         family: 'official-open',
         presetWriteTiming: presetsPageTiming,
@@ -286,5 +293,33 @@ describe('resolveFirmwareProfile', () => {
         programChanges: true,
       })
     }
+  })
+
+  it('sends the SMK-37 only parameter changes, since it saves any dump over its presets', () => {
+    for (const identity of ['SMK-37 Pro_015', 'SMK-37 Elite_016', 'MKE-P37_013']) {
+      expect(resolveFirmwareProfile({ identity, kind: 'smk37' })).toEqual({
+        capabilities: { ...nothing, parameterChanges: true },
+        effectControllerBase: 0,
+        family: 'smk37',
+        presetWriteTiming: presetsPageTiming,
+      })
+    }
+  })
+
+  it('sends a bank dump to every firmware but the SMK-37', () => {
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_016', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+      { identity: 'FM-1_8000012', kind: 'official-open' },
+    ] as const) {
+      expect(resolveFirmwareProfile(firmware).capabilities.bankDumps).toBe(true)
+    }
+    expect(
+      resolveFirmwareProfile({ identity: 'SMK-37 Pro_015', kind: 'smk37' }).capabilities.bankDumps,
+    ).toBe(false)
   })
 })

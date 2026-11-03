@@ -158,6 +158,14 @@ control, so the FM1's own undo steps match the editor's. Official Open ignores D
 app sends it no Program Change and no effect controls, which it would take as changes to its
 tracks.
 
+M-VAVE's SMK-37 keyboard (SMK-37 Pro, SMK-37 Elite, or MKE-P37) runs the FM1's engines. On its
+own firmware the app names it **M-VAVE SMK-37** with its release, such as V15, and chooses its
+**Private** MIDI port, the one that answers. A patch you click, open, or edit reaches it as
+parameter changes, an unsaved edit that selecting another preset discards. The SMK-37 saves any
+patch or bank dump over its stored presets, and has no way to back them up, so **Send to FM1**
+sends it no bank and says why in its place. It ignores Program Change, and the effect controls do not reach
+it. A port of another FM1 firmware to the SMK-37 shows as **Not identified**.
+
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
 To bring the FM1's own presets into the library while it runs Baud Girl's firmware, FM-1_079 or

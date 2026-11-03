@@ -165,7 +165,9 @@ open everything an earlier release could have saved.
 - Check DX7 voice data at every boundary: reject bytes above 7-bit in imported files and SysEx
   payload builders, and normalise stored voices on read.
 - When MIDI chooses a port automatically, prefer a port named for the FM-1 (Linux lists
-  `FM-1 MIDI 1`; macOS only `USB Composite Device`), then skip ports every system lists without an
+  `FM-1 MIDI 1`; macOS only `USB Composite Device`) or the SMK-37 (`SMK`), and among those one
+  named Private, since only the SMK-37's `SMK-37 Pro-Private` answers the identity query, not
+  `-Master` or `Port 3`; then skip ports every system lists without an
   instrument, such as ALSA's Midi Through, unless nothing else is available. Match them by name in
   `resolveMidiPortSelection`; a port the user chose is kept.
 - Never move MIDI traffic to a different device on its own. When the selected port disconnects, select
@@ -212,17 +214,22 @@ open everything an earlier release could have saved.
   MIDI is switched off, rather than matching it by port identity. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
   release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`. M-VAVE's Official Open is
   `FM-1_8` and six digits (`FM-1_8000012` is V12), `FM1_COMMUNITY_` and a number, or
-  `FM1_OFFICIAL_OPEN`, the names its updater accepts; any other name is unidentified, so no
+  `FM1_OFFICIAL_OPEN`, the names its updater accepts. M-VAVE's SMK-37 keyboard, on the FM1's
+  chip and engines, answers in the same format with its model before the underscore: its own
+  firmware is `SMK-37 Pro_`, `SMK-37 Elite_`, or `MKE-P37_` and a release from `000` to `099`
+  (`SMK-37 Pro_015` is its V15, not the FM1's). A port of FM-1 firmware to it keeps the model and
+  its own number, such as Skiff's `714` or Felucca's `9XY`, and stays unidentified until a run
+  shows what it does. Any other name is unidentified, so no
   firmware's behaviour is assumed for it. Felucca ignores DX7 voice data, Program Change, and the
   effect controllers, so it gets the cautious parameter changes like an unidentified firmware, and
   the badge, firmware setting, and bank instructions say that patches do not reach it. Analytics
-  records only the family (`fm1_identified`: `mvave`, `fm1-va`, `felucca`, `official-open`, or
+  records only the family (`fm1_identified`: `mvave`, `fm1-va`, `felucca`, `official-open`, `smk37`, or
   `unidentified`),
   once per family per page load so the split counts sessions rather
   than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
-  `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
+  `resolveFirmwareProfile` gives its family, its capabilities (`bankDumps`, `singleVoiceDumps`, `presetRead`,
   `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`, `selectedVoiceEdits`,
   `multitimbral`, `effectControllers`, `presetEffects`, `sharedEffects`), where its effect controllers start
   (`effectControllerBase`), and its preset write timing. A family
@@ -242,6 +249,18 @@ open everything an earlier release could have saved.
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
   not yet identified too. The badge, the firmware setting, and the bank instructions say so.
+- The SMK-37's own firmware (`smk37`, run of 2026-11-03 on V015,
+  `docs/hardware-runs/smk37-2026-11-03.md`) saves a DX7 single-voice dump over its selected
+  preset, survives a power cycle, and has no bank export to back its presets up, so its profile
+  lists `parameterChanges` alone: no dump of any kind, no Program Change (ignored), no effect
+  controllers (CC 0–1 and 70–71 on channel 2 did nothing), and no vendor command but the identity
+  query. Every other family lists `bankDumps`, so only the SMK-37 is refused a bank:
+  `useMidi.sendBank` returns `unsupported` without sending, and **Send to FM1** opens
+  `Fm1BankSelectionDialog` with only its title, which says why, and no Send. A capability added
+  for it needs its own hardware run first. Its badge reads M-VAVE SMK-37 with its release and says
+  patches reach it as unsaved edits; the firmware setting names its model (`M-VAVE SMK-37
+Pro_015`). Its support cost 232 B of the entry with 240 B spare, after trimming a settings line
+  and sharing FM-1+VA's log line, so check the budget before adding to it.
 - M-VAVE's V16 (`FM-1_016`, 2026-10-21) moved its effect unit to CC 70–93 and takes CC 1, 2, 4,
   7, and 11 as modulation, volume, and expression. Its firmware takes V15's 24 effect parameters
   at CC 70–93 in the editor's order and with its limits (docs/fm1-research.md, "What the firmware

@@ -17,6 +17,7 @@ export default {
       '如果你的 FM1 运行 Baud Girl 的固件，它会改为询问“Replace Bank A?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Replace 并按 SEL。',
     bankOfficialOpenNote:
       'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此发送此音色库不会改变它的工程。',
+    bankSmk37Title: 'SMK-37 会把音色库保存到自己的预设上，因此不会发送',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
     bankFeluccaOrSloopNote:
       'Felucca 和 SLOOP 都会忽略 DX7 音色库，因此发送此音色库不会改变 FM1 的预设。',
@@ -1142,6 +1143,8 @@ export default {
     officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
     officialOpenBadgeTitle:
       'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
+    smk37BadgeLabel: 'M-VAVE SMK-37 固件，{{release}}',
+    smk37BadgeTitle: '一台 M-VAVE SMK-37 键盘，{{release}}。音色以未保存的编辑发送给它。',
     panic: 'MIDI 紧急停止',
     panicHelp: 'MIDI 紧急停止：在音符通道上为每个音符发送音符关闭消息，以停止悬挂的音符',
     panicUnavailable: 'MIDI 紧急停止：{{reason}}',

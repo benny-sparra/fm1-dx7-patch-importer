@@ -21,6 +21,7 @@ export default {
       'Si tu FM1 usa el firmware de Baud Girl, pregunta en su lugar «Replace Bank A?» y empieza en el banco A. Gira ALGORITHM hasta el banco de destino, luego SELECT hasta Replace, y pulsa SEL.',
     bankOfficialOpenNote:
       'El firmware Open de M-VAVE ignora los bancos DX7, así que enviar este banco no cambia sus proyectos.',
+    bankSmk37Title: 'El SMK-37 guardaría un banco sobre sus presets, así que no se envía ninguno',
     bankFeluccaNote:
       'Felucca ignora los bancos DX7, así que enviar este banco no cambia sus presets.',
     bankFeluccaOrSloopNote:
@@ -1256,6 +1257,9 @@ export default {
     officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'El FM1 usa el firmware Open de M-VAVE, {{release}}, una groovebox de ocho pistas. Un sonido en el que haces clic o que editas va a la pista del canal de notas cuando esa pista usa DX7. Ignora los bancos DX7, y los controles de efectos no envían nada, porque los tomaría como cambios en sus pistas.',
+    smk37BadgeLabel: 'Firmware SMK-37 de M-VAVE, {{release}}',
+    smk37BadgeTitle:
+      'Un teclado SMK-37 de M-VAVE, {{release}}. Los sonidos le llegan como ediciones sin guardar.',
     panic: 'Pánico MIDI',
     panicHelp:
       'Pánico MIDI: envía un note-off para cada nota del canal de notas y detiene las notas colgadas',

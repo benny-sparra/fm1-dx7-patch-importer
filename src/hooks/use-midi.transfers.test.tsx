@@ -7,7 +7,12 @@ import { makeDx7SingleVoicePayload } from '@/lib/dx7'
 import { makeFm1ParameterPayload } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 import { makeDemoVoices } from '@/lib/patch-library'
-import { makeFakeFm1Ports, mvaveIdentityReply, mvaveV16IdentityReply } from '@/test/fake-fm1-midi'
+import {
+  makeFakeFm1Ports,
+  mvaveIdentityReply,
+  mvaveV16IdentityReply,
+  smk37IdentityReply,
+} from '@/test/fake-fm1-midi'
 
 import { useMidi } from './use-midi'
 
@@ -266,6 +271,41 @@ describe('useMidi bank transfer guards', () => {
 
     expect(output.sendSysex).not.toHaveBeenCalled()
     expect(logMessages(result)).toContainEqual(['system', 'Bank A is not loaded with 32 voices.'])
+  })
+
+  it('sends no bank to an SMK-37, which would save it over its presets', async () => {
+    const { input, output } = makeFakeFm1Ports({ reply: smk37IdentityReply })
+    webMidi.inputs = [input]
+    webMidi.outputs = [output]
+    const { result } = await connect()
+    await waitFor(() => expect(result.current.firmware.kind).toBe('smk37'))
+    output.sendSysex.mockClear()
+
+    await expect(result.current.sendBank('A', makeDemoVoices())).resolves.toEqual({
+      ok: false,
+      reason: 'unsupported',
+    })
+
+    expect(output.sendSysex).not.toHaveBeenCalled()
+  })
+
+  it('sends an SMK-37 a patch as parameter changes, never a dump', async () => {
+    const { input, output } = makeFakeFm1Ports({ reply: smk37IdentityReply })
+    webMidi.inputs = [input]
+    webMidi.outputs = [output]
+    const { result } = await connect()
+    await waitFor(() => expect(result.current.firmware.kind).toBe('smk37'))
+    output.sendSysex.mockClear()
+
+    await expect(result.current.sendVoice(voice)).resolves.toBe(true)
+
+    await waitFor(() => expect(output.sendSysex).toHaveBeenCalledTimes(155))
+    expect(output.sendProgramChange).not.toHaveBeenCalled()
+    for (const [manufacturer, payload] of output.sendSysex.mock.calls) {
+      expect(manufacturer).toBe(0x43)
+      // A parameter change, `1g`, never a dump's `0n`.
+      expect(payload[0] & 0xf0).toBe(0x10)
+    }
   })
 })
 

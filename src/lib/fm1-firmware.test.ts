@@ -12,6 +12,7 @@ import {
   fm1VaIdentityReply,
   mvaveIdentityReply,
   officialOpenIdentityReply,
+  smk37IdentityReply,
 } from '@/test/fake-fm1-midi'
 
 describe('fm1IdentityQuery', () => {
@@ -41,6 +42,11 @@ describe('parseFm1IdentityReply', () => {
 
   it('reads the name from a reply captured on Official Open V12', () => {
     expect(parseFm1IdentityReply(officialOpenIdentityReply)).toBe('FM-1_8000012')
+  })
+
+  it('reads the name from a reply captured on the SMK-37 Pro’s stock V015', () => {
+    expect(smk37IdentityReply).toHaveLength(41)
+    expect(parseFm1IdentityReply(smk37IdentityReply)).toBe('SMK-37 Pro_015')
   })
 
   it('rejects a reply whose block does not declare a 27-byte name field', () => {
@@ -105,6 +111,31 @@ describe('classifyFm1Firmware', () => {
     expect(classifyFm1Firmware('FM-1_812')).toEqual({ identity: 'FM-1_812', kind: 'fm1-va' })
   })
 
+  it('counts the stock releases of each SMK-37 model as the SMK-37', () => {
+    for (const identity of [
+      'SMK-37 Pro_015',
+      'SMK-37 Pro_016',
+      'SMK-37 Elite_016',
+      'MKE-P37_013',
+    ]) {
+      expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'smk37' })
+    }
+  })
+
+  it('leaves FM-1 firmware ported to the SMK-37 unidentified', () => {
+    for (const identity of [
+      'SMK-37 Pro_714',
+      'SMK-37 Elite_714',
+      'MKE-P37_714',
+      'SMK-37 Pro_904',
+      'SMK-37_970',
+      'SMK-37 Pro_15',
+      'smk-37 pro_015',
+    ]) {
+      expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'unidentified' })
+    }
+  })
+
   it('leaves a name it does not recognise unidentified', () => {
     expect(classifyFm1Firmware('XR-9_015')).toEqual({ identity: 'XR-9_015', kind: 'unidentified' })
   })
@@ -140,6 +171,11 @@ describe('fm1FirmwareRelease', () => {
     expect(fm1FirmwareRelease({ identity: 'FM1_OFFICIAL_OPEN', kind: 'official-open' })).toBe(
       'FM1_OFFICIAL_OPEN',
     )
+  })
+
+  it('names an SMK-37 release as M-VAVE numbers it', () => {
+    expect(fm1FirmwareRelease({ identity: 'SMK-37 Pro_015', kind: 'smk37' })).toBe('V15')
+    expect(fm1FirmwareRelease({ identity: 'MKE-P37_016', kind: 'smk37' })).toBe('V16')
   })
 
   it('names an FM-1+VA release by the name the FM1 reports', () => {

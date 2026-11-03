@@ -32,6 +32,10 @@ export type EffectControllerBase = 0 | 70
  *   its edit buffer and Official Open in the track on the dump's channel. FM-1+VA writes one
  *   straight over the selected stored preset, so every other firmware gets the patch as parameter
  *   changes, which it holds as an unsaved edit (docs/fm1-research.md, "The editor on FM-1+VA").
+ * - `bankDumps`: **Send to FM1** may send a DX7 32-voice bank dump, whose destination the FM1 asks
+ *   for on its own screen. The SMK-37 saves a single-voice dump over its selected preset and has
+ *   no bank export to back its presets up, so a bank dump would very likely replace a stored bank
+ *   for good (docs/hardware-runs/smk37-2026-11-03.md); it gets none.
  * - `trackEngineRead`: Official Open's command 0, `F0 7D 'F' 'M' 02 00`, which reads each track's
  *   engine. Where it is offered, a dump goes to the track on the note channel, and only after
  *   command 0 shows that track running DX7, since a dump to another engine is dropped silently.
@@ -64,6 +68,7 @@ export type EffectControllerBase = 0 | 70
  *   M-VAVE's V16 (docs/hardware-runs/stock-v16-voices-2026-10-26.md).
  */
 type FirmwareCapability =
+  | 'bankDumps'
   | 'bitcrush'
   | 'effectControllers'
   | 'effectOrder'
@@ -124,6 +129,7 @@ type FamilyProfile = {
 
 /** What every firmware but Official Open takes, as it always has. */
 const channelMessages = {
+  bankDumps: 0,
   effectControllers: 0,
   parameterChanges: 0,
   presetEffects: 0,
@@ -170,7 +176,12 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   // slot's Program Change and the effect controllers as changes to its tracks
   // (docs/fm1-research.md, "Official Open: released source"). It takes a single-voice dump into
   // a DX7 track, and command 0 says which tracks run DX7 (both approved 2026-10-16).
-  'official-open': { capabilities: { singleVoiceDumps: 0, trackEngineRead: 0 } },
+  'official-open': { capabilities: { bankDumps: 0, singleVoiceDumps: 0, trackEngineRead: 0 } },
+  // M-VAVE's SMK-37 keyboard on its stock V015 (docs/hardware-runs/smk37-2026-11-03.md) holds DX7
+  // parameter changes as an unsaved edit, but saves a single-voice dump over its selected preset,
+  // ignores Program Change, and did nothing with the effect controllers on channel 2. With no
+  // bank export to back its presets up, it gets no dump of any kind.
+  smk37: { capabilities: { parameterChanges: 0 } },
   unidentified: { capabilities: channelMessages },
 }
 
@@ -196,6 +207,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
   } = familyProfiles[firmware.kind]
   return {
     capabilities: {
+      bankDumps: from(capabilities.bankDumps),
       bitcrush: from(capabilities.bitcrush),
       effectControllers: from(capabilities.effectControllers),
       effectOrder: from(capabilities.effectOrder),

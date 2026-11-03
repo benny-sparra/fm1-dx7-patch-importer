@@ -15,6 +15,7 @@ export default {
       'If your FM1 runs Baud Girl’s firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
     bankOfficialOpenNote:
       'M-VAVE’s Open firmware ignores DX7 banks, so sending this bank does not change its projects.',
+    bankSmk37Title: 'The SMK-37 would save a bank over its presets, so none is sent',
     bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
     bankFeluccaOrSloopNote:
       'Felucca and SLOOP ignore DX7 banks, so sending this bank does not change the FM1’s presets.',
@@ -302,6 +303,8 @@ export default {
     officialOpenBadgeLabel: 'M-VAVE Open firmware, {{release}}',
     officialOpenBadgeTitle:
       'The FM1 runs M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. A patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',
+    smk37BadgeLabel: 'M-VAVE SMK-37 firmware, {{release}}',
+    smk37BadgeTitle: 'M-VAVE’s SMK-37, {{release}}. Patches reach it as unsaved edits.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: send a note-off for every note on the note channel, to stop hanging notes',
