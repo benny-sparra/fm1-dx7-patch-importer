@@ -3077,6 +3077,23 @@ the third, and the fourth; the run of 2026-10-25 the rest of the third, and the 
     last until power-off unless SAVE is pressed? The chain order, yes (question 12). Run sheet:
     [`hardware-runs/stock-v16-control-research-run-sheet.md`](hardware-runs/stock-v16-control-research-run-sheet.md).
 
+### M-VAVE SMK-37 Pro stock firmware (run 2026-11-03)
+
+The SMK-37 Pro is a 37-key controller on the FM1's board family (chip, loader, and engines; see
+`docs/official-open-plan.md`, "Separate track"). One unit on stock V015 over USB, recorded in
+[`hardware-runs/smk37-2026-11-03.md`](hardware-runs/smk37-2026-11-03.md). Each point is
+**Confirmed** on that unit and release only:
+
+- **Identity:** answers `fm1IdentityQuery` on its `SMK-37 Pro-Private` port in the FM1's 41-byte
+  format, as `SMK-37 Pro_015`. The model is the text before the underscore.
+- **USB:** `SMK-37 Pro Midi`, VID:PID 4353:CF4D; MIDI ports `SMK-37 Pro-Private`,
+  `SMK-37 Pro-Master`, and `Port 3`; audio `SMK-37 Pro Audio`.
+- **Notes:** on all 16 channels. **Program Change:** ignored.
+- **DX7 parameter change:** reaches the voice as an unsaved edit, discarded by a preset change.
+- **DX7 single-voice dump:** saved over the selected preset at once, surviving a power cycle, as
+  on FM-1+VA. **Dangerous** to send: there is no bank export to back the presets up.
+- **Effect controllers:** CC 0–1 and 70–71 on channel 2 did nothing audible.
+
 ### FM1 Editor
 
 Repository:
