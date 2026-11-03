@@ -178,6 +178,13 @@ describe('PatchEditorPage MIDI paths', () => {
     }
   })
 
+  it('shows no effects on the SMK-37, which takes none of the effect controllers', () => {
+    setup({ firmware: { identity: 'SMK-37 Pro_015', kind: 'smk37' } })
+
+    expect(screen.queryByRole('heading', { name: 'Effects' })).toBeNull()
+    expect(screen.queryByRole('switch', { name: 'Filter' })).toBeNull()
+  })
+
   it('says nothing about Voices before V16, which plays one', () => {
     setup()
 

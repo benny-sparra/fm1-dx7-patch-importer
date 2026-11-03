@@ -73,6 +73,7 @@ import {
 } from '@/lib/patch-library'
 import { librarianShortcuts } from '@/lib/keyboard-shortcuts'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { fm1Device } from '@/lib/fm1-firmware'
 import type { Fm1VaPresetSource } from '@/components/patches/import-fm1-va-presets-dialog'
 import { soundKey } from '@/lib/sound-key'
 import { cn } from '@/lib/utils'
@@ -1248,7 +1249,15 @@ export function LibrarianPage({
                 type="button"
               >
                 <Send aria-hidden="true" className="size-3.5" />
-                <span>{isSending ? t('banks.sending') : t('banks.send')}</span>
+                <span>
+                  {t(
+                    isSending
+                      ? 'banks.sending'
+                      : fm1Device(midi.firmware) === 'smk37'
+                        ? 'banks.sendSmk37'
+                        : 'banks.send',
+                  )}
+                </span>
               </button>
             </>
           }

@@ -51,6 +51,14 @@ export const officialOpenIdentityReply = Uint8Array.from([
   0x18, 0x30, 0x60, 0x44, 0x11, 0x03, ...Array<number>(17).fill(0), 0x15, 0xf7,
 ])
 
+// Captured from M-VAVE's SMK-37 Pro on its stock V015, 2026-11-03
+// (docs/hardware-runs/smk37-2026-11-03.md), with its own checksum.
+// prettier-ignore
+export const smk37IdentityReply = Uint8Array.from([
+  0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x40, 0x29, 0x4d, 0x16, 0x35, 0x19, 0x73, 0x06, 0x08,
+  0x28, 0x72, 0x5e, 0x7d, 0x02, 0x13, 0x26, 0x0d, ...Array<number>(14).fill(0), 0x60, 0x0d, 0xf7,
+])
+
 /**
  * Official Open's answer to command 0, info, for the request sent with `token`, as V12 builds it
  * (app/transfer.c): status 0, format 4, 16 slots, slot 0, a 4064-byte project, the internal clock,

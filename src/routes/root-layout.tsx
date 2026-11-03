@@ -30,7 +30,10 @@ import type { MidiController } from '@/hooks/use-midi'
 import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
+import { fm1Colorways, smk37Colorways } from '@/lib/fm1-colorway'
+import { fm1Device } from '@/lib/fm1-firmware'
 import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
+import type { Smk37ColorwayImages } from '@/lib/smk37-colorway-images'
 import { degauss } from '@/lib/degauss'
 import { resolveFirmwareProfile } from '@/lib/firmware-profile'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
@@ -91,10 +94,17 @@ type RootLayoutProps = {
 }
 
 export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
+  // The heading and the tab name the device once an SMK-37 is identified. Its name and the FM1's
+  // are product names, the same in every locale's title.
+  // The device, not its firmware: an SMK-37 on a community port still shows as an SMK-37.
+  const isSmk37 = fm1Device(midi.firmware) === 'smk37'
+  const device = isSmk37 ? 'SMK-37' : 'FM1'
   const intro = splitIntroLink(t('root.intro'))
   const unsupportedBrowser = isUnsupportedBrowser()
-  const { colorway, setColorway } = useFm1Colorway()
+  const { colorway, fm1Colorway, setColorway, smk37Colorway } = useFm1Colorway(
+    isSmk37 ? 'smk37' : 'fm1',
+  )
   // The page a new finish degausses.
   const screenRef = useRef<HTMLDivElement>(null)
   const mainRef = useRef<HTMLElement>(null)
@@ -102,7 +112,13 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const showHardwareBay = !compact && showColorwayImage
   const showFm1VaImage = showHardwareBay && midi.firmware.kind === 'fm1-va'
   const [fm1VaColorwayImages, setFm1VaColorwayImages] = useState<Fm1ColorwayImages>()
-  const colorwayImage = ((showFm1VaImage && fm1VaColorwayImages) || fm1ColorwayImages)[colorway]
+  const deviceColorways = isSmk37 ? smk37Colorways : fm1Colorways
+  const showSmk37Image = showHardwareBay && isSmk37
+  const [smk37ColorwayImages, setSmk37ColorwayImages] = useState<Smk37ColorwayImages>()
+  // The SMK-37's photo replaces the FM1's once it has loaded; until then the FM1's stays.
+  const smk37Image = showSmk37Image ? smk37ColorwayImages?.[smk37Colorway] : undefined
+  const colorwayImage =
+    smk37Image ?? ((showFm1VaImage && fm1VaColorwayImages) || fm1ColorwayImages)[fm1Colorway]
   // Switching MIDI off switches off the screen in the photo like a CRT, and it stays dark until
   // MIDI is back. A page that opens offline keeps the photo as it is. Once the screen is dark it
   // stays still, so hiding and showing the photo again does not replay the switch-off.
@@ -113,6 +129,19 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
     setWasMidiOnline(isMidiOnline)
     setPhotoScreen(isMidiOnline ? 'lit' : 'switching-off')
   }
+
+  useEffect(() => {
+    document.title = t('meta.title').replace('FM1', device)
+  }, [device, i18n.resolvedLanguage, t])
+
+  // Only an identified SMK-37 loads its photos, which are decorative, as FM-1+VA's are.
+  useEffect(() => {
+    if (showSmk37Image) {
+      import('@/lib/smk37-colorway-images')
+        .then((module) => setSmk37ColorwayImages(module.smk37ColorwayImages))
+        .catch(() => {})
+    }
+  }, [showSmk37Image])
 
   // Only an FM1 running FM-1+VA loads its photos. They are decorative, so a chunk that fails to
   // load leaves the stock photo showing, and the next identification tries again.
@@ -169,7 +198,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 className="synthwave-title min-w-0 items-baseline gap-x-[0.3em] gap-y-[7px]"
               >
                 <span className="synthwave-brand-row">M-VAVE</span>
-                <span>FM1</span>
+                <span>{device}</span>
                 <span className="synthwave-hero-accent">{t('root.subtitle')}</span>
               </h1>
               {!compact ? (
@@ -182,14 +211,19 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
             </div>
 
             <div className="col-start-2 row-start-1 flex shrink-0 items-start gap-2.5 self-start">
-              <Fm1ColorwayPicker
-                onChange={(next) => {
-                  degauss(screenRef.current)
-                  setColorway(next)
-                }}
-                value={colorway}
-              />
-              <HelpButton colorway={colorway} midi={midi} />
+              {/* A device with one finish, as the SMK-37 has so far, shows no picker. */}
+              {deviceColorways.length > 1 ? (
+                <Fm1ColorwayPicker
+                  colorways={deviceColorways}
+                  device={device}
+                  onChange={(next) => {
+                    degauss(screenRef.current)
+                    setColorway(next)
+                  }}
+                  value={colorway}
+                />
+              ) : null}
+              <HelpButton colorway={fm1Colorway} midi={midi} />
               <MidiSettingsMenu midi={midi} />
             </div>
 
@@ -227,7 +261,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
               <figure className="crt-inset col-start-3 row-span-2 row-start-1 hidden w-[250px] self-start bg-[var(--crt-bg-2)] p-1 lg:block">
                 <span className="relative block">
                   <img
-                    alt={t('root.synthAlt')}
+                    alt={t('root.synthAlt').replace('FM1', device)}
                     className="aspect-[242/146] h-auto w-full object-contain"
                     decoding="async"
                     height={colorwayImage.height}
@@ -236,7 +270,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                     srcSet={colorwayImage.srcSet}
                     width={colorwayImage.width}
                   />
-                  {photoScreen === 'lit' ? null : (
+                  {/* The switch-off covers the FM1's screen, where the SMK-37's photo has none. */}
+                  {photoScreen === 'lit' || smk37Image ? null : (
                     <span aria-hidden="true" className="fm1-photo-screen">
                       {photoScreen === 'switching-off' ? (
                         <span

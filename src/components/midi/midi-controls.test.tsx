@@ -97,6 +97,12 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.queryByText(/Select on the FM1/)).toBeNull()
   })
 
+  it('names an SMK-37 by its model', () => {
+    renderSettings({ identity: 'SMK-37 Pro_015', kind: 'smk37' })
+
+    expect(screen.getByText('M-VAVE SMK-37 Pro_015')).toBeTruthy()
+  })
+
   it('asks for the FM1 as the input when no input can hear its answer', () => {
     renderSettings({ kind: 'unidentified' }, '')
 
@@ -263,6 +269,40 @@ describe('MidiFirmwareBadge', () => {
     expect(
       screen.getByTitle(/^The FM1 runs M-VAVE’s Open firmware, V12, an eight-track/),
     ).toBeTruthy()
+  })
+
+  it('names an SMK-37 with its own release', () => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'SMK-37 Pro_015', kind: 'smk37' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('M-VAVE SMK-37 firmware, V15')).toBeTruthy()
+    expect(container.textContent).toContain('M-VAVESMK-37V15')
+    expect(
+      screen.getByTitle(/^M-VAVE’s SMK-37, V15\. Patches reach it as unsaved edits/),
+    ).toBeTruthy()
+  })
+
+  it('names an SMK-37 with its release in Ukrainian', async () => {
+    await setLocale('uk')
+
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'SMK-37 Pro_015', kind: 'smk37' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Прошивка SMK-37 від M-VAVE, V15')).toBeTruthy()
   })
 
   it('names Official Open with its release in Ukrainian', async () => {

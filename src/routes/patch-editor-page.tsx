@@ -498,60 +498,67 @@ export function PatchEditorPage({
             setParameter={editor.setParameter}
           />
 
-          <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
-            <RackPanelTitle
-              action={
-                <RackPanelCollapseToggle
-                  collapsed={isEffectsCollapsed}
-                  controls="effects-unit"
-                  onToggle={() => setIsEffectsCollapsed((collapsed) => !collapsed)}
-                  panel={t('editor.effects')}
-                />
-              }
-              icon={Sparkles}
-              id="effects-heading"
-              title={t('editor.effects')}
-            />
-            <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
-              {sharesEffects ? (
-                <InfoNotice>
-                  <p>
-                    <span>{t('editor.effectsSharedNotice')}</span>
-                  </p>
-                </InfoNotice>
-              ) : (
-                <EffectsUnit
-                  distortionType={
-                    writesDistortionType
-                      ? { onChange: editor.setDistortionType, type: record ? distortionType : null }
-                      : undefined
-                  }
-                  bitcrush={
-                    offersBitcrush
-                      ? {
-                          onApplyPreset: editor.selectBitcrushPreset,
-                          onChange: editor.setBitcrushSetting,
-                          values: record ? bitcrush : null,
-                        }
-                      : undefined
-                  }
-                  effectOrder={
-                    offersBitcrush
-                      ? { onMove: editor.moveEffect, order: record ? effectOrder : null }
-                      : undefined
-                  }
-                  keepsBitcrush={keepsBitcrush}
-                  keepsEffectOrder={keepsEffectOrder}
-                  keptDistortionType={keptDistortionType}
-                  onApplyPreset={editor.selectEffectPreset}
-                  onChange={editor.setEffectParameter}
-                  onGestureEnd={editor.endGesture}
-                  onGestureStart={editor.beginGesture}
-                  values={getFm1EffectParameters(parameters)}
-                />
-              )}
-            </RackPanelCollapsibleBody>
-          </section>
+          {/* The SMK-37 took none of the FM1's effect controllers (hardware run, 2026-11-03), so
+              its effects are not shown; the patch keeps them as they are. */}
+          {midi.firmware.kind === 'smk37' ? null : (
+            <section aria-labelledby="effects-heading" className="synthwave-panel min-w-0">
+              <RackPanelTitle
+                action={
+                  <RackPanelCollapseToggle
+                    collapsed={isEffectsCollapsed}
+                    controls="effects-unit"
+                    onToggle={() => setIsEffectsCollapsed((collapsed) => !collapsed)}
+                    panel={t('editor.effects')}
+                  />
+                }
+                icon={Sparkles}
+                id="effects-heading"
+                title={t('editor.effects')}
+              />
+              <RackPanelCollapsibleBody collapsed={isEffectsCollapsed} id="effects-unit">
+                {sharesEffects ? (
+                  <InfoNotice>
+                    <p>
+                      <span>{t('editor.effectsSharedNotice')}</span>
+                    </p>
+                  </InfoNotice>
+                ) : (
+                  <EffectsUnit
+                    distortionType={
+                      writesDistortionType
+                        ? {
+                            onChange: editor.setDistortionType,
+                            type: record ? distortionType : null,
+                          }
+                        : undefined
+                    }
+                    bitcrush={
+                      offersBitcrush
+                        ? {
+                            onApplyPreset: editor.selectBitcrushPreset,
+                            onChange: editor.setBitcrushSetting,
+                            values: record ? bitcrush : null,
+                          }
+                        : undefined
+                    }
+                    effectOrder={
+                      offersBitcrush
+                        ? { onMove: editor.moveEffect, order: record ? effectOrder : null }
+                        : undefined
+                    }
+                    keepsBitcrush={keepsBitcrush}
+                    keepsEffectOrder={keepsEffectOrder}
+                    keptDistortionType={keptDistortionType}
+                    onApplyPreset={editor.selectEffectPreset}
+                    onChange={editor.setEffectParameter}
+                    onGestureEnd={editor.endGesture}
+                    onGestureStart={editor.beginGesture}
+                    values={getFm1EffectParameters(parameters)}
+                  />
+                )}
+              </RackPanelCollapsibleBody>
+            </section>
+          )}
         </div>
         <CompareOverlay isComparing={isComparing} />
       </div>

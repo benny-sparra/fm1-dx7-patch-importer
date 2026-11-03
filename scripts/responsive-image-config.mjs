@@ -11,6 +11,7 @@ export const responsiveImageConfig = [
   { height: 554, source: 'fm1-va-orange.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-va-purple.webp', width: 923, widths: [460] },
   { height: 554, source: 'fm1-va-white-blue.webp', width: 923, widths: [460] },
+  { height: 554, source: 'smk37-white.webp', width: 923, widths: [460] },
   { height: 485, source: 'firmware-fm1-va.webp', width: 923, widths: [460] },
   { height: 563, source: 'firmware-choralroot.webp', width: 923, widths: [460] },
   { height: 462, source: 'firmware-felucca.webp', width: 923, widths: [460] },

@@ -1,24 +1,35 @@
 import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { fm1Colorways, type Fm1Colorway } from '@/lib/fm1-colorway'
+import { fm1Colorways, type Colorway } from '@/lib/fm1-colorway'
 
 /** The locale key naming a colourway, such as `colorway.blackGreen` for `black-green`. */
-const colorwayLabelKey = (value: Fm1Colorway) =>
+const colorwayLabelKey = (value: Colorway) =>
   `colorway.${value.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())}`
 
+type ColorwayOption = { label: string; swatch: string; value: Colorway }
+
 type Fm1ColorwayPickerProps = {
-  onChange: (colorway: Fm1Colorway) => void
-  value: Fm1Colorway
+  /** The device's finishes: the FM1's, or the SMK-37's while one is identified. */
+  colorways?: readonly ColorwayOption[]
+  /** The device the colour is for, a product name the same in every locale. */
+  device?: 'FM1' | 'SMK-37'
+  onChange: (colorway: Colorway) => void
+  value: Colorway
 }
 
-export function Fm1ColorwayPicker({ onChange, value }: Fm1ColorwayPickerProps) {
+export function Fm1ColorwayPicker({
+  colorways = fm1Colorways,
+  device = 'FM1',
+  onChange,
+  value,
+}: Fm1ColorwayPickerProps) {
   const { t } = useTranslation()
   const radioIdPrefix = useId()
-  const selected = fm1Colorways.find((colorway) => colorway.value === value) ?? fm1Colorways[0]
+  const selected = colorways.find((colorway) => colorway.value === value) ?? colorways[0]
   const orderedColorways = [
     selected,
-    ...fm1Colorways.filter((colorway) => colorway.value !== selected.value),
+    ...colorways.filter((colorway) => colorway.value !== selected.value),
   ]
 
   return (
@@ -26,7 +37,7 @@ export function Fm1ColorwayPicker({ onChange, value }: Fm1ColorwayPickerProps) {
     // its left on hover or focus, so the header row keeps its width.
     <div className="relative size-[26px] shrink-0">
       <fieldset className="group absolute top-0 right-0 z-40 flex flex-row-reverse items-center gap-0 transition-[gap] duration-200 focus-within:gap-1.5 hover:gap-1.5 motion-reduce:transition-none">
-        <legend className="sr-only">{t('colorway.legend')}</legend>
+        <legend className="sr-only">{t('colorway.legend').replace('FM1', device)}</legend>
         {orderedColorways.map((colorway) => {
           const isSelected = colorway.value === value
 
@@ -44,7 +55,7 @@ export function Fm1ColorwayPicker({ onChange, value }: Fm1ColorwayPickerProps) {
                 id={`${radioIdPrefix}-${colorway.value}`}
                 aria-label={t('colorway.option', {
                   colour: t(colorwayLabelKey(colorway.value)),
-                })}
+                }).replace('FM1', device)}
                 checked={isSelected}
                 className="sr-only"
                 name="fm1-colorway"

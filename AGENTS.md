@@ -123,7 +123,7 @@ open everything an earlier release could have saved.
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
-  `fm1-colourway`, `fm1-last-backup`, `fm1-v16-effects` (the current shared V16 effects, version
+  `fm1-colourway`, `smk37-colourway` (the SMK-37's finish, kept apart from the FM1's), `fm1-last-backup`, `fm1-v16-effects` (the current shared V16 effects, version
   1), and `fm1-voice-setup` (V16's Voice setup: a version 1 record
   of the "Play several Voices" switch and each of eight Voices' preset and channel), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
@@ -165,7 +165,9 @@ open everything an earlier release could have saved.
 - Check DX7 voice data at every boundary: reject bytes above 7-bit in imported files and SysEx
   payload builders, and normalise stored voices on read.
 - When MIDI chooses a port automatically, prefer a port named for the FM-1 (Linux lists
-  `FM-1 MIDI 1`; macOS only `USB Composite Device`), then skip ports every system lists without an
+  `FM-1 MIDI 1`; macOS only `USB Composite Device`) or the SMK-37 (`SMK`), and among those one
+  named Private, since only the SMK-37's `SMK-37 Pro-Private` answers the identity query, not
+  `-Master` or `Port 3`; then skip ports every system lists without an
   instrument, such as ALSA's Midi Through, unless nothing else is available. Match them by name in
   `resolveMidiPortSelection`; a port the user chose is kept.
 - Never move MIDI traffic to a different device on its own. When the selected port disconnects, select
@@ -212,17 +214,22 @@ open everything an earlier release could have saved.
   MIDI is switched off, rather than matching it by port identity. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
   release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`. M-VAVE's Official Open is
   `FM-1_8` and six digits (`FM-1_8000012` is V12), `FM1_COMMUNITY_` and a number, or
-  `FM1_OFFICIAL_OPEN`, the names its updater accepts; any other name is unidentified, so no
+  `FM1_OFFICIAL_OPEN`, the names its updater accepts. M-VAVE's SMK-37 keyboard, on the FM1's
+  chip and engines, answers in the same format with its model before the underscore: its own
+  firmware is `SMK-37 Pro_`, `SMK-37 Elite_`, or `MKE-P37_` and a release from `000` to `099`
+  (`SMK-37 Pro_015` is its V15, not the FM1's). A port of FM-1 firmware to it keeps the model and
+  its own number, such as Skiff's `714` or Felucca's `9XY`, and stays unidentified until a run
+  shows what it does. Any other name is unidentified, so no
   firmware's behaviour is assumed for it. Felucca ignores DX7 voice data, Program Change, and the
   effect controllers, so it gets the cautious parameter changes like an unidentified firmware, and
   the badge, firmware setting, and bank instructions say that patches do not reach it. Analytics
-  records only the family (`fm1_identified`: `mvave`, `fm1-va`, `felucca`, `official-open`, or
+  records only the family (`fm1_identified`: `mvave`, `fm1-va`, `felucca`, `official-open`, `smk37`, or
   `unidentified`),
   once per family per page load so the split counts sessions rather
   than reconnections; the name and version, such as `FM-1_089`, stay out of analytics and
   monitoring, because a release has few enough FM1s on it to single one out.
 - What each firmware can take is its profile in `src/lib/firmware-profile.ts`, and nowhere else:
-  `resolveFirmwareProfile` gives its family, its capabilities (`singleVoiceDumps`, `presetRead`,
+  `resolveFirmwareProfile` gives its family, its capabilities (`bankDumps`, `singleVoiceDumps`, `presetRead`,
   `presetWrite`, `soundControls`, `bitcrush`, `knobChoices`, `programChanges`, `selectedVoiceEdits`,
   `multitimbral`, `effectControllers`, `presetEffects`, `sharedEffects`), where its effect controllers start
   (`effectControllerBase`), and its preset write timing. A family
@@ -242,6 +249,30 @@ open everything an earlier release could have saved.
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
   not yet identified too. The badge, the firmware setting, and the bank instructions say so.
+- The device and its firmware are separate axes (the owner, 2026-11-03: stock, Official Open,
+  and Baud Girl's firmware should each run on the FM1 and the SMK-37). `fm1Device` reads the
+  device from the identity's model, the text before its last underscore (`SMK-37 Pro`,
+  `SMK-37 Elite`, `MKE-P37`, `SMK-37`), whatever number follows, so an SMK-37 on a community port
+  such as Skiff (`SMK-37 Pro_714`) is still an SMK-37. What the page shows of the hardware, its
+  name in the title and on Send, its photo, and its finishes, follows the device; what the editor
+  sends follows the firmware's profile, and the `smk37` family is the SMK-37's stock firmware.
+- The SMK-37's own firmware (`smk37`, run of 2026-11-03 on V015,
+  `docs/hardware-runs/smk37-2026-11-03.md`) saves a DX7 single-voice dump over its selected
+  preset, survives a power cycle, and has no bank export to back its presets up, so its profile
+  lists `parameterChanges` alone: no dump of any kind, no Program Change (ignored), no effect
+  controllers (CC 0–1 and 70–71 on channel 2 did nothing), and no vendor command but the identity
+  query. Every other family lists `bankDumps`, so only the SMK-37 is refused a bank.
+  `sendsBankTo` (in the profile module) also refuses a bank to an output named `SMK` while the
+  firmware is checking or unidentified, since an input on another device leaves the SMK-37
+  unanswered. `useMidi.sendBank` returns `unsupported` without sending, and **Send to FM1** opens
+  `Fm1BankSelectionDialog` with only its title, which says why, and no Send. Choosing an output
+  also chooses the input of the same name, so the identity query asks the device patches go to
+  when an FM1 and an SMK-37 are both plugged in. Once one is identified, the page heading and the
+  tab name the SMK-37 (by device) in place of the FM1 (the owner's choice, 2026-11-03), **Send to FM1**
+  reads **Send to SMK-37**, and the voice editor hides its effects, which the SMK-37 does not
+  take; the patch keeps them. A capability added for it needs its own hardware run first. Its
+  badge reads M-VAVE SMK-37 with its release, and the firmware setting names its model
+  (`M-VAVE SMK-37 Pro_015`).
 - M-VAVE's V16 (`FM-1_016`, 2026-10-21) moved its effect unit to CC 70–93 and takes CC 1, 2, 4,
   7, and 11 as modulation, volume, and expression. Its firmware takes V15's 24 effect parameters
   at CC 70–93 in the editor's order and with its limits (docs/fm1-research.md, "What the firmware
@@ -543,7 +574,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the SMK-37 header photos (`src/lib/smk37-colorway-images.ts`) when an SMK-37 is identified, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -601,13 +632,15 @@ open everything an earlier release could have saved.
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 168 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 169 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
   reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB,
   the sweep's accessibility fixes' raise from 165 KiB, and sending patches to Official Open's DX7
-  tracks' raise from 166 KiB (approved 2026-10-16), and the patch menu's headings' raise from
-  167 KiB (approved 2026-10-21) had. That send costs about 380 B in the entry:
+  tracks' raise from 166 KiB (approved 2026-10-16), the patch menu's headings' raise from
+  167 KiB (approved 2026-10-21), and the SMK-37's raise from 168 KiB (approved 2026-11-03: its
+  family, badge, bank guard, port and input choice, and the device name in the title and on
+  Send, about 400 B) had. That send costs about 380 B in the entry:
   its branch and state in `useMidi`, the track status's lazy mount in `RootLayout`, two profile
   capabilities, and the corrected Official Open badge strings; the read, dump, and notice are lazy. Those fixes cost about 1 KiB in the entry:
   the translated drag announcements and their strings (`ui.drag`), the move items, the skip link
@@ -754,6 +787,13 @@ open everything an earlier release could have saved.
   photos: the stock screen in `src/lib/fm1-colorway-images.ts`, and FM-1+VA's screen in
   `src/lib/fm1-va-colorway-images.ts`, which the header loads and shows only once the FM1 is
   identified as running FM-1+VA. Both sets keep the 923 × 554 size.
+- The SMK-37 has finishes of its own (`smk37Colorways`, White alone until another is
+  photographed, the owner's choice of 2026-11-03), offered by the colour picker in place of the FM1's while an SMK-37 is identified; the picker is hidden while the device has one finish (the owner, 2026-11-03). Its choice is stored under `smk37-colourway`, never
+  `fm1-colourway`, so an FM1 plugged in again keeps its own finish. Each SMK-37 finish has a
+  token block, a favicon, and a photo in `src/lib/smk37-colorway-images.ts` at 923 × 554 on a
+  transparent background (White is M-VAVE's product shot, cropped to the keyboard), loaded only
+  once the SMK-37 is identified. Its photo has no FM1 screen, so the switch-off effect is skipped
+  over it, and the help guide keeps the FM1's photo in the FM1's finish.
 - Panels, dialogs, racks, and slots share the bevelled terminal chrome already in `src/index.css`.
   Reuse those classes instead of introducing a parallel surface style.
 - A drop shadow is a hard-edged offset with no blur, such as `6px 6px 0`, taken from the

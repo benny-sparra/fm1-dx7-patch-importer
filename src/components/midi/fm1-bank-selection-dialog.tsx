@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { MidiController } from '@/hooks/use-midi'
+import { sendsBankTo } from '@/lib/firmware-profile'
 import { mayBeSloop } from '@/lib/fm1-firmware'
 import { fm1SynthImage, fm1VaBankScreenImage } from '@/lib/fm1-responsive-images'
 
@@ -19,7 +20,14 @@ type Fm1BankSelectionDialogProps = {
   isSending: boolean
   midi: Pick<
     MidiController,
-    'connectMidi' | 'disconnectMidi' | 'firmware' | 'isConnecting' | 'midiAccess' | 'sysexAvailable'
+    | 'connectMidi'
+    | 'disconnectMidi'
+    | 'firmware'
+    | 'isConnecting'
+    | 'midiAccess'
+    | 'outputs'
+    | 'selectedOutputId'
+    | 'sysexAvailable'
   >
   /** What the bank becomes on the FM1 when it is not simply 32 patches, as for Favourites. */
   note?: string
@@ -37,6 +45,12 @@ export function Fm1BankSelectionDialog({
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const sysexUnavailable = !midi.sysexAvailable
+  // The SMK-37 would save a bank over its stored presets, which nothing can back up, so the dialog
+  // says why no bank goes rather than offering to send one.
+  const sendsBank = sendsBankTo(
+    midi.firmware,
+    midi.outputs.find((output) => output.id === midi.selectedOutputId)?.name,
+  )
   // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
   // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca, SLOOP,
   // and M-VAVE's Official Open ignore DX7 banks, so the dialog says so before the bank is sent.
@@ -77,7 +91,13 @@ export function Fm1BankSelectionDialog({
     <Dialog aria-labelledby="fm1-bank-selection-title" onClose={onClose} ref={dialogRef} size="xl">
       <DialogHeader>
         <DialogTitle id="fm1-bank-selection-title">
-          {t(sysexUnavailable ? 'midi.sysexWarningTitle' : 'dialogs.bankTitle')}
+          {t(
+            sysexUnavailable
+              ? 'midi.sysexWarningTitle'
+              : sendsBank
+                ? 'dialogs.bankTitle'
+                : 'dialogs.bankSmk37Title',
+          )}
         </DialogTitle>
         <DialogCloseButton
           label={t(sysexUnavailable ? 'midi.closeSysexWarning' : 'dialogs.bankClose')}
@@ -85,11 +105,14 @@ export function Fm1BankSelectionDialog({
         />
       </DialogHeader>
       <DialogBody>
-        <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">
-          {t(sysexUnavailable ? 'midi.sysexWarningBody' : 'dialogs.bankIntro')}
-        </p>
+        {sendsBank ? (
+          <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]">
+            {t(sysexUnavailable ? 'midi.sysexWarningBody' : 'dialogs.bankIntro')}
+          </p>
+        ) : null}
 
-        {sysexUnavailable ? (
+        {/* Without a bank to send, the title says why and the body is empty. */}
+        {!sendsBank ? null : sysexUnavailable ? (
           <div
             className="flex items-start gap-3 p-5 text-sm leading-5"
             key="sysex-warning"
@@ -156,7 +179,8 @@ export function Fm1BankSelectionDialog({
       </DialogBody>
       {/* Keys replace the whole footer: a page translator replaces bare text nodes, so React
           cannot remove the reconnect button's label on its own. */}
-      {sysexUnavailable ? (
+      {/* Without a bank to send, the title bar's close button is the only action. */}
+      {!sendsBank ? null : sysexUnavailable ? (
         <DialogFooter key="sysex-warning">
           <Button onClick={closeDialog} type="button" variant="ghost">
             {t('common.close')}

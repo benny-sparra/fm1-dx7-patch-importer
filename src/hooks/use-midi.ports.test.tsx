@@ -100,6 +100,54 @@ describe('useMidi port changes', () => {
   })
 })
 
+describe('useMidi input following the output', () => {
+  const makeInput = (id: string, name: string) => ({
+    addListener: vi.fn(),
+    id,
+    manufacturer: 'Maker',
+    name,
+    removeListener: vi.fn(),
+    state: 'connected',
+  })
+
+  it('chooses the input of the same device when an output is chosen', async () => {
+    webMidi.outputs = [
+      makeOutput('fm1-out', 'FM-1 MIDI 1'),
+      makeOutput('smk-out', 'SMK-37 Pro-Private'),
+    ]
+    webMidi.inputs = [makeInput('fm1-in', 'FM-1 MIDI 1'), makeInput('smk-in', 'SMK-37 Pro-Private')]
+    const { result } = await connect()
+    act(() => result.current.setSelectedInputId('fm1-in'))
+
+    act(() => result.current.setSelectedOutputId('smk-out'))
+
+    expect(result.current.selectedInputId).toBe('smk-in')
+  })
+
+  it('keeps the chosen input when no input shares the output’s name', async () => {
+    webMidi.outputs = [makeOutput('out', 'MIDIOUT2 (Device)')]
+    webMidi.inputs = [makeInput('in', 'MIDIIN2 (Device)')]
+    const { result } = await connect()
+    act(() => result.current.setSelectedInputId('in'))
+
+    act(() => result.current.setSelectedOutputId('out'))
+
+    expect(result.current.selectedInputId).toBe('in')
+  })
+
+  it('sends no bank to an SMK-37 port whose firmware never answered', async () => {
+    const smk = makeOutput('smk-out', 'SMK-37 Pro-Private')
+    webMidi.outputs = [smk]
+    const { result } = await connect()
+
+    await expect(result.current.sendBank('A', makeDemoVoices())).resolves.toEqual({
+      ok: false,
+      reason: 'unsupported',
+    })
+    expect(smk.sendSysex).not.toHaveBeenCalledWith(0x43, expect.anything())
+  })
+})
+
 describe('useMidi queued messages', () => {
   it('drops effect messages still waiting when MIDI is switched off', async () => {
     const fm1 = makeOutput('fm1')

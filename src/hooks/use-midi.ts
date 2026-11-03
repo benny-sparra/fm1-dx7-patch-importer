@@ -10,7 +10,7 @@ import {
   unpackDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
-import { resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { resolveFirmwareProfile, sendsBankTo } from '@/lib/firmware-profile'
 import {
   fm1EffectParameterCount,
   fm1EffectParameterMaximums,
@@ -67,7 +67,7 @@ export type BankTransferResult =
   | { ok: true }
   | {
       ok: false
-      reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport'
+      reason: 'invalid_bank' | 'no_output' | 'sysex_unavailable' | 'transport' | 'unsupported'
     }
 
 export type SharedEffectTransferResult =
@@ -121,8 +121,10 @@ function firmwareLogMessage(firmware: Fm1Firmware) {
   switch (firmware.kind) {
     case 'mvave':
       return `The FM1 runs M-VAVE firmware ${firmware.identity}. Patches go to its edit buffer.`
+    // FM-1+VA and the SMK-37 both store a dump; the SMK-37 is sent no bank either.
     case 'fm1-va':
-      return `The FM1 runs FM-1+VA firmware ${firmware.identity}, which stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
+    case 'smk37':
+      return `Firmware ${firmware.identity} stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
     case 'official-open':
       return `The FM1 runs M-VAVE's Official Open firmware ${firmware.identity}, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no Program Change or effect controller is sent.`
     case 'felucca':
@@ -458,11 +460,23 @@ export function useMidi() {
     }
   }, [selectedInput, selectedOutput])
 
-  const selectOutput = useCallback((id: string) => {
-    preferredOutputId.current = id
-    storeValue(midiStorageKeys.outputId, id)
-    setSelectedOutputId(id)
-  }, [])
+  // An input of the same name as the chosen output is the same device, so the firmware answer
+  // comes from the device patches go to, not another one plugged in beside it.
+  const selectOutput = useCallback(
+    (id: string) => {
+      preferredOutputId.current = id
+      storeValue(midiStorageKeys.outputId, id)
+      setSelectedOutputId(id)
+      const name = outputs.find((device) => device.id === id)?.name
+      const input = inputs.find((device) => device.name === name)
+      if (input) {
+        preferredInputId.current = input.id
+        storeValue(midiStorageKeys.inputId, input.id)
+        setSelectedInputId(input.id)
+      }
+    },
+    [inputs, outputs],
+  )
 
   const selectInput = useCallback((id: string) => {
     preferredInputId.current = id
@@ -514,6 +528,11 @@ export function useMidi() {
         return Promise.resolve<BankTransferResult>({ ok: false, reason: 'invalid_bank' })
       }
 
+      // The SMK-37 saves a dump over its stored presets and cannot back them up; its log says so.
+      if (!sendsBankTo(firmware, selectedOutput.name)) {
+        return Promise.resolve<BankTransferResult>({ ok: false, reason: 'unsupported' })
+      }
+
       const payload = makeDx7BankPayload(voices, channel)
       const message = makeYamahaSysexMessage(payload)
 
@@ -544,7 +563,7 @@ export function useMidi() {
           return { ok: false, reason: 'transport' } as const
         })
     },
-    [appendLog, channel, selectedOutput, transferQueue],
+    [appendLog, channel, firmware, selectedOutput, transferQueue],
   )
 
   /**

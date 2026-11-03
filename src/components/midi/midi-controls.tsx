@@ -93,6 +93,12 @@ const firmwareBadges = {
     product: 'OPEN',
     title: 'midi.officialOpenBadgeTitle',
   },
+  smk37: {
+    label: 'midi.smk37BadgeLabel',
+    maker: 'M-VAVE',
+    product: 'SMK-37',
+    title: 'midi.smk37BadgeTitle',
+  },
 } as const
 
 /**
@@ -174,7 +180,9 @@ type MidiSettingsMenuProps = {
 
 function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
   switch (firmware.kind) {
+    // The SMK-37's name holds its model, as in M-VAVE SMK-37 Pro_015.
     case 'mvave':
+    case 'smk37':
       return t('settings.firmwareMvave', { identity: firmware.identity })
     case 'fm1-va':
       return t('settings.firmwareFm1Va', { identity: firmware.identity })

@@ -36,13 +36,39 @@ const feluccaOrSloopIdentity = 'FM-1_900'
 const officialOpenIdentity = /^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|FM-1_8(\d{6}))$/
 
 /**
+ * M-VAVE's SMK-37 keyboard runs the FM1's chip and engines under its own model names, the SMK-37
+ * Pro, the SMK-37 Elite, and the MKE-P37, with its own release numbers: `SMK-37 Pro_015` is its
+ * V15, not the FM1's (docs/hardware-runs/smk37-2026-11-03.md). Ports of FM-1 firmware keep the
+ * model and use their own numbers, such as Skiff's 714 and Felucca's 9XY, so only stock releases,
+ * 000 to 099, count as the SMK-37's own firmware.
+ */
+const smk37Identity = /^(SMK-37 (Pro|Elite)|MKE-P37)_0\d\d$/
+
+/**
+ * The SMK-37's models, before the identity's last underscore, whatever firmware follows it: the
+ * stock app (`SMK-37 Pro_015`), Skiff (`SMK-37 Pro_714`), and NESynth (`SMK-37_970`) alike.
+ */
+const smk37Model = /^(SMK-37(?: Pro| Elite)?|MKE-P37)_[^_]*$/
+
+/**
+ * The hardware that answered, apart from the firmware it runs: an SMK-37 whatever firmware it runs,
+ * or an FM1, which is also assumed while nothing has answered. Its photos, finishes, and name
+ * follow the device; what the editor sends follows the firmware's profile.
+ */
+export function fm1Device(firmware: Fm1Firmware): 'fm1' | 'smk37' {
+  return 'identity' in firmware && firmware.identity && smk37Model.test(firmware.identity)
+    ? 'smk37'
+    : 'fm1'
+}
+
+/**
  * An FM1 that answered with a name the editor does not recognise keeps that name for the MIDI log;
  * one that never answered has none.
  */
 export type Fm1Firmware =
   | { kind: 'checking' }
   | { identity?: string; kind: 'unidentified' }
-  | { identity: string; kind: 'felucca' | 'fm1-va' | 'mvave' | 'official-open' }
+  | { identity: string; kind: 'felucca' | 'fm1-va' | 'mvave' | 'official-open' | 'smk37' }
 
 /** A firmware the editor names, with the release it reported. */
 type NamedFm1Firmware = Extract<Fm1Firmware, { identity: string }>
@@ -105,11 +131,12 @@ export function parseFm1IdentityReply(message: Uint8Array | readonly number[]) {
  * The firmware an identity names. Only an FM1 name numbered as M-VAVE's own releases counts as
  * M-VAVE's firmware, only one numbered as FM-1+VA's counts as FM-1+VA, releases after the tested
  * one included, and only one in the 900s counts as Felucca, SLOOP included. Official Open's three
- * forms of name count as Official Open. Any other name is unidentified, so the editor assumes no
- * firmware's behaviour.
+ * forms of name count as Official Open, and the SMK-37's stock releases as the SMK-37. Any other
+ * name is unidentified, so the editor assumes no firmware's behaviour.
  */
 export function classifyFm1Firmware(identity: string): Fm1Firmware {
   if (officialOpenIdentity.test(identity)) return { identity, kind: 'official-open' }
+  if (smk37Identity.test(identity)) return { identity, kind: 'smk37' }
   const match = /^FM-1_(\d{3})$/.exec(identity)
   if (!match) return { identity, kind: 'unidentified' }
   const version = Number(match[1])
@@ -127,12 +154,12 @@ export function mayBeSloop(firmware: Fm1Firmware) {
 
 /**
  * The release as its maker names it. M-VAVE calls `FM-1_015` V15 and `FM-1_8000012` Official Open
- * V12, and Felucca calls `FM-1_908` 0.8, while FM-1+VA's releases, Official Open's community and
+ * V12, the SMK-37's `SMK-37 Pro_015` is its V15, and Felucca calls `FM-1_908` 0.8, while FM-1+VA's releases, Official Open's community and
  * development builds, and the `FM-1_900` that Felucca's development builds and SLOOP share, go by
  * the name the FM1 reports, such as `FM-1_089`.
  */
 export function fm1FirmwareRelease({ identity, kind }: NamedFm1Firmware) {
-  if (kind === 'mvave') return `V${Number(identity.slice(-3))}`
+  if (kind === 'mvave' || kind === 'smk37') return `V${Number(identity.slice(-3))}`
   if (kind === 'official-open') {
     const release = officialOpenIdentity.exec(identity)?.[2]
     if (release) return `V${Number(release)}`

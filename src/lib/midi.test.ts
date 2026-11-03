@@ -403,6 +403,28 @@ describe('resolveMidiPortSelection', () => {
     expect(resolveMidiPortSelection(ports, '', 'connected')).toBe('24:0')
   })
 
+  it('prefers a port named for the SMK-37 over other devices when choosing automatically', () => {
+    const ports = [port('usb', 'USB MIDI Interface'), port('smk', 'MIDIIN2 (SMK-37 Pro)')]
+
+    expect(resolveMidiPortSelection(ports, '', 'connected')).toBe('smk')
+  })
+
+  it('prefers the SMK-37’s Private port, the one that answers, over Master and Port 3', () => {
+    const ports = [
+      port('port3', 'Port 3'),
+      port('master', 'SMK-37 Pro-Master'),
+      port('private', 'SMK-37 Pro-Private'),
+    ]
+
+    expect(resolveMidiPortSelection(ports, '', 'connected')).toBe('private')
+  })
+
+  it('keeps a remembered SMK-37 Master port the user chose', () => {
+    const ports = [port('master', 'SMK-37 Pro-Master'), port('private', 'SMK-37 Pro-Private')]
+
+    expect(resolveMidiPortSelection(ports, 'master', 'connected')).toBe('master')
+  })
+
   it('keeps a remembered port rather than switching to one named for the FM1', () => {
     const ports = [port('20:0', 'USB MIDI Interface'), port('24:0', 'FM-1 MIDI 1')]
 

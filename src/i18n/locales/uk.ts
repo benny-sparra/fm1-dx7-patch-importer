@@ -20,6 +20,7 @@ export default {
       'На прошивці Baud Girl FM1 натомість запитає «Replace Bank A?» і почне з банку A. Поверніть ALGORITHM до потрібного банку, а SELECT — на Replace, і натисніть SEL.',
     bankOfficialOpenNote:
       'Прошивка Open від M-VAVE ігнорує банки DX7, тож надсилання цього банку не змінить її проєкти.',
+    bankSmk37Title: 'SMK-37 записала б банк поверх своїх пресетів, тож жоден не надсилається',
     bankFeluccaNote: 'Felucca ігнорує банки DX7, тож надсилання цього банку не змінить її пресети.',
     bankFeluccaOrSloopNote:
       'Felucca і SLOOP ігнорують банки DX7, тож надсилання цього банку не змінить пресети FM1.',
@@ -1162,6 +1163,7 @@ export default {
     blackGreen: 'Чорно-зелений',
     coolGray: 'Холодний сірий',
     whiteBlue: 'Біло-блакитний',
+    smkWhite: 'Білий',
   },
   editor: {
     selectedVoiceNotice:
@@ -1317,6 +1319,9 @@ export default {
     officialOpenBadgeLabel: 'Прошивка Open від M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'На FM1 працює прошивка Open від M-VAVE, {{release}}, groovebox на вісім доріжок. Патч, який ви клацаєте чи редагуєте, надходить на доріжку на каналі нот, якщо ця доріжка працює на DX7. Банки DX7 вона ігнорує, а керування ефектами нічого не надсилає, бо вона сприйняла б його як зміни своїх доріжок.',
+    smk37BadgeLabel: 'Прошивка SMK-37 від M-VAVE, {{release}}',
+    smk37BadgeTitle:
+      'Клавіатура SMK-37 від M-VAVE, {{release}}. Патчі надходять на неї як незбережені зміни.',
     panic: 'MIDI panic',
     panicHelp:
       'MIDI panic: надіслати Note Off для кожної ноти на каналі нот, щоб зупинити завислі ноти',
@@ -1375,6 +1380,7 @@ export default {
     restoreAll: 'Скинути до заводських патчів…',
     sending: 'Надсилання…',
     send: 'Надіслати на FM1',
+    sendSmk37: 'Надіслати на SMK-37',
     bank: 'Банк {{bank}}',
     addBank: 'Додати банк…',
     addBankTitle: 'Додати банк',

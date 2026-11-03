@@ -21,6 +21,8 @@ export default {
       'Si votre FM1 utilise le firmware de Baud Girl, il demande plutôt « Replace Bank A? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Replace, et appuyez sur SEL.',
     bankOfficialOpenNote:
       'Le firmware Open de M-VAVE ignore les banques DX7, donc envoyer cette banque ne modifie pas ses projets.',
+    bankSmk37Title:
+      'Le SMK-37 enregistrerait une banque par-dessus ses presets, donc aucune n’est envoyée',
     bankFeluccaNote:
       'Felucca ignore les banques DX7, donc envoyer cette banque ne modifie pas ses presets.',
     bankFeluccaOrSloopNote:
@@ -1107,6 +1109,7 @@ export default {
     blackGreen: 'Noir-vert',
     coolGray: 'Gris froid',
     whiteBlue: 'Blanc-bleu',
+    smkWhite: 'Blanc',
   },
   editor: {
     selectedVoiceNotice:
@@ -1262,6 +1265,9 @@ export default {
     officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'Le FM1 utilise le firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
+    smk37BadgeLabel: 'Firmware SMK-37 de M-VAVE, {{release}}',
+    smk37BadgeTitle:
+      'Un clavier SMK-37 de M-VAVE, {{release}}. Les sons lui parviennent comme modifications non enregistrées.',
     panic: 'Panique MIDI',
     panicHelp:
       'Panique MIDI : envoie un note-off pour chaque note du canal des notes afin d’arrêter les notes bloquées',
@@ -1321,6 +1327,7 @@ export default {
     restoreAll: 'Rétablir les sons d’usine…',
     sending: 'Envoi…',
     send: 'Envoyer au FM1',
+    sendSmk37: 'Envoyer au SMK-37',
     bank: 'Banque {{bank}}',
     addBank: 'Ajouter une banque…',
     addBankTitle: 'Ajouter une banque',

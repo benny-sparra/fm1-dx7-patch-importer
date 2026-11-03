@@ -20,6 +20,8 @@ export default {
       'Läuft auf deinem FM1 die Firmware von Baud Girl, fragt er stattdessen „Replace Bank A?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Replace, und drücke SEL.',
     bankOfficialOpenNote:
       'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Projekte also nicht.',
+    bankSmk37Title:
+      'Das SMK-37 würde eine Bank über seine Presets speichern, deshalb wird keine gesendet',
     bankFeluccaNote:
       'Felucca ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Presets also nicht.',
     bankFeluccaOrSloopNote:
@@ -1120,6 +1122,7 @@ export default {
     blackGreen: 'Schwarz-Grün',
     coolGray: 'Kühlgrau',
     whiteBlue: 'Weiß-Blau',
+    smkWhite: 'Weiß',
   },
   editor: {
     selectedVoiceNotice:
@@ -1275,6 +1278,9 @@ export default {
     officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
+    smk37BadgeLabel: 'SMK-37-Firmware von M-VAVE, {{release}}',
+    smk37BadgeTitle:
+      'Ein SMK-37-Keyboard von M-VAVE, {{release}}. Sounds erreichen es als ungespeicherte Änderungen.',
     panic: 'MIDI-Panik',
     panicHelp:
       'MIDI-Panik: sendet für jede Note auf dem Notenkanal ein Note-Off, um hängende Noten zu beenden',
@@ -1358,6 +1364,7 @@ export default {
     restoreAll: 'Auf Werks-Sounds zurücksetzen…',
     sending: 'Senden…',
     send: 'An FM1 senden',
+    sendSmk37: 'An das SMK-37 senden',
     bank: 'Bank {{bank}}',
     addBank: 'Neue Bank hinzufügen…',
     addBankTitle: 'Bank hinzufügen',
