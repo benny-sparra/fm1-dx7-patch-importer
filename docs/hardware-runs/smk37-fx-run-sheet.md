@@ -12,6 +12,11 @@ Every message sent here is a standard channel message (Note On/Off or Control Ch
 dump, and no identity query. Do not run M-UPGRADE, MIDI Suite's firmware tools, or any community
 installer during this run. Do not press SAVE unless a step says so; none does.
 
+**Run 2026-11-03 and V015's firmware:** the knobs send nothing, the FM1's V15 controllers do
+nothing, and the firmware takes no Control Change for the FX page on any channel
+(`smk37-fx-2026-11-03.md`; `docs/fm1-research.md`, "What V015's firmware shows"). Keep this sheet
+for a later SMK firmware, whose release notes would have to mention effect control first.
+
 Each step changes one thing. Record what happens either way: a result that differs from the
 prediction is the finding.
 

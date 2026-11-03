@@ -3107,7 +3107,8 @@ Chinese p. 23), the community firmware notes in
 Elektronauts thread, and reviews. Then Ben's run of the same day,
 [`hardware-runs/smk37-fx-2026-11-03.md`](hardware-runs/smk37-fx-2026-11-03.md), following
 [`hardware-runs/smk37-fx-run-sheet.md`](hardware-runs/smk37-fx-run-sheet.md). No source gives a
-received CC for the FX page, and no one has published how the stock SMK app receives MIDI.
+received CC for the FX page, and no one has published how the stock SMK app receives MIDI, so
+V015's firmware was read for it ("What V015's firmware shows", below).
 
 - **Five settings on K1–K5. Confirmed** (photo, and the manual's picture): **Cut Off** (K1,
   shown 100 on a stock preset), **Distortion** (K2), **Reverb** (K3), **Delay** (K4), each shown 0,
@@ -3140,18 +3141,62 @@ received CC for the FX page, and no one has published how the stock SMK app rece
   only for pins, the key matrix, encoders, LEDs, and the flash map (`docs/05-reverse-engineering.md`);
   its MIDI notes cover the TRS output only. Skiff, Snoop37, X0X37, Makkuro37, SMK-37+VA, and
   M-VAVE's Official Open for the SMK replace the app, so their effect controllers (Skiff's are
-  CC 91, 93, and 94 on a track's channel) say nothing about the stock app. MIDI Suite assigns what the controls send; no source says it sets
-  the synth's effects. Reviews and forums mention the FX page only as played from the panel.
-- **No external FX control at all? Likely, not Confirmed.** Everything points that way: no
-  M-VAVE MIDI CC guide for the SMK (the FM1 got one with its own V15), no CC channel on GLOBE, an
-  FX page that is not stored with the preset, knobs that send nothing, and no response to the
-  FM1's map on channels 1 and 2. A static read of the stock V015 app's Control Change handler, as
-  was done for FM1 V16 above, would settle it; it has not been done.
+  CC 91, 93, and 94 on a track's channel) say nothing about the stock app. MIDI Suite assigns
+  what the controls send; no source says it sets the synth's effects. Reviews and forums mention
+  the FX page only as played from the panel.
+- **No external FX control at all. Likely** (static reading of V015, below), and consistent with
+  the run: no Control Change, on any channel, reaches the FX page. M-VAVE publishes no MIDI CC
+  guide for the SMK (the FM1 got one with its own V15), and GLOBE has no CC channel.
 - **V016. Not read.** Its notes add Local Control on the Patch page ("can disable local MIDI
   control over the FM sound source") and nothing about effects.
 
-Until a run or a firmware read finds a controller that moves the FX page, the SMK's profile keeps
-no `effectControllers`, and the editor sends it no effects.
+##### What V015's firmware shows
+
+**Likely** (static reading of `SMK-37_Pro_015.fwsc`, 2026-11-03, with Ben's approval; nothing
+was sent to the keyboard). The file came from the
+[community mirror](https://github.com/jonathaslacerda/smk-37-pro-docs) (`firmware/smk37pro/`),
+701,140 bytes, SHA-256 `f7f1831cd7c9ad8b4831b6e71ea0bdbcdff9ae4c4077276b3c965511bf4d4fff`.
+
+**Method.**
+
+- **Decryption.** The SFC cipher and key of FM1 V16 above decrypt it unchanged.
+- **Layout.** The package's file table puts `app.bin` at app-area offset `0x120`, XIP
+  `0x02000120` as on FM1 V15, 617,012 bytes (SHA-256 `36fe8299…2055`). Its start-up copies
+  `0x99D4` bytes from XIP `0x0208D160` to RAM `0x01C00000`.
+- **Disassembly.** Ghidra 12.2, `pi32v2:LE:32:ac7911b8`, with that RAM copy mapped, the
+  aggressive instruction finder, and functions seeded at the prologues Ghidra found. Calls into
+  the DX7 core were then found by decoding an instruction at every even address, so a caller
+  Ghidra had not reached could not be missed. Firmware, decrypted images, and disassembly stay
+  outside the repository.
+
+**MIDI input.**
+
+- USB MIDI packets are copied into a ring buffer and posted to a task named `midi_route`
+  (`FUN_02008564`), which also reboots into UBOOT on the soft key and watches for `00 59`, as on
+  the FM1. Only `FUN_0201e374` hands external messages to the synth, and it handles, in order:
+  - **`F8`** (clock): the tempo.
+  - **`F0 35 …` of exactly six bytes**: M-VAVE's own setting messages, writing tables of
+    settings. Unknown, so **Dangerous / excluded**; never send them.
+  - **Pitch bend and Control Change**: matched against the 16 controls of the current
+    controller setup (six-byte records of channel and CC number). A match only stores the value
+    as that control's current value; it sets no sound or effect.
+  - Then, while the synth plays (`DAT_01c33286`), the DX7 dumps (`F0 43 00 09 20 00`, the bank,
+    and `F0 43 00 00 01 1B`, one voice), the 7-byte parameter change `F0 43 10 …` into the edit
+    buffer, and everything else to the DX7 core (`FUN_0201c70c`).
+- **The DX7 core takes no channel** (every channel plays, as the run found), Note On and Off,
+  channel aftertouch, pitch bend, and of the Control Changes only **CC 64** (sustain) and **CC 1,
+  2, and 4** (modulation sources). Every other controller is dropped.
+- The only other calls into the DX7 core come from the SMK's own keys, pads, knobs, and pedal,
+  which send each message out over MIDI and play it locally.
+
+**What this means.** No external message sets Cut Off, Distortion, Reverb, or Delay: not CC 0–23,
+not CC 70–93, not General MIDI's 74 or 91, on any channel. Candidate CCs need no further run.
+The only messages the stock app takes for the sound are the DX7 voice data and parameter changes
+the editor already sends, plus CC 1, 2, 4, and 64. GLOBE holds Key Chn, Pad Chn, Key Vel, Pad
+Vel, Pad Aft, Pedal, and Pitch Up and Down, and no effect channel.
+
+Until a later firmware takes them, the SMK's profile keeps no `effectControllers`, and the
+editor sends it no effects.
 
 ### FM1 Editor
 
