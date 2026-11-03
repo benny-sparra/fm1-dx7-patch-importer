@@ -17,6 +17,7 @@ import {
   Upload,
 } from 'lucide-react'
 import {
+  type ChangeEvent,
   type ComponentProps,
   lazy,
   Suspense,
@@ -79,7 +80,6 @@ import { crtSwitchOff } from '@/lib/crt-switch-off'
 import { useChangedSlots } from '@/hooks/use-changed-slots'
 import type { MidiController } from '@/hooks/use-midi'
 import type { FxLibrary } from '@/hooks/use-fx-library'
-import { useBankFileImport } from '@/hooks/use-bank-file-import'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
@@ -91,6 +91,7 @@ import {
 import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view'
 import type { Patch } from '@/data/patches'
 import { copyTextToClipboard } from '@/lib/copy-text'
+import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { downloadFile } from '@/lib/download-file'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
@@ -387,10 +388,12 @@ export function LibrarianPage({
   const [receiveRequest, setReceiveRequest] = useState<ReceiveRequest | null>(null)
   // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
   const [changeToFmTarget, setChangeToFmTarget] = useState<Patch | null>(null)
+  const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferError, setTransferError] = useState('')
   const importInputRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
+  const importTargetRef = useRef(createBankFileSelectionTarget())
   const addBankButtonRef = useRef<HTMLButtonElement>(null)
   const [isAddingBank, setIsAddingBank] = useState(false)
   const [isRestoringBackup, setIsRestoringBackup] = useState(false)
@@ -420,6 +423,7 @@ export function LibrarianPage({
   const [bankPendingImport, setBankPendingImport] = useState<
     (Omit<BankMenuRequest, 'name'> & { file?: File }) | null
   >(null)
+  const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
   const [isRestoringFactoryBanks, setIsRestoringFactoryBanks] = useState(false)
   // Sending a bank first explains what it needs: a MIDI output, or the destination on the FM1.
   const [sendGuide, setSendGuide] = useState<'bank-selection' | 'midi-required' | null>(null)
@@ -434,14 +438,6 @@ export function LibrarianPage({
   // Favourites shows in the bank rail, so its name reads wherever a bank's name would.
   const bankDisplayName = (bank: string) =>
     bank === favouritesBank ? t('favourites.title') : workspaceBankLabel(bank)
-  const { emptyBankImportOpenerRef, importSelectedBankFile, importTargetRef, isImporting } =
-    useBankFileImport({
-      bankDisplayName,
-      library,
-      setBankPendingImport,
-      setDialogLoadError,
-      setImportError,
-    })
   const requestSavedBanks = (request: SavedBanksRequest) => {
     setDialogLoadError('')
     setSavedBanksRequest(request)
@@ -729,6 +725,50 @@ export function LibrarianPage({
       return
     }
     setSendGuide('bank-selection')
+  }
+
+  const importSelectedBankFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const importTarget = importTargetRef.current.consume()
+    if (!importTarget) return
+    const banksAtStart = library.workspaceBanks
+    setIsImporting(true)
+    let archive: typeof import('@/lib/dx7-bank-archive')
+    try {
+      archive = await import('@/lib/dx7-bank-archive')
+    } catch {
+      setIsImporting(false)
+      event.target.value = ''
+      setDialogLoadError(t('banks.bankFileUnavailable'))
+      return
+    }
+    try {
+      const fileBanks = await archive.readDx7BankArchive(file)
+      setImportError('')
+      const [only] = fileBanks
+      // The import goes straight in only while the bank is the same empty one; otherwise the
+      // dialog asks, naming the bank the letter holds now.
+      if (
+        fileBanks.length > 1 ||
+        !only.voices ||
+        !library.importBank(importTarget, only.voices, banksAtStart)
+      ) {
+        setBankPendingImport({
+          bank: importTarget,
+          file,
+          opener: emptyBankImportOpenerRef.current,
+        })
+        return
+      }
+      trackAnalyticsEvent({ data: { source: 'file' }, name: 'bank_imported' })
+      toast.success(t('toasts.bankImported', { bank: bankDisplayName(importTarget) }))
+    } catch (error) {
+      setImportError(bankErrorMessage(t, error, t('banks.importFailed')))
+    } finally {
+      setIsImporting(false)
+      event.target.value = ''
+    }
   }
 
   const hasLoadedBank = library.loadedBanks.length > 0

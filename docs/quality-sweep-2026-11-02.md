@@ -245,3 +245,7 @@ and five standards/design findings. No feature-spec compliance review was applic
 ## Implementation status (2026-11-02)
 
 The MIDI ordering, rack recall and strict-durability findings are fixed with synthetic regression coverage. The scoped editor, selector, byte comparison and librarian refactors are implemented. fast-uri was updated to 3.1.9; Sentry’s glob 13.0.6 and minimatch 10.2.6 remain subject to moderate GHSA-3g3m-2fjr-6pw4 and GHSA-g3hv-75wg-m249 because the latest supported Sentry bundler still requires glob 13. The full repository check passed (6,042 tests), as did all 192 Chromium journeys and the layout-shift check. Firefox could not launch because it could not find its profile folder. The initial bundle measured 171,891 B gzip, within the 172,032 B budget.
+
+On 3 November the PR's merge build exceeded the bundle budget by 19 B. Moving the bank-file import
+action back into the librarian kept the dialog-boundary extraction while saving 155 B gzip in a local
+build of the merged branch. That build measured 171,864 B gzip, 168 B below the unchanged limit.
