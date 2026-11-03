@@ -45,6 +45,23 @@ const officialOpenIdentity = /^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|FM-1_8(\d{6}
 const smk37Identity = /^(SMK-37 (Pro|Elite)|MKE-P37)_0\d\d$/
 
 /**
+ * The SMK-37's models, before the identity's last underscore, whatever firmware follows it: the
+ * stock app (`SMK-37 Pro_015`), Skiff (`SMK-37 Pro_714`), and NESynth (`SMK-37_970`) alike.
+ */
+const smk37Model = /^(SMK-37(?: Pro| Elite)?|MKE-P37)_[^_]*$/
+
+/**
+ * The hardware that answered, apart from the firmware it runs: an SMK-37 whatever firmware it runs,
+ * or an FM1, which is also assumed while nothing has answered. Its photos, finishes, and name
+ * follow the device; what the editor sends follows the firmware's profile.
+ */
+export function fm1Device(firmware: Fm1Firmware): 'fm1' | 'smk37' {
+  return 'identity' in firmware && firmware.identity && smk37Model.test(firmware.identity)
+    ? 'smk37'
+    : 'fm1'
+}
+
+/**
  * An FM1 that answered with a name the editor does not recognise keeps that name for the MIDI log;
  * one that never answered has none.
  */

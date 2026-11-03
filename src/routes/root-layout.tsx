@@ -31,6 +31,7 @@ import { useFm1Colorway } from '@/hooks/use-fm1-colorway'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { isUnsupportedBrowser } from '@/lib/browser'
 import { fm1Colorways, smk37Colorways } from '@/lib/fm1-colorway'
+import { fm1Device } from '@/lib/fm1-firmware'
 import { fm1ColorwayImages, type Fm1ColorwayImages } from '@/lib/fm1-colorway-images'
 import type { Smk37ColorwayImages } from '@/lib/smk37-colorway-images'
 import { degauss } from '@/lib/degauss'
@@ -96,7 +97,8 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
   const { i18n, t } = useTranslation()
   // The heading and the tab name the device once an SMK-37 is identified. Its name and the FM1's
   // are product names, the same in every locale's title.
-  const isSmk37 = midi.firmware.kind === 'smk37'
+  // The device, not its firmware: an SMK-37 on a community port still shows as an SMK-37.
+  const isSmk37 = fm1Device(midi.firmware) === 'smk37'
   const device = isSmk37 ? 'SMK-37' : 'FM1'
   const intro = splitIntroLink(t('root.intro'))
   const unsupportedBrowser = isUnsupportedBrowser()

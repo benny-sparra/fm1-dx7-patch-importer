@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   classifyFm1Firmware,
+  fm1Device,
   fm1FirmwareRelease,
   fm1IdentityQuery,
   mayBeSloop,
@@ -206,5 +207,28 @@ describe('mayBeSloop', () => {
     expect(mayBeSloop({ identity: 'FM-1_089', kind: 'fm1-va' })).toBe(false)
     expect(mayBeSloop({ identity: 'FM-1_900', kind: 'unidentified' })).toBe(false)
     expect(mayBeSloop({ kind: 'checking' })).toBe(false)
+  })
+})
+
+describe('fm1Device', () => {
+  it('names an SMK-37 by its model, whatever firmware it runs', () => {
+    for (const identity of [
+      'SMK-37 Pro_015',
+      'SMK-37 Elite_016',
+      'MKE-P37_013',
+      'SMK-37 Pro_714',
+      'MKE-P37_714',
+      'SMK-37_970',
+    ]) {
+      expect(fm1Device(classifyFm1Firmware(identity))).toBe('smk37')
+    }
+  })
+
+  it('takes every other answer, and none, as an FM1', () => {
+    for (const identity of ['FM-1_015', 'FM-1_089', 'FM-1_8000012', 'XR-9_015', 'SMK-37 Pro']) {
+      expect(fm1Device(classifyFm1Firmware(identity))).toBe('fm1')
+    }
+    expect(fm1Device({ kind: 'checking' })).toBe('fm1')
+    expect(fm1Device({ kind: 'unidentified' })).toBe('fm1')
   })
 })

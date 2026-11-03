@@ -343,6 +343,20 @@ describe('RootLayout SMK-37 finish', () => {
     expect(document.documentElement.dataset.fm1Colorway).toBe('smk-white')
   })
 
+  it('shows an SMK-37 on a community port as an SMK-37', () => {
+    render(
+      <RootLayout
+        midi={{ ...midi, firmware: { identity: 'SMK-37 Pro_714', kind: 'unidentified' } }}
+      >
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('SMK-37')
+    expect(document.documentElement.dataset.fm1Colorway).toBe('smk-white')
+  })
+
   it('brings back the FM1’s own finish when an FM1 replaces the SMK-37', () => {
     localStorage.setItem('fm1-colourway', 'orange')
     const { rerender } = render(

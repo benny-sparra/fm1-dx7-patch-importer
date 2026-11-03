@@ -249,6 +249,13 @@ open everything an earlier release could have saved.
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
   not yet identified too. The badge, the firmware setting, and the bank instructions say so.
+- The device and its firmware are separate axes (the owner, 2026-11-03: stock, Official Open,
+  and Baud Girl's firmware should each run on the FM1 and the SMK-37). `fm1Device` reads the
+  device from the identity's model, the text before its last underscore (`SMK-37 Pro`,
+  `SMK-37 Elite`, `MKE-P37`, `SMK-37`), whatever number follows, so an SMK-37 on a community port
+  such as Skiff (`SMK-37 Pro_714`) is still an SMK-37. What the page shows of the hardware, its
+  name in the title and on Send, its photo, and its finishes, follows the device; what the editor
+  sends follows the firmware's profile, and the `smk37` family is the SMK-37's stock firmware.
 - The SMK-37's own firmware (`smk37`, run of 2026-11-03 on V015,
   `docs/hardware-runs/smk37-2026-11-03.md`) saves a DX7 single-voice dump over its selected
   preset, survives a power cycle, and has no bank export to back its presets up, so its profile
@@ -261,7 +268,7 @@ open everything an earlier release could have saved.
   `Fm1BankSelectionDialog` with only its title, which says why, and no Send. Choosing an output
   also chooses the input of the same name, so the identity query asks the device patches go to
   when an FM1 and an SMK-37 are both plugged in. Once one is identified, the page heading and the
-  tab name the SMK-37 in place of the FM1 (the owner's choice, 2026-11-03), **Send to FM1**
+  tab name the SMK-37 (by device) in place of the FM1 (the owner's choice, 2026-11-03), **Send to FM1**
   reads **Send to SMK-37**, and the voice editor hides its effects, which the SMK-37 does not
   take; the patch keeps them. A capability added for it needs its own hardware run first. Its
   badge reads M-VAVE SMK-37 with its release, and the firmware setting names its model
