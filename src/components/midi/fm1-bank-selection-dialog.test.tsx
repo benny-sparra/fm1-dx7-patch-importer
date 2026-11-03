@@ -33,6 +33,8 @@ function renderDialog(
         firmware,
         isConnecting: false,
         midiAccess: true,
+        outputs: [],
+        selectedOutputId: '',
         sysexAvailable,
       }}
       onClose={vi.fn()}

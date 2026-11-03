@@ -1363,6 +1363,7 @@ export default {
     restoreAll: 'Auf Werks-Sounds zurücksetzen…',
     sending: 'Senden…',
     send: 'An FM1 senden',
+    sendSmk37: 'An das SMK-37 senden',
     bank: 'Bank {{bank}}',
     addBank: 'Neue Bank hinzufügen…',
     addBankTitle: 'Bank hinzufügen',

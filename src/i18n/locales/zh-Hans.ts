@@ -1219,6 +1219,7 @@ export default {
     restoreAll: '重置为原厂音色…',
     sending: '正在发送…',
     send: '发送到 FM1',
+    sendSmk37: '发送到 SMK-37',
     bank: '音色库 {{bank}}',
     addBank: '添加新音色库…',
     addBankTitle: '添加音色库',

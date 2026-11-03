@@ -363,6 +363,7 @@ export default {
     restoreAll: 'Reset to factory patches…',
     sending: 'Sending…',
     send: 'Send to FM1',
+    sendSmk37: 'Send to SMK-37',
     bank: 'Bank {{bank}}',
     addBank: 'Add new bank…',
     bankNameRequired: 'Enter a name for the new bank.',

@@ -1248,7 +1248,15 @@ export function LibrarianPage({
                 type="button"
               >
                 <Send aria-hidden="true" className="size-3.5" />
-                <span>{isSending ? t('banks.sending') : t('banks.send')}</span>
+                <span>
+                  {t(
+                    isSending
+                      ? 'banks.sending'
+                      : midi.firmware.kind === 'smk37'
+                        ? 'banks.sendSmk37'
+                        : 'banks.send',
+                  )}
+                </span>
               </button>
             </>
           }

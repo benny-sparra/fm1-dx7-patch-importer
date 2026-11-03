@@ -254,13 +254,18 @@ open everything an earlier release could have saved.
   preset, survives a power cycle, and has no bank export to back its presets up, so its profile
   lists `parameterChanges` alone: no dump of any kind, no Program Change (ignored), no effect
   controllers (CC 0–1 and 70–71 on channel 2 did nothing), and no vendor command but the identity
-  query. Every other family lists `bankDumps`, so only the SMK-37 is refused a bank:
-  `useMidi.sendBank` returns `unsupported` without sending, and **Send to FM1** opens
-  `Fm1BankSelectionDialog` with only its title, which says why, and no Send. A capability added
-  for it needs its own hardware run first. Its badge reads M-VAVE SMK-37 with its release and says
-  patches reach it as unsaved edits; the firmware setting names its model (`M-VAVE SMK-37
-Pro_015`). Its support cost 232 B of the entry with 240 B spare, after trimming a settings line
-  and sharing FM-1+VA's log line, so check the budget before adding to it.
+  query. Every other family lists `bankDumps`, so only the SMK-37 is refused a bank.
+  `sendsBankTo` (in the profile module) also refuses a bank to an output named `SMK` while the
+  firmware is checking or unidentified, since an input on another device leaves the SMK-37
+  unanswered. `useMidi.sendBank` returns `unsupported` without sending, and **Send to FM1** opens
+  `Fm1BankSelectionDialog` with only its title, which says why, and no Send. Choosing an output
+  also chooses the input of the same name, so the identity query asks the device patches go to
+  when an FM1 and an SMK-37 are both plugged in. Once one is identified, the page heading and the
+  tab name the SMK-37 in place of the FM1 (the owner's choice, 2026-11-03), **Send to FM1**
+  reads **Send to SMK-37**, and the voice editor hides its effects, which the SMK-37 does not
+  take; the patch keeps them. A capability added for it needs its own hardware run first. Its
+  badge reads M-VAVE SMK-37 with its release, and the firmware setting names its model
+  (`M-VAVE SMK-37 Pro_015`).
 - M-VAVE's V16 (`FM-1_016`, 2026-10-21) moved its effect unit to CC 70–93 and takes CC 1, 2, 4,
   7, and 11 as modulation, volume, and expression. Its firmware takes V15's 24 effect parameters
   at CC 70–93 in the editor's order and with its limits (docs/fm1-research.md, "What the firmware
@@ -620,13 +625,15 @@ Pro_015`). Its support cost 232 B of the entry with 240 B spare, after trimming 
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 168 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 169 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
   reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB,
   the sweep's accessibility fixes' raise from 165 KiB, and sending patches to Official Open's DX7
-  tracks' raise from 166 KiB (approved 2026-10-16), and the patch menu's headings' raise from
-  167 KiB (approved 2026-10-21) had. That send costs about 380 B in the entry:
+  tracks' raise from 166 KiB (approved 2026-10-16), the patch menu's headings' raise from
+  167 KiB (approved 2026-10-21), and the SMK-37's raise from 168 KiB (approved 2026-11-03: its
+  family, badge, bank guard, port and input choice, and the device name in the title and on
+  Send, about 400 B) had. That send costs about 380 B in the entry:
   its branch and state in `useMidi`, the track status's lazy mount in `RootLayout`, two profile
   capabilities, and the corrected Official Open badge strings; the read, dump, and notice are lazy. Those fixes cost about 1 KiB in the entry:
   the translated drag announcements and their strings (`ui.drag`), the move items, the skip link

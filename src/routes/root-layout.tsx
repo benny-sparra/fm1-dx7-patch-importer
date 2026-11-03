@@ -91,7 +91,10 @@ type RootLayoutProps = {
 }
 
 export function RootLayout({ children, compact = false, midi }: RootLayoutProps) {
-  const { t } = useTranslation()
+  const { i18n, t } = useTranslation()
+  // The heading and the tab name the device once an SMK-37 is identified. Its name and the FM1's
+  // are product names, the same in every locale's title.
+  const device = midi.firmware.kind === 'smk37' ? 'SMK-37' : 'FM1'
   const intro = splitIntroLink(t('root.intro'))
   const unsupportedBrowser = isUnsupportedBrowser()
   const { colorway, setColorway } = useFm1Colorway()
@@ -113,6 +116,10 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
     setWasMidiOnline(isMidiOnline)
     setPhotoScreen(isMidiOnline ? 'lit' : 'switching-off')
   }
+
+  useEffect(() => {
+    document.title = t('meta.title').replace('FM1', device)
+  }, [device, i18n.resolvedLanguage, t])
 
   // Only an FM1 running FM-1+VA loads its photos. They are decorative, so a chunk that fails to
   // load leaves the stock photo showing, and the next identification tries again.
@@ -169,7 +176,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
                 className="synthwave-title min-w-0 items-baseline gap-x-[0.3em] gap-y-[7px]"
               >
                 <span className="synthwave-brand-row">M-VAVE</span>
-                <span>FM1</span>
+                <span>{device}</span>
                 <span className="synthwave-hero-accent">{t('root.subtitle')}</span>
               </h1>
               {!compact ? (

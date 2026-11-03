@@ -58,6 +58,8 @@ const openDialogs = {
         firmware: { kind: 'unidentified' },
         isConnecting: false,
         midiAccess: true,
+        outputs: [],
+        selectedOutputId: '',
         sysexAvailable: true,
       }}
       onClose={vi.fn()}

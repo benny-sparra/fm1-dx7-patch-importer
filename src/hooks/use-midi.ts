@@ -10,7 +10,7 @@ import {
   unpackDx7Voice,
   type Dx7Voice,
 } from '@/lib/dx7'
-import { resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { resolveFirmwareProfile, sendsBankTo } from '@/lib/firmware-profile'
 import {
   fm1EffectParameterCount,
   fm1EffectParameterMaximums,
@@ -460,11 +460,23 @@ export function useMidi() {
     }
   }, [selectedInput, selectedOutput])
 
-  const selectOutput = useCallback((id: string) => {
-    preferredOutputId.current = id
-    storeValue(midiStorageKeys.outputId, id)
-    setSelectedOutputId(id)
-  }, [])
+  // An input of the same name as the chosen output is the same device, so the firmware answer
+  // comes from the device patches go to, not another one plugged in beside it.
+  const selectOutput = useCallback(
+    (id: string) => {
+      preferredOutputId.current = id
+      storeValue(midiStorageKeys.outputId, id)
+      setSelectedOutputId(id)
+      const name = outputs.find((device) => device.id === id)?.name
+      const input = inputs.find((device) => device.name === name)
+      if (input) {
+        preferredInputId.current = input.id
+        storeValue(midiStorageKeys.inputId, input.id)
+        setSelectedInputId(input.id)
+      }
+    },
+    [inputs, outputs],
+  )
 
   const selectInput = useCallback((id: string) => {
     preferredInputId.current = id
@@ -517,7 +529,7 @@ export function useMidi() {
       }
 
       // The SMK-37 saves a dump over its stored presets and cannot back them up; its log says so.
-      if (!resolveFirmwareProfile(firmware).capabilities.bankDumps) {
+      if (!sendsBankTo(firmware, selectedOutput.name)) {
         return Promise.resolve<BankTransferResult>({ ok: false, reason: 'unsupported' })
       }
 

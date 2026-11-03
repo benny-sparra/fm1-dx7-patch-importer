@@ -231,3 +231,15 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       fasterTiming && from(fasterTiming.from) ? fasterTiming.timing : presetsPageTiming,
   }
 }
+
+/**
+ * Whether a DX7 bank may go to `outputName` on `firmware`. A port named for the SMK-37 gets none
+ * until its firmware is known to take one: with an FM1 plugged in too, an input on the other
+ * device leaves the SMK-37 unidentified, and it would save the bank over its presets.
+ */
+export function sendsBankTo(firmware: Fm1Firmware, outputName = '') {
+  const unknown = firmware.kind === 'checking' || firmware.kind === 'unidentified'
+  return (
+    resolveFirmwareProfile(firmware).capabilities.bankDumps && !(unknown && /smk/i.test(outputName))
+  )
+}

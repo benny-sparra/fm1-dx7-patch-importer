@@ -169,6 +169,25 @@ describe('LibrarianPage transfer analytics', () => {
     expect(connectedMidi.sendBank).toHaveBeenCalledOnce()
   })
 
+  it('names the SMK-37 on its Send button and offers it no bank', async () => {
+    const user = userEvent.setup()
+    const smkMidi = makeLibrarianMidi({
+      firmware: { identity: 'SMK-37 Pro_015', kind: 'smk37' },
+      hasMidiOutput: true,
+      sendBank: vi.fn(async () => ({ ok: true }) as const),
+      sysexAvailable: true,
+    })
+    renderLibrarianPage({ midi: smkMidi })
+
+    await user.click(screen.getByRole('button', { name: 'Send to SMK-37' }))
+    const dialog = screen.getByRole('dialog', {
+      name: 'The SMK-37 would save a bank over its presets, so none is sent',
+    })
+
+    expect(within(dialog).queryByRole('button', { name: /^Send to/ })).toBeNull()
+    expect(smkMidi.sendBank).not.toHaveBeenCalled()
+  })
+
   it('tracks a completed bank transfer after MIDI reports success', async () => {
     const user = userEvent.setup()
     const track = vi.fn()

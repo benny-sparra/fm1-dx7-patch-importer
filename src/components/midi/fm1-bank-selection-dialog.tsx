@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { MidiController } from '@/hooks/use-midi'
-import { resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { sendsBankTo } from '@/lib/firmware-profile'
 import { mayBeSloop } from '@/lib/fm1-firmware'
 import { fm1SynthImage, fm1VaBankScreenImage } from '@/lib/fm1-responsive-images'
 
@@ -20,7 +20,14 @@ type Fm1BankSelectionDialogProps = {
   isSending: boolean
   midi: Pick<
     MidiController,
-    'connectMidi' | 'disconnectMidi' | 'firmware' | 'isConnecting' | 'midiAccess' | 'sysexAvailable'
+    | 'connectMidi'
+    | 'disconnectMidi'
+    | 'firmware'
+    | 'isConnecting'
+    | 'midiAccess'
+    | 'outputs'
+    | 'selectedOutputId'
+    | 'sysexAvailable'
   >
   /** What the bank becomes on the FM1 when it is not simply 32 patches, as for Favourites. */
   note?: string
@@ -40,7 +47,10 @@ export function Fm1BankSelectionDialog({
   const sysexUnavailable = !midi.sysexAvailable
   // The SMK-37 would save a bank over its stored presets, which nothing can back up, so the dialog
   // says why no bank goes rather than offering to send one.
-  const sendsBank = resolveFirmwareProfile(midi.firmware).capabilities.bankDumps
+  const sendsBank = sendsBankTo(
+    midi.firmware,
+    midi.outputs.find((output) => output.id === midi.selectedOutputId)?.name,
+  )
   // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
   // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca, SLOOP,
   // and M-VAVE's Official Open ignore DX7 banks, so the dialog says so before the bank is sent.

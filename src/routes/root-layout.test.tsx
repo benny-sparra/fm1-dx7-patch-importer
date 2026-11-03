@@ -162,6 +162,33 @@ describe('RootLayout title layout', () => {
   })
 })
 
+describe('RootLayout device name', () => {
+  it('names the SMK-37 in the heading and the tab once one is identified', () => {
+    render(
+      <RootLayout midi={{ ...midi, firmware: { identity: 'SMK-37 Pro_015', kind: 'smk37' } }}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('SMK-37')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).not.toContain('FM1')
+    expect(document.title).toBe('M-VAVE SMK-37 Editor & Librarian')
+  })
+
+  it('names the FM1 while no SMK-37 is identified', () => {
+    render(
+      <RootLayout midi={midi}>
+        <div>Library</div>
+      </RootLayout>,
+      { wrapper: ToastProvider },
+    )
+
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('FM1')
+    expect(document.title).toBe('M-VAVE FM1 Editor & Librarian')
+  })
+})
+
 describe('RootLayout unsupported banner', () => {
   afterEach(() => {
     delete (window.navigator as unknown as { requestMIDIAccess?: unknown }).requestMIDIAccess

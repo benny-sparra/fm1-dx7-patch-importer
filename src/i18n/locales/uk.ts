@@ -1379,6 +1379,7 @@ export default {
     restoreAll: 'Скинути до заводських патчів…',
     sending: 'Надсилання…',
     send: 'Надіслати на FM1',
+    sendSmk37: 'Надіслати на SMK-37',
     bank: 'Банк {{bank}}',
     addBank: 'Додати банк…',
     addBankTitle: 'Додати банк',
