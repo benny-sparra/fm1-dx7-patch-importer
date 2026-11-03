@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
-import { cleanup, screen, waitFor } from '@testing-library/react'
+import { MidiTransferQueue } from '@/lib/midi-transfer-queue'
+
+import { act, cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -9,7 +11,7 @@ import type { FxLibrary } from '@/hooks/use-fx-library'
 import { setLocale } from '@/i18n'
 import { installFakeIndexedDb } from '@/test/fake-indexed-db'
 import { renderWithToasts } from '@/test/render-with-toasts'
-import { resetV16EffectsForTests } from '@/lib/v16-effects'
+import { resetV16EffectsForTests, setV16Effects } from '@/lib/v16-effects'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import {
   fxTableOffset,
@@ -61,6 +63,7 @@ const offlineMidi: Midi = {
   inputs: [],
   logStore: new MidiLogStore([]),
   outputs: [],
+  queueEffectOrder: (run) => run(),
   selectedInputId: '',
   selectedOutputId: '',
   sendSharedEffectParameter: vi.fn(),
@@ -154,6 +157,7 @@ function setupFm1({
   }
   return {
     midi: live,
+    ports,
     reads: () => sent.filter(isRead),
     writes: () => sent.filter((data) => !isRead(data)),
   }
@@ -166,6 +170,59 @@ const effectNames = () =>
     .getAllByRole('region')
     .map((region) => region.getAttribute('aria-label') ?? '')
     .filter((name) => sixEffects.includes(name))
+
+it('preserves an FX switch changed while a reorder is waiting for its read reply', async () => {
+  const user = userEvent.setup()
+  const block = makeBlock()
+  const ports = makeFakeFm1Ports()
+  let reads = 0
+  let pendingReply: Uint8Array | undefined
+  const writes: Uint8Array[] = []
+  const events: string[] = []
+  const queue = new MidiTransferQueue()
+  ports.output.send.mockImplementation((message) => {
+    if (isRead(message)) {
+      reads += 1
+      const reply = makeSettingsBlockReply(block)
+      if (reads === 1) ports.input.receive(reply)
+      else pendingReply = reply
+    } else {
+      events.push('write')
+      writes.push(message)
+      block[fxTableOffset + 1] = 1
+    }
+  })
+  const midi: Midi = {
+    ...offlineMidi,
+    hasMidiOutput: true,
+    sysexAvailable: true,
+    ...makeFakeFm1Devices(ports),
+    queueEffectOrder: (run) => queue.enqueue(run),
+    sendSharedEffectParameter: (controller, value) => {
+      void queue.enqueue(() => {
+        events.push('cc')
+        if (controller === 0) block[fxTableOffset + 1] = value
+      }, `effect-${controller}`)
+      return true
+    },
+  }
+  const browserEffects = new Uint8Array(24)
+  browserEffects[0] = 1
+  setV16Effects(browserEffects)
+  renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+  await waitFor(() => expect(grips()).toHaveLength(6))
+  await user.click(screen.getByRole('button', { name: 'Actions for Filter' }))
+  await user.click(screen.getByRole('menuitem', { name: 'Move earlier' }))
+  await waitFor(() => expect(reads).toBe(2))
+
+  await user.click(screen.getByRole('switch', { name: 'Filter' }))
+  expect(block[fxTableOffset + 1]).toBe(1)
+  if (!pendingReply) throw new Error('Missing delayed read fixture')
+  act(() => ports.input.receive(pendingReply!))
+  await waitFor(() => expect(writes).toHaveLength(1))
+  await waitFor(() => expect(block[fxTableOffset + 1]).toBe(0))
+  expect(events).toEqual(['write', 'cc'])
+})
 
 describe('V16 effects panel effect order', () => {
   it('offers no grips and sends nothing to firmware before V16', () => {
@@ -216,6 +273,19 @@ describe('V16 effects panel effect order', () => {
     if (answer?.type !== 'block') throw new Error('fixture')
     expect(writes()[0]).toEqual(makeEffectOrderWrite(answer.block, [0, 2, 1, 3, 5, 4]))
     expect(effectNames().slice(0, 2)).toEqual(['Filter', 'Delay'])
+  })
+
+  it('does not write when the rack unmounts while a reorder read is pending', async () => {
+    const user = userEvent.setup()
+    const { midi, ports, reads, writes } = setupFm1({ answerRead: (count) => count === 1 })
+    const view = renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+    await user.click(screen.getByRole('button', { name: 'Actions for Filter' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Move earlier' }))
+    await waitFor(() => expect(reads()).toHaveLength(2))
+    view.unmount()
+    expect(ports.input.removeListener).toHaveBeenCalled()
+    expect(writes()).toEqual([])
   })
 
   it('puts the order back and says so when the FM1 does not answer the read before a write', async () => {

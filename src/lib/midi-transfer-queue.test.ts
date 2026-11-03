@@ -41,6 +41,30 @@ describe('MidiTransferQueue coalescing', () => {
     expect(sent).toEqual(['p5=1', 'p5=3', 'p6=1'])
   })
 
+  it('keeps an earlier and later edit on their respective sides of an unkeyed transaction', async () => {
+    const queue = new MidiTransferQueue()
+    const sent: string[] = []
+    let release: (() => void) | undefined
+    const running = queue.enqueue(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve
+        }),
+    )
+    const before = queue.enqueue(() => {
+      sent.push('before')
+    }, 'effect-0')
+    const transaction = queue.enqueue(() => {
+      sent.push('transaction')
+    })
+    const after = queue.enqueue(() => {
+      sent.push('after')
+    }, 'effect-0')
+    release?.()
+    await Promise.all([running, before, transaction, after])
+    expect(sent).toEqual(['before', 'transaction', 'after'])
+  })
+
   it('sends every transfer that has no key', async () => {
     const queue = new MidiTransferQueue()
     const sent: string[] = []

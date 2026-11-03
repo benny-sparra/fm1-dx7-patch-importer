@@ -28,6 +28,7 @@ import {
   PhaserScope,
   ReverbScope,
 } from '@/components/editor/effect-scopes'
+import { PresetSelect } from '@/components/editor/preset-select'
 import { RackSelect, rangeInputGestureHandlers } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'
@@ -276,37 +277,19 @@ function EffectPresetControl<Id extends string>({
 }) {
   const { t } = useTranslation()
 
-  const fieldId = useId()
   const translatedEffect = t(`ui.effects.${effectKey}`)
   const label = t('editor.effectPreset')
   return (
-    <div className="mb-1 grid min-w-0 grid-cols-[6.25rem_minmax(0,1fr)] items-center gap-2 border-b border-[var(--crt-bevel)] pb-2 text-[11px] tracking-[0.08em] text-[var(--crt-ink-3)] uppercase">
-      {/* The help button sits beside the label: inside it, a click on the caption would open it. */}
-      <span className="flex min-w-0 items-center gap-1 overflow-hidden">
-        <label className="min-w-0 truncate" htmlFor={fieldId} title={label}>
-          {label}
-        </label>
-        <HelpPopover label={`${translatedEffect} ${label}`} text={t('controlHelp.effectPresets')} />
-      </span>
-      {/* Always shows the placeholder: a preset is a starting point, not a mode. */}
-      <RackSelect
-        aria-label={`${translatedEffect} ${label}`}
-        id={fieldId}
-        className="crt-field h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] disabled:opacity-50"
-        disabled={disabled}
-        onChange={(event) => onApplyPreset(event.target.value as Id)}
-        value=""
-      >
-        <option disabled value="">
-          {t('editor.effectPresetPlaceholder')}
-        </option>
-        {presets.map(({ id }) => (
-          <option key={id} value={id}>
-            {t(`editor.effectPresetOptions.${id}`)}
-          </option>
-        ))}
-      </RackSelect>
-    </div>
+    <PresetSelect
+      accessibleLabel={`${translatedEffect} ${label}`}
+      disabled={disabled}
+      help={t('controlHelp.effectPresets')}
+      label={label}
+      onApply={onApplyPreset}
+      options={presets.map(({ id }) => ({ id, name: t(`editor.effectPresetOptions.${id}`) }))}
+      placeholder={t('editor.effectPresetPlaceholder')}
+      variant="effect"
+    />
   )
 }
 

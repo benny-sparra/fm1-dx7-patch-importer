@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import { decodeVoiceName, type Dx7Voice } from '@/lib/dx7'
 import { fm1VaRecordEngine } from '@/lib/fm1-va-engine'
 import { fm1VaStoredVoice } from '@/lib/fm1-va-preset-message'
@@ -79,10 +80,6 @@ function patchVoice(patch: Fm1VaWritePatch) {
   return 'eightBit' in patch ? patch.eightBit : patch.voice.data
 }
 
-function sameBytes(bytes: Uint8Array, other: Uint8Array) {
-  return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
-}
-
 /** The 32 patches of workspace bank `libraryBank`, in slot order, with none where a slot is empty. */
 export function fm1VaLibraryBankPatches(
   libraryBank: string,
@@ -145,14 +142,14 @@ export function planFm1VaPatchesWrite(
       return { kind: 'eight-bit-patch', name, slot }
     }
     const expectedVoice = fm1VaStoredVoice(voice)
-    if (engine !== 'fm' && !sameBytes(expectedVoice, voice)) {
+    if (engine !== 'fm' && !bytesEqual(expectedVoice, voice)) {
       return { kind: 'inexact', name, slot }
     }
     const record = fm1VaRecordWithEffects(
       patch.record ?? preset.record,
       patch.effects ?? new Uint8Array(),
     )
-    if (sameBytes(expectedVoice, preset.voice) && sameBytes(record, preset.record)) {
+    if (bytesEqual(expectedVoice, preset.voice) && bytesEqual(record, preset.record)) {
       return { kind: 'same', slot }
     }
     return { expectedVoice, kind: 'write', name, record, replaces, slot, voice }
@@ -161,7 +158,9 @@ export function planFm1VaPatchesWrite(
 
 /** Whether a read back holds exactly what a planned write stored. */
 function fm1VaWriteLanded(write: Fm1VaPlannedWrite, readBack: Fm1VaStoredPreset) {
-  return sameBytes(readBack.voice, write.expectedVoice) && sameBytes(readBack.record, write.record)
+  return (
+    bytesEqual(readBack.voice, write.expectedVoice) && bytesEqual(readBack.record, write.record)
+  )
 }
 
 /** A write that read back differently, so the writes after it were not sent. */

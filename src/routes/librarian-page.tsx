@@ -90,12 +90,13 @@ import {
 } from '@/hooks/use-workspace-backup'
 import { type LibrarianView, useLibrarianView } from '@/hooks/use-librarian-view'
 import type { Patch } from '@/data/patches'
-import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { copyTextToClipboard } from '@/lib/copy-text'
+import { createBankFileSelectionTarget } from '@/lib/bank-file-selection'
 import { downloadFile } from '@/lib/download-file'
 import { sharedPatchPayload } from '@/lib/share-link-fragment'
 import { downloadSysexFile, sysexFileAccept } from '@/lib/sysex-file'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
+import { LazyDialogBoundary } from '@/components/ui/lazy-dialog-boundary'
 import { LoadFailedNotice } from '@/components/ui/load-failed-notice'
 import { LoadingSection } from '@/components/ui/loading-section'
 import { useToast } from '@/components/ui/toast'
@@ -422,7 +423,6 @@ export function LibrarianPage({
   const [bankPendingImport, setBankPendingImport] = useState<
     (Omit<BankMenuRequest, 'name'> & { file?: File }) | null
   >(null)
-  // The bank menu toggle an import into an empty bank was started from, for focus to return to.
   const emptyBankImportOpenerRef = useRef<HTMLElement | null>(null)
   const [isRestoringFactoryBanks, setIsRestoringFactoryBanks] = useState(false)
   // Sending a bank first explains what it needs: a MIDI output, or the destination on the FM1.
@@ -1605,151 +1605,139 @@ export function LibrarianPage({
         />
       ) : null}
       {isAddingBank ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           onError={() => {
             setIsAddingBank(false)
             setDialogLoadError(t('banks.addBankOpenFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <AddWorkspaceBankDialog
-              bank={nextBank}
-              library={library}
-              onClose={() => {
-                setIsAddingBank(false)
-                addBankButtonRef.current?.focus()
-              }}
-              onCreated={selectDestinationBank}
-              suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <AddWorkspaceBankDialog
+            bank={nextBank}
+            library={library}
+            onClose={() => {
+              setIsAddingBank(false)
+              addBankButtonRef.current?.focus()
+            }}
+            onCreated={selectDestinationBank}
+            suggestedName={defaultWorkspaceBankTitle(t, banks.length + 1)}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {isRestoringBackup ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           onError={() => {
             setIsRestoringBackup(false)
             setDialogLoadError(t('backup.unavailable'))
           }}
         >
-          <Suspense fallback={null}>
-            <RestoreBackupDialog
-              fxLibrary={fxLibrary}
-              library={library}
-              onClose={() => {
-                setIsRestoringBackup(false)
-                allBanksMenuRef.current?.querySelector('summary')?.focus()
-              }}
-              onRestored={(savedAt, changed) => {
-                trackAnalyticsEvent({ name: 'backup_restored' })
-                toast.success(
-                  t('backup.restored', {
-                    date: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    }).format(new Date(savedAt)),
-                  }),
-                  undoToastOptions(t, library, changed),
-                )
-              }}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <RestoreBackupDialog
+            fxLibrary={fxLibrary}
+            library={library}
+            onClose={() => {
+              setIsRestoringBackup(false)
+              allBanksMenuRef.current?.querySelector('summary')?.focus()
+            }}
+            onRestored={(savedAt, changed) => {
+              trackAnalyticsEvent({ name: 'backup_restored' })
+              toast.success(
+                t('backup.restored', {
+                  date: new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  }).format(new Date(savedAt)),
+                }),
+                undoToastOptions(t, library, changed),
+              )
+            }}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {isFindingDuplicates ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           onError={() => {
             setIsFindingDuplicates(false)
             setDialogLoadError(t('duplicates.openFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <DuplicatePatchesDialog
-              library={library}
-              onClose={(chosen) => {
-                setIsFindingDuplicates(false)
-                if (!chosen) {
-                  allBanksMenuRef.current?.querySelector('summary')?.focus()
-                  return
-                }
-                // Going to a patch plays it, as clicking its slot does, so it is lit where it is.
-                selectDestinationBank(chosen.bank)
-                onSelectPatch(chosen)
-                setSlotFocusRequest({ patchId: chosen.id })
-              }}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <DuplicatePatchesDialog
+            library={library}
+            onClose={(chosen) => {
+              setIsFindingDuplicates(false)
+              if (!chosen) {
+                allBanksMenuRef.current?.querySelector('summary')?.focus()
+                return
+              }
+              // Going to a patch plays it, as clicking its slot does, so it is lit where it is.
+              selectDestinationBank(chosen.bank)
+              onSelectPatch(chosen)
+              setSlotFocusRequest({ patchId: chosen.id })
+            }}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {fm1VaImportSource ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           onError={() => {
             setFm1VaImportSource(null)
             setDialogLoadError(t('fm1VaImport.openFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <ImportFm1VaPresetsDialog
-              library={library}
-              midi={midi}
-              onClose={() => {
-                setFm1VaImportSource(null)
-                allBanksMenuRef.current?.querySelector('summary')?.focus()
-              }}
-              onPlay={onPlaySearchResult}
-              source={fm1VaImportSource}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <ImportFm1VaPresetsDialog
+            library={library}
+            midi={midi}
+            onClose={() => {
+              setFm1VaImportSource(null)
+              allBanksMenuRef.current?.querySelector('summary')?.focus()
+            }}
+            onPlay={onPlaySearchResult}
+            source={fm1VaImportSource}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {fm1VaWrite ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           onError={() => {
             setFm1VaWrite(null)
             setDialogLoadError(t('fm1VaWrite.openFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <WriteFm1VaPresetsDialog
-              library={library}
-              midi={midi}
-              onClose={() => {
-                setFm1VaWrite(null)
-                if (fm1VaWrite.sendBank === undefined) {
-                  allBanksMenuRef.current?.querySelector('summary')?.focus()
-                } else {
-                  sendButtonRef.current?.focus()
-                }
-              }}
-              sendBank={fm1VaWrite.sendBank}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <WriteFm1VaPresetsDialog
+            library={library}
+            midi={midi}
+            onClose={() => {
+              setFm1VaWrite(null)
+              if (fm1VaWrite.sendBank === undefined) {
+                allBanksMenuRef.current?.querySelector('summary')?.focus()
+              } else {
+                sendButtonRef.current?.focus()
+              }
+            }}
+            sendBank={fm1VaWrite.sendBank}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {bankPendingImport ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           onError={() => {
             setBankPendingImport(null)
             setDialogLoadError(t('banks.bankFileUnavailable'))
           }}
         >
-          <Suspense fallback={null}>
-            <ImportDx7BankDialog
-              bank={bankPendingImport.bank}
-              bankName={bankDisplayName(bankPendingImport.bank)}
-              initialFile={bankPendingImport.file}
-              library={library}
-              onClose={() => {
-                setBankPendingImport(null)
-                bankPendingImport.opener?.focus()
-              }}
-              // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog
-              // result does.
-              onPlay={(voice) => onPlaySearchResult(voice, undefined)}
-              replacing={library.loadedBanks.includes(bankPendingImport.bank)}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <ImportDx7BankDialog
+            bank={bankPendingImport.bank}
+            bankName={bankDisplayName(bankPendingImport.bank)}
+            initialFile={bankPendingImport.file}
+            library={library}
+            onClose={() => {
+              setBankPendingImport(null)
+              bankPendingImport.opener?.focus()
+            }}
+            // A file's patch has no FM1 effects, so it plays with the defaults, as a catalog
+            // result does.
+            onPlay={(voice) => onPlaySearchResult(voice, undefined)}
+            replacing={library.loadedBanks.includes(bankPendingImport.bank)}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {bankPendingDeletion ? (
         <DeleteWorkspaceBankDialog
@@ -1785,162 +1773,147 @@ export function LibrarianPage({
         />
       ) : null}
       {copyRequest ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           key={copyRequest.key}
           onError={() => {
             setCopyRequest(null)
             setDialogLoadError(t('banks.copyOpenFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <CopyPatchDialog
-              initialBank={copyRequest.bank}
-              library={library}
-              onClose={() => setCopyRequest(null)}
-              onCopy={copyRequest.copy}
-              opensEditor={copyRequest.edit}
-              onCopied={(target, changed) => {
-                toast.success(
-                  t('toasts.patchCopied', {
-                    bank: bankDisplayName(target.bank),
-                    patch: copyRequest.source.name,
-                    slot: patchSlotCode(target),
-                  }),
-                  // Undoing a copy that is open in the editor would leave the editor on a sound
-                  // the slot no longer holds, so the undo closes it first.
-                  undoToastOptions(
-                    t,
-                    library,
-                    changed,
-                    copyRequest.edit ? onCloseEditor : undefined,
-                  ),
-                )
-                if (copyRequest.edit) {
-                  followPlayedPatch(target)
-                  onEditPatch(target)
-                }
-              }}
-              onSwap={copyRequest.swap}
-              onSwapped={(target, changed) => {
-                toast.success(
-                  t('toasts.patchesSwapped', {
-                    patch: copyRequest.source.name,
-                    target: target.name,
-                  }),
-                  undoToastOptions(t, library, changed),
-                )
-              }}
-              source={copyRequest.source}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <CopyPatchDialog
+            initialBank={copyRequest.bank}
+            library={library}
+            onClose={() => setCopyRequest(null)}
+            onCopy={copyRequest.copy}
+            opensEditor={copyRequest.edit}
+            onCopied={(target, changed) => {
+              toast.success(
+                t('toasts.patchCopied', {
+                  bank: bankDisplayName(target.bank),
+                  patch: copyRequest.source.name,
+                  slot: patchSlotCode(target),
+                }),
+                // Undoing a copy that is open in the editor would leave the editor on a sound
+                // the slot no longer holds, so the undo closes it first.
+                undoToastOptions(t, library, changed, copyRequest.edit ? onCloseEditor : undefined),
+              )
+              if (copyRequest.edit) {
+                followPlayedPatch(target)
+                onEditPatch(target)
+              }
+            }}
+            onSwap={copyRequest.swap}
+            onSwapped={(target, changed) => {
+              toast.success(
+                t('toasts.patchesSwapped', {
+                  patch: copyRequest.source.name,
+                  target: target.name,
+                }),
+                undoToastOptions(t, library, changed),
+              )
+            }}
+            source={copyRequest.source}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {sharedPayload !== null ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           key={sharedPayload}
           onError={() => {
             setSharedPayload(null)
             setDialogLoadError(t('shareLink.loadFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <SharedPatchDialog
-              canPlay={midi.hasMidiOutput}
-              onAdd={(sound) => requestResultCopy(sound, false, destinationBank)}
-              onClose={() => setSharedPayload(null)}
-              onPlay={onPlaySearchResult}
-              payload={sharedPayload}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <SharedPatchDialog
+            canPlay={midi.hasMidiOutput}
+            onAdd={(sound) => requestResultCopy(sound, false, destinationBank)}
+            onClose={() => setSharedPayload(null)}
+            onPlay={onPlaySearchResult}
+            payload={sharedPayload}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {changeToFmTarget ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           key={changeToFmTarget.id}
           onError={() => {
             setChangeToFmTarget(null)
             setDialogLoadError(t('changeToFm.openFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <ChangeToFmDialog
-              library={library}
-              onChanged={(voice, changed) =>
-                toast.success(
-                  t('changeToFm.changed', {
-                    patch: voice.name,
-                    slot: patchSlotCode(changeToFmTarget),
-                  }),
-                  undoToastOptions(t, library, changed),
-                )
-              }
-              onClose={() => setChangeToFmTarget(null)}
-              patch={changeToFmTarget}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <ChangeToFmDialog
+            library={library}
+            onChanged={(voice, changed) =>
+              toast.success(
+                t('changeToFm.changed', {
+                  patch: voice.name,
+                  slot: patchSlotCode(changeToFmTarget),
+                }),
+                undoToastOptions(t, library, changed),
+              )
+            }
+            onClose={() => setChangeToFmTarget(null)}
+            patch={changeToFmTarget}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {replaceTarget ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           key={replaceTarget.id}
           onError={() => {
             setReplaceTarget(null)
             setDialogLoadError(t('banks.patchFileUnavailable'))
           }}
         >
-          <Suspense fallback={null}>
-            <ReplacePatchDialog
-              library={library}
-              onClose={() => setReplaceTarget(null)}
-              // Another synth's dump goes to the same slot, through the receive wizard.
-              onReceive={() => {
-                setReplaceTarget(null)
-                requestReceive({ bank: replaceTarget.bank, opener: null, patch: replaceTarget })
-              }}
-              onReplaced={(voice, changed) =>
-                toast.success(
-                  t('toasts.patchReplaced', {
-                    patch: voice.name,
-                    slot: patchSlotCode(replaceTarget),
-                  }),
-                  undoToastOptions(t, library, changed),
-                )
-              }
-              patch={replaceTarget}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <ReplacePatchDialog
+            library={library}
+            onClose={() => setReplaceTarget(null)}
+            // Another synth's dump goes to the same slot, through the receive wizard.
+            onReceive={() => {
+              setReplaceTarget(null)
+              requestReceive({ bank: replaceTarget.bank, opener: null, patch: replaceTarget })
+            }}
+            onReplaced={(voice, changed) =>
+              toast.success(
+                t('toasts.patchReplaced', {
+                  patch: voice.name,
+                  slot: patchSlotCode(replaceTarget),
+                }),
+                undoToastOptions(t, library, changed),
+              )
+            }
+            patch={replaceTarget}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {receiveRequest ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           onError={() => {
             setReceiveRequest(null)
             setDialogLoadError(t('banks.receivePatchUnavailable'))
           }}
         >
-          <Suspense fallback={null}>
-            <ReceiveFromFm1Dialog
-              banks={banks.map((bank) => ({ id: bank, name: bankDisplayName(bank) }))}
-              initialBank={receiveRequest.bank}
-              initialSlot={receiveRequest.patch?.number}
-              initialSource={receiveRequest.patch ? 'patch' : 'fm1'}
-              library={library}
-              midi={midi}
-              onClose={() => {
-                setReceiveRequest(null)
-                const { opener, patch } = receiveRequest
-                if (patch) setSlotFocusRequest({ patchId: patch.id })
-                else opener?.focus()
-              }}
-              // A received patch has no FM1 effects, so it plays with the defaults, as a catalog
-              // result does.
-              onPlay={(voice) => onPlaySearchResult(voice, undefined)}
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <ReceiveFromFm1Dialog
+            banks={banks.map((bank) => ({ id: bank, name: bankDisplayName(bank) }))}
+            initialBank={receiveRequest.bank}
+            initialSlot={receiveRequest.patch?.number}
+            initialSource={receiveRequest.patch ? 'patch' : 'fm1'}
+            library={library}
+            midi={midi}
+            onClose={() => {
+              setReceiveRequest(null)
+              const { opener, patch } = receiveRequest
+              if (patch) setSlotFocusRequest({ patchId: patch.id })
+              else opener?.focus()
+            }}
+            // A received patch has no FM1 effects, so it plays with the defaults, as a catalog
+            // result does.
+            onPlay={(voice) => onPlaySearchResult(voice, undefined)}
+          />
+        </LazyDialogBoundary>
       ) : null}
       {savedBanksRequest ? (
-        <ErrorBoundary
+        <LazyDialogBoundary
           key={`${savedBanksRequest.mode}-${savedBanksRequest.bank}`}
           onError={() => {
             savedBanksRequest.closeMenu()
@@ -1948,27 +1921,25 @@ export function LibrarianPage({
             setDialogLoadError(t('namedBanks.openFailed'))
           }}
         >
-          <Suspense fallback={null}>
-            <NamedBankLibraryDialog
-              destinationBank={savedBanksRequest.bank}
-              library={library}
-              mode={savedBanksRequest.mode}
-              onClose={() => {
-                savedBanksRequest.closeMenu()
-                setSavedBanksRequest(null)
-              }}
-              onLoaded={(savedBank, changed) =>
-                toast.success(
-                  t('namedBanks.loaded', {
-                    bank: bankDisplayName(savedBanksRequest.bank),
-                    name: savedBank.name,
-                  }),
-                  undoToastOptions(t, library, changed),
-                )
-              }
-            />
-          </Suspense>
-        </ErrorBoundary>
+          <NamedBankLibraryDialog
+            destinationBank={savedBanksRequest.bank}
+            library={library}
+            mode={savedBanksRequest.mode}
+            onClose={() => {
+              savedBanksRequest.closeMenu()
+              setSavedBanksRequest(null)
+            }}
+            onLoaded={(savedBank, changed) =>
+              toast.success(
+                t('namedBanks.loaded', {
+                  bank: bankDisplayName(savedBanksRequest.bank),
+                  name: savedBank.name,
+                }),
+                undoToastOptions(t, library, changed),
+              )
+            }
+          />
+        </LazyDialogBoundary>
       ) : null}
     </section>
   )

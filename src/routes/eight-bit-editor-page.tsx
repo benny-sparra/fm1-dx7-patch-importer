@@ -23,11 +23,11 @@ import {
   FaderParameterControl,
   LfoWaveControl,
   ParameterControl,
-  RackSelect,
   RadioParameterControl,
   RotaryParameterControl,
   SwitchParameterControl,
 } from '@/components/editor/parameter-controls'
+import { PresetSelect } from '@/components/editor/preset-select'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { UnsavedEditorDialog } from '@/components/editor/unsaved-editor-dialog'
 import { BevelRadio } from '@/components/ui/bevel-radio'
@@ -38,10 +38,11 @@ import {
 } from '@/components/ui/rack-panel'
 import type { Patch } from '@/data/patches'
 import { useDismissableDetails } from '@/hooks/use-dismissable-details'
+import { useFm1VaLiveStatus } from '@/hooks/use-fm1-va-live-status'
 import { useFm1VaPresetReader } from '@/hooks/use-fm1-va-preset-reader'
 import { useFm1VaSoundControl } from '@/hooks/use-fm1-va-sound-control'
 import { useInfoToast } from '@/hooks/use-info-toast'
-import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
+import { useFm1VaEditorNavigation } from '@/hooks/use-fm1-va-editor-navigation'
 import type { MidiController } from '@/hooks/use-midi'
 import {
   applyEightBitStarter,
@@ -97,20 +98,14 @@ import {
   eightBitVoicingNames,
   eightBitWaveNames,
 } from '@/lib/fm1-va-eight-bit-names'
-import { fm1VaRecordEngine } from '@/lib/fm1-va-engine'
 import {
   displayedFm1VaParameters,
   Fm1VaEditorSession,
   hasUnsavedFm1VaEdits,
 } from '@/lib/fm1-va-editor-session'
-import { eightBitKnobChoice, fm1VaRecordWithKnobChoices } from '@/lib/fm1-va-knob-choices'
+import { eightBitKnobChoice } from '@/lib/fm1-va-knob-choices'
+import { fm1VaEditedRecord } from '@/lib/fm1-va-edited-record'
 import { fm1VaPresetNumber } from '@/lib/fm1-va-preset-read'
-import {
-  fm1VaRecordWithBitcrush,
-  fm1VaRecordWithDistortionType,
-  fm1VaRecordWithEffectOrder,
-} from '@/lib/fm1-va-record-effects'
-import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { cn } from '@/lib/utils'
 
 type EightBitEditorPageProps = {
@@ -138,9 +133,6 @@ type EightBitEditorPageProps = {
   voice: Uint8Array
 }
 
-/** Whether, and why not, the editor's Envelope, LFO, and effects play on the FM1 as they change. */
-type LiveStatus = 'checking' | 'live' | 'noFirmware' | 'noProgram' | 'otherEngine' | 'readFailed'
-
 type Part = 'bass' | 'lead'
 
 const panelClass = 'synthwave-panel @container flex min-w-0 flex-col'
@@ -157,52 +149,6 @@ const dimmableClass = 'm-0 grid min-w-0 gap-2.5 border-0 p-0 disabled:opacity-50
 const signed = (value: number) => (value > 0 ? `+${value}` : String(value))
 /** A User Arpeggio step past +18 reads End, which the FM1 stores as 31, shown as 19. */
 const userArpeggioEndShown = 31 - 12
-
-/**
- * A starting point for one drum or part, applied as one undo step. It always shows its placeholder,
- * as the effect boxes' presets do: a preset is a starting point, not a mode.
- */
-function PresetSelect<Id extends string>({
-  accessibleLabel,
-  help,
-  label,
-  onApply,
-  options,
-}: {
-  accessibleLabel: string
-  help: string
-  label: string
-  onApply: (id: Id) => void
-  options: readonly { id: Id; name: string }[]
-}) {
-  const { t } = useTranslation()
-  const fieldId = useId()
-  return (
-    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 text-xs tracking-[0.1em] text-[var(--crt-ink-2)] uppercase">
-      {/* The help button sits beside the label: inside it, a click on the caption would open it. */}
-      <span className="flex items-center gap-1">
-        <label htmlFor={fieldId}>{label}</label>
-        <RackPanelHelp label={accessibleLabel} text={help} />
-      </span>
-      <RackSelect
-        aria-label={accessibleLabel}
-        className="crt-field h-7 min-w-0 bg-[var(--crt-bg-well)] text-xs text-[var(--crt-ink)] normal-case outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)]"
-        id={fieldId}
-        onChange={(event) => onApply(event.target.value as Id)}
-        value=""
-      >
-        <option disabled value="">
-          {t('editor.effectPresetPlaceholder')}
-        </option>
-        {options.map(({ id, name }) => (
-          <option key={id} value={id}>
-            {name}
-          </option>
-        ))}
-      </RackSelect>
-    </div>
-  )
-}
 
 /**
  * The editor for an 8-Bit preset from FM-1+VA: its Key, its twelve drums, its bass and lead, the
@@ -247,13 +193,6 @@ export function EightBitEditorPage({
   const parameters = displayedFm1VaParameters(state)
   const isDirty = hasUnsavedFm1VaEdits(state)
   const [nameDraft, setNameDraft] = useState<string | null>(null)
-  const [isNavigationPending, setIsNavigationPending] = useState(false)
-  const [isResolvingNavigation, setIsResolvingNavigation] = useState(false)
-  const [checked, setChecked] = useState<{
-    readPreset: typeof reader.readPreset
-    result: LiveStatus
-  } | null>(null)
-  const unsavedDialogRef = useRef<HTMLDialogElement>(null)
   const saveMenuRef = useDismissableDetails()
   const presetsMenuRef = useDismissableDetails()
   const drumGroupName = useId()
@@ -267,7 +206,6 @@ export function EightBitEditorPage({
   // same controllers as other settings, so going live selects the program again first.
   const outputConnected = midi.outputs.some((device) => device.id === midi.selectedOutputId)
   const programRoute = outputConnected ? `${midi.selectedOutputId}/${midi.channel}` : ''
-  const programSelectedOn = useRef(programRoute)
 
   // The session sends through this ref. It follows committed renders only, and a layout effect
   // updates it before the passive effects below or any later event can send through it.
@@ -281,60 +219,15 @@ export function EightBitEditorPage({
     window.scrollTo({ top: 0 })
   }, [])
 
-  useEffect(() => {
-    if (!isDirty) return
-    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
-      event.returnValue = ''
-    }
-    window.addEventListener('beforeunload', warnBeforeUnload)
-    return () => window.removeEventListener('beforeunload', warnBeforeUnload)
-  }, [isDirty])
-
-  // Changes play on the FM1 only while it plays this preset: the slot's own, read first to make
-  // sure it is an 8-Bit one, since the Envelope and LFO controllers would change another preset.
-  // Changing the ports reads it again.
-  const { readPreset } = reader
-  const { sendProgramChange } = midi
-  useEffect(() => {
-    if (programSelectedOn.current !== programRoute) programSelectedOn.current = ''
-  }, [programRoute])
-  useEffect(() => {
-    if (program === undefined || !canCheck) {
-      editor.goLocal()
-      return
-    }
-    const read = new AbortController()
-    editor.checking()
-    const check = async () => {
-      let result: LiveStatus
-      try {
-        const preset = await readPreset(program, read.signal)
-        result = fm1VaRecordEngine(preset.record) === 'eight-bit' ? 'live' : 'otherEngine'
-      } catch {
-        result = 'readFailed'
-      }
-      if (read.signal.aborted) return
-      if (result === 'live' && programSelectedOn.current !== programRoute) {
-        if (sendProgramChange(program)) programSelectedOn.current = programRoute
-        else result = 'readFailed'
-      }
-      setChecked({ readPreset, result })
-      if (result === 'live') editor.goLive()
-      else editor.goLocal()
-    }
-    void check()
-    return () => read.abort()
-  }, [canCheck, editor, program, programRoute, readPreset, sendProgramChange])
-
-  const liveStatus: LiveStatus =
-    program === undefined
-      ? 'noProgram'
-      : !canCheck
-        ? 'noFirmware'
-        : checked?.readPreset === readPreset
-          ? checked.result
-          : 'checking'
+  const liveStatus = useFm1VaLiveStatus({
+    canCheck,
+    editor,
+    engine: 'eight-bit',
+    program,
+    programRoute,
+    reader,
+    sendProgramChange: midi.sendProgramChange,
+  })
 
   const storedName = String.fromCharCode(
     ...parameters.slice(FM1_VOICE_NAME_START, FM1_VOICE_NAME_START + FM1_VOICE_NAME_LENGTH),
@@ -372,48 +265,18 @@ export function EightBitEditorPage({
       onSave(
         stored.voice,
         getFm1EffectParameters(saved),
-        fm1VaRecordWithKnobChoices(
-          fm1VaRecordWithEffectOrder(
-            fm1VaRecordWithBitcrush(
-              fm1VaRecordWithDistortionType(stored.record, saved[FM1_VA_DISTORTION_TYPE_INDEX]),
-              Array.from(saved.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
-            ),
-            Array.from(saved.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START)),
+        fm1VaEditedRecord(stored.record, 'eight-bit', {
+          distortionType: saved[FM1_VA_DISTORTION_TYPE_INDEX],
+          bitcrush: Array.from(saved.subarray(FM1_VA_BITCRUSH_START, FM1_VA_EFFECT_ORDER_START)),
+          effectOrder: Array.from(
+            saved.subarray(FM1_VA_EFFECT_ORDER_START, FM1_VA_KNOB_CHOICES_START),
           ),
-          Array.from(saved.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT)),
-          'eight-bit',
-        ),
+          knobChoices: Array.from(
+            saved.subarray(FM1_VA_KNOB_CHOICES_START, FM1_EDITOR_PARAMETER_COUNT),
+          ),
+        }),
       )
     })
-
-  const requestNavigation = () => {
-    if (editor.getState().isComparing || isNavigationPending) return
-    if (!isDirty) {
-      onBack()
-      return
-    }
-    setIsNavigationPending(true)
-    unsavedDialogRef.current?.showModal()
-  }
-
-  const finishPendingNavigation = (choice: 'discard' | 'save') => {
-    if (!isNavigationPending) return
-    setIsResolvingNavigation(true)
-    if (choice === 'save') saveToLibrary()
-    else editor.revertToSaved()
-    setIsResolvingNavigation(false)
-    unsavedDialogRef.current?.close()
-    setIsNavigationPending(false)
-    onBack()
-  }
-
-  useEffect(() => {
-    if (!browserBackRef) return
-    browserBackRef.current = requestNavigation
-    return () => {
-      browserBackRef.current = null
-    }
-  })
 
   const toggleCompare = () => {
     if (!editor.toggleCompare()) return
@@ -421,26 +284,23 @@ export function EightBitEditorPage({
     saveMenuRef.current?.removeAttribute('open')
   }
 
-  const stopComparing = () => {
-    if (editor.getState().isComparing) toggleCompare()
-  }
-
-  useKeyboardShortcuts([
-    { ...editorShortcuts.redo, onTrigger: editor.redo },
-    { ...editorShortcuts.undo, onTrigger: editor.undo },
-    {
-      ...editorShortcuts.save,
-      onTrigger: () => {
-        if (isDirty) saveToLibrary()
-      },
-    },
-    { ...editorShortcuts.stopComparing, enabled: isComparing, onTrigger: stopComparing },
-    {
-      ...editorShortcuts.back,
-      enabled: syncState !== 'sending' && !isComparing,
-      onTrigger: requestNavigation,
-    },
-  ])
+  const {
+    finishPendingNavigation,
+    isResolvingNavigation,
+    requestNavigation,
+    setIsNavigationPending,
+    stopComparing,
+    unsavedDialogRef,
+  } = useFm1VaEditorNavigation({
+    browserBackRef,
+    editor,
+    isComparing,
+    isDirty,
+    onBack,
+    saveToLibrary,
+    syncState,
+    toggleCompare,
+  })
 
   const value = (id: EightBitRowId) => parameters[eightBitRow(id).index]
   const key = eightBitShownKey(value('key'))
@@ -578,6 +438,7 @@ export function EightBitEditorPage({
         />
         <div className="flex flex-1 flex-col gap-2.5 p-[9px]">
           <PresetSelect<EightBitPartPresetId>
+            placeholder={t('editor.effectPresetPlaceholder')}
             accessibleLabel={t('eightBit.partSetting', {
               part: title,
               setting: t('editor.effectPreset'),
@@ -879,6 +740,7 @@ export function EightBitEditorPage({
                     {drumTitle}
                   </h3>
                   <PresetSelect<EightBitDrumPresetId>
+                    placeholder={t('editor.effectPresetPlaceholder')}
                     accessibleLabel={t('eightBit.partSetting', {
                       part: drumTitle,
                       setting: t('editor.effectPreset'),

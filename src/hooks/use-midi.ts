@@ -217,6 +217,22 @@ export function useMidi() {
     () => new MidiLogStore([makeLogEntry('system', 'Ready. Connect MIDI to begin.')]),
   )
   const [transferQueue] = useState(() => new MidiTransferQueue({ minimumIntervalMs: 35 }))
+  const nextEffectOrder = useRef(0)
+  const queueEffectOrder = useCallback(
+    async (run: () => Promise<void>, signal: AbortSignal) => {
+      const group = `effect-order-${++nextEffectOrder.current}`
+      const cancel = () =>
+        transferQueue.clearGroup(group, 'The effect order operation was cancelled.')
+      signal.addEventListener('abort', cancel, { once: true })
+      try {
+        if (signal.aborted) return
+        await transferQueue.enqueue(run, undefined, { group })
+      } finally {
+        signal.removeEventListener('abort', cancel)
+      }
+    },
+    [transferQueue],
+  )
   const sharedEffectBatches = useRef(new Set<string>())
   const nextSharedEffectBatch = useRef(0)
   const webMidi = useRef<WebMidiApi | null>(null)
@@ -1053,6 +1069,7 @@ export function useMidi() {
     logStore,
     midiAccess,
     outputs,
+    queueEffectOrder,
     sendBank,
     sendEffectDiagnosticControl,
     sendEffectParameter,

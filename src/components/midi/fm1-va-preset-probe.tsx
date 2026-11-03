@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import { Copy, FlaskConical } from 'lucide-react'
 import { useId, useRef, useState } from 'react'
 
@@ -68,10 +69,6 @@ const hex = (byte: number) => byte.toString(16).padStart(2, '0').toUpperCase()
 
 function voiceName(voice: Uint8Array) {
   return String.fromCharCode(...voice.subarray(118, 128)).replace(/[^\x20-\x7e]/g, '?')
-}
-
-function sameBytes(bytes: Uint8Array, other: Uint8Array) {
-  return bytes.length === other.length && bytes.every((byte, index) => byte === other[index])
 }
 
 function changedIndexes(bytes: Uint8Array, previous: Uint8Array | undefined) {
@@ -264,7 +261,7 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
         readAt: new Date(),
         write: {
           matches:
-            sameBytes(readBack.voice, voice.data) && sameBytes(readBack.record, preset.record),
+            bytesEqual(readBack.voice, voice.data) && bytesEqual(readBack.record, preset.record),
           name: voice.name,
           replies,
         },
@@ -544,8 +541,8 @@ export function Fm1VaPresetProbe({ midi }: Fm1VaPresetProbeProps) {
                   </Button>
                   {firstRead &&
                   !(
-                    sameBytes(firstRead.voice, read.preset.voice) &&
-                    sameBytes(firstRead.record, read.preset.record)
+                    bytesEqual(firstRead.voice, read.preset.voice) &&
+                    bytesEqual(firstRead.record, read.preset.record)
                   ) ? (
                     <Button
                       disabled={!canWrite || reading}

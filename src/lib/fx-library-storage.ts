@@ -66,7 +66,7 @@ async function runFxPresetMutation<T>(
       reject(error instanceof Error ? error : new Error('FX preset transaction failed.'))
     }
     try {
-      transaction = database.transaction(fxPresetStoreName, 'readwrite')
+      transaction = database.transaction(fxPresetStoreName, 'readwrite', { durability: 'strict' })
       const fail = (error: unknown) => {
         operationError = error
         transaction.abort()

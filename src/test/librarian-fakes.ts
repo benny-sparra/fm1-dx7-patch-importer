@@ -116,6 +116,7 @@ export function makeLibrarianMidi(overrides: Partial<Midi> = {}): Midi {
     sendBank: vi.fn<Midi['sendBank']>(),
     sendSharedEffectParameter: vi.fn<Midi['sendSharedEffectParameter']>(),
     sendSharedEffectSettings: vi.fn<Midi['sendSharedEffectSettings']>(),
+    queueEffectOrder: (run) => run(),
     setSelectedInputId: vi.fn<Midi['setSelectedInputId']>(),
     setSelectedOutputId: vi.fn<Midi['setSelectedOutputId']>(),
     sysexAvailable: false,

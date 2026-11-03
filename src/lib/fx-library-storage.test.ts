@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { IDBDatabase as FakeDatabase } from 'fake-indexeddb'
 
 import { createFxLibraryPreset } from '@/lib/fx-library-preset'
 import {
@@ -25,9 +26,19 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 describe('stored FX preset library', () => {
+  it('requests strict durability before reporting a named FX preset as saved', async () => {
+    const transactions = vi.spyOn(FakeDatabase.prototype, 'transaction')
+    await addStoredFxLibraryPreset(preset('durable'))
+    const writing = transactions.mock.results
+      .map((result) => result.value)
+      .find((item: IDBTransaction) => item.mode === 'readwrite')
+    expect(writing.durability).toBe('strict')
+  })
+
   it('starts empty and round-trips independent version 1 records', async () => {
     expect(await listStoredFxLibraryPresets()).toEqual({ damagedCount: 0, presets: [] })
 

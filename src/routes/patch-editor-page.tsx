@@ -58,11 +58,9 @@ import {
   fm1VaRecordBitcrush,
   fm1VaRecordDistortionType,
   fm1VaRecordEffectOrder,
-  fm1VaRecordWithBitcrush,
-  fm1VaRecordWithDistortionType,
-  fm1VaRecordWithEffectOrder,
 } from '@/lib/fm1-va-record-effects'
-import { fm1VaRecordKnobChoices, fm1VaRecordWithKnobChoices } from '@/lib/fm1-va-knob-choices'
+import { fm1VaEditedRecord } from '@/lib/fm1-va-edited-record'
+import { fm1VaRecordKnobChoices } from '@/lib/fm1-va-knob-choices'
 import { initializeVoice } from '@/lib/init-voice'
 import { editorShortcuts } from '@/lib/keyboard-shortcuts'
 import { copyOperator, type CopiedOperator } from '@/lib/operator-clipboard'
@@ -216,17 +214,7 @@ export function PatchEditorPage({
           savedVoice,
           savedEffects,
           record &&
-            fm1VaRecordWithKnobChoices(
-              fm1VaRecordWithEffectOrder(
-                fm1VaRecordWithBitcrush(
-                  fm1VaRecordWithDistortionType(record, distortionType),
-                  bitcrush,
-                ),
-                effectOrder,
-              ),
-              knobChoices,
-              'fm',
-            ),
+            fm1VaEditedRecord(record, 'fm', { bitcrush, distortionType, effectOrder, knobChoices }),
         ),
     )
   // Only FM-1+VA's preset write carries Distortion's type. Elsewhere, a type other than Soft Clip

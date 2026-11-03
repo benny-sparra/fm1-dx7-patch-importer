@@ -51,7 +51,11 @@ export class MidiTransferQueue {
     return new Promise<void>((resolve, reject) => {
       const task = { group, key, minimumIntervalMs, run, resolve, reject }
       if (key) {
-        const pendingIndex = this.queue.findIndex((pending) => pending.key === key)
+        // An unkeyed task is an ordering barrier: a later edit cannot replace an earlier one.
+        const barrier = this.queue.findLastIndex((pending) => !pending.key)
+        const pendingIndex = this.queue.findIndex(
+          (pending, index) => index > barrier && pending.key === key,
+        )
 
         if (pendingIndex >= 0) {
           const replaced = this.queue[pendingIndex]

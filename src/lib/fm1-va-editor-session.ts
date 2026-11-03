@@ -1,3 +1,4 @@
+import { bytesEqual } from '@/lib/bytes-equal'
 import { trackAnalyticsEvent } from '@/lib/analytics'
 import { makeDx7VoiceNameEdits } from '@/lib/dx7'
 import {
@@ -50,17 +51,13 @@ export type Fm1VaEditorState = {
   syncState: PatchSyncState
 }
 
-function parametersMatch(left: Uint8Array, right: Uint8Array) {
-  return left.length === right.length && left.every((value, index) => value === right[index])
-}
-
 /** The version the editor shows and plays: the saved one while comparing, else the working copy. */
 export function displayedFm1VaParameters(state: Fm1VaEditorState) {
   return state.isComparing ? state.savedParameters : state.history.present
 }
 
 export function hasUnsavedFm1VaEdits(state: Fm1VaEditorState) {
-  return !parametersMatch(state.history.present, state.savedParameters)
+  return !bytesEqual(state.history.present, state.savedParameters)
 }
 
 /**
@@ -177,7 +174,7 @@ export class Fm1VaEditorSession<Id extends string> {
     this.gestureStart = null
     if (!start) return
     const current = this.state.history
-    if (parametersMatch(start.present, current.present)) return
+    if (bytesEqual(start.present, current.present)) return
     this.update({ history: finishParameterGesture(start, current) })
   }
 

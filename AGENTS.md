@@ -275,7 +275,10 @@ open everything an earlier release could have saved.
   `src/lib/v16-settings-block.ts` (`readV16SettingsBlock`, `makeEffectOrderWrite`), which builds
   the write only from a block a read produced, refuses a table that is not an order of the six
   effects, and refuses any other order. A move reads the block immediately before its one write,
-  since the table also holds each effect's On/Off and Type, which CC 70–93 change. The profile's
+  since the table also holds each effect's On/Off and Type, which CC 70–93 change. The read and
+  write occupy one turn on the same MIDI queue as effect controls, and pending edits never coalesce
+  across that turn. Port changes and unmount cancel the operation before its write. A front-panel
+  change during the round trip can still race it: the protocol cannot make that atomic. The profile's
   `effectOrder` capability, listed for the `mvave` family from release 16 since the owner's run of
   2026-11-01 reordered the FM1's FX chain from the editor
   (`docs/hardware-runs/stock-v16-effect-order-2026-11-01.md`), gates the Effects view's
