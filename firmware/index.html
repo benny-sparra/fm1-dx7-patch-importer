@@ -205,7 +205,7 @@
                 aria-pressed="false"
                 data-category="grooveboxes"
               >
-                Grooveboxes <span class="firmware-filter-count">78</span>
+                Grooveboxes <span class="firmware-filter-count">79</span>
               </button>
               <button
                 class="hero-action firmware-filter-option"
@@ -2823,12 +2823,24 @@
             class="firmware-entry synthwave-panel"
             id="choppah"
             aria-labelledby="firmware-choppah"
-            data-categories="samplers"
+            data-categories="samplers grooveboxes"
             data-updated="2026-11-04"
             data-stars="4"
           >
-            <figure class="firmware-photo firmware-photo-missing dither-well" aria-hidden="true">
-              <span>CHOPPAH</span>
+            <figure class="firmware-photo crt-inset dither-well">
+              <img
+                alt="CHOPPAH's slicer screen: the break cut into sixteen slices, with the playhead and the slice window"
+                decoding="async"
+                height="480"
+                loading="lazy"
+                sizes="(width >= 60rem) 18rem, 50vw"
+                src="/src/assets/firmware-choppah.webp"
+                srcset="
+                  /src/assets/generated/firmware-choppah-460.webp 460w,
+                  /src/assets/firmware-choppah.webp               480w
+                "
+                width="480"
+              />
             </figure>
             <div class="firmware-body">
               <p class="synthwave-kicker">profikid</p>
@@ -2857,9 +2869,11 @@
               <p class="firmware-blurb">
                 A breakbeat chopper: a break is cut into sixteen slices on the white keys, with
                 momentary effect pads, a generator that rearranges the break and a master effects
-                chain. The README calls it early (0.x) and says the engine, slicer, pads, generator
-                and effects work on the device. It installs from its own browser page or its release
-                package, and the installer can put M-VAVE's firmware back.
+                chain. Eight classic breaks are built in, and there are sixteen patterns with a step
+                sequencer and a synthesised kick, snare and hat on the drum lanes. The README calls
+                it early (0.x) and says the engine, slicer, pads, generator and effects work on the
+                device. It installs from its own browser page or its release package, and the
+                installer can put M-VAVE's firmware back.
               </p>
               <ul class="firmware-links">
                 <li>
@@ -2892,7 +2906,7 @@
                 <li>
                   <a
                     class="hero-action firmware-link"
-                    href="https://github.com/profikid/fm1-break-choppah/releases/tag/v0.40"
+                    href="https://github.com/profikid/fm1-break-choppah/releases/tag/v0.88"
                     rel="noopener"
                     target="_blank"
                     >Release ↗</a

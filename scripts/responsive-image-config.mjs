@@ -34,6 +34,7 @@ export const responsiveImageConfig = [
   { height: 480, source: 'firmware-amb-1.webp', width: 480, widths: [460] },
   { height: 480, source: 'firmware-bubba-machine.webp', width: 480, widths: [460] },
   { height: 480, source: 'firmware-ctl-1.webp', width: 480, widths: [460] },
+  { height: 480, source: 'firmware-choppah.webp', width: 480, widths: [460] },
   { height: 480, source: 'firmware-fart-machine-one.webp', width: 480, widths: [460] },
   { height: 480, source: 'firmware-felucca-8-patterns.webp', width: 960, widths: [460] },
   { height: 480, source: 'firmware-fm1-chord.webp', width: 480, widths: [460] },
