@@ -378,6 +378,7 @@ export default {
     sendTitle: 'Send all 32 patches; choose the destination bank on the FM1',
     sentStatus: '“{{bank}}” was sent. Choose its destination on the FM1.',
     notSent: 'The bank was not sent. Open the MIDI log for details, then retry.',
+    sendUnavailable: 'The bank could not be prepared for sending. Reload the page and try again.',
     importFailed: 'Import failed.',
     restoreFailed: 'The banks could not be reset to the factory patches. Try again.',
     bankUnavailable: 'That bank is no longer available. Close this dialog and try again.',

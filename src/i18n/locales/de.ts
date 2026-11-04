@@ -1384,6 +1384,8 @@ export default {
     sendTitle: 'Alle 32 Sounds senden und Zielbank am FM1 wählen',
     sentStatus: '„{{bank}}“ wurde gesendet. Wähle ihr Ziel am FM1.',
     notSent: 'Die Bank wurde nicht gesendet. Öffne das MIDI-Protokoll und versuche es erneut.',
+    sendUnavailable:
+      'Die Bank konnte nicht zum Senden vorbereitet werden. Lade die Seite neu und versuche es erneut.',
     importFailed: 'Import fehlgeschlagen.',
     restoreFailed:
       'Die Bänke konnten nicht auf die Werks-Sounds zurückgesetzt werden. Versuche es erneut.',

@@ -641,8 +641,17 @@ export function LibrarianPage({
     setIsSending(true)
     setTransferError('')
     let voiceCount: number | undefined
+    let voices: Dx7Voice[]
     try {
-      let [voices] = await bankDx7Voices([destinationBank])
+      voices = (await bankDx7Voices([destinationBank]))[0]
+    } catch {
+      // The Init voice that fills a Virtual Analog or 8-Bit slot is a lazy chunk, which a stale
+      // deployment or a dropped connection can fail to load. That is not a transport failure.
+      setDialogLoadError(t('banks.sendUnavailable'))
+      setIsSending(false)
+      return
+    }
+    try {
       const initCount = initVoiceCount(destinationBank)
       let sentStatus =
         initCount === 0
