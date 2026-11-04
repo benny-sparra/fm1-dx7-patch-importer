@@ -667,6 +667,9 @@ open everything an earlier release could have saved.
   (**Works with this editor**); the rest carry none rather than a tag saying they are not
   supported. The page is in British English only, outside the
   locale files.
+  A firmware photo under 4 KiB is inlined by Vite as a `data:` URI, which the page's `img-src 'self'`
+  refuses (`npm run security:check` fails), so encode a small source over 4096 bytes
+  (`cwebp -lossless -z 0` took Miku-FM's 240 px capture from 3.3 to 4.6 KB).
 - The firmware page orders its entries A–Z, as written, or by GitHub stars on request, through
   `public/firmware-sort.js`, another plain script. The counts are a snapshot in the HTML
   (`data-stars`, and in the status line Lucide's star from the page's one `<symbol>` beside the bare
