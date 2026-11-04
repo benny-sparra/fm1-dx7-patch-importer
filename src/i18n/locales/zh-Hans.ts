@@ -1234,6 +1234,7 @@ export default {
     sendTitle: '发送全部 32 个音色，并在 FM1 上选择目标音色库',
     sentStatus: '已发送“{{bank}}”。请在 FM1 上选择目标位置。',
     notSent: '未发送音色库。请打开 MIDI 日志查看详情，然后重试。',
+    sendUnavailable: '无法准备要发送的音色库。请重新加载页面后重试。',
     importFailed: '导入失败。',
     restoreFailed: '无法将音色库重置为原厂音色。请重试。',
     bankUnavailable: '该音色库已不可用。请关闭此对话框后重试。',

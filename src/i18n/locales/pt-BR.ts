@@ -1343,6 +1343,8 @@ export default {
     sendTitle: 'Enviar as 32 vozes e escolher o banco de destino no FM1',
     sentStatus: '“{{bank}}” foi enviado. Escolha o destino no FM1.',
     notSent: 'O banco não foi enviado. Abra o registro MIDI e tente novamente.',
+    sendUnavailable:
+      'Não foi possível preparar o banco para envio. Recarregue a página e tente novamente.',
     importFailed: 'Falha na importação.',
     restoreFailed: 'Não foi possível redefinir os bancos com os sons de fábrica. Tente novamente.',
     bankUnavailable:

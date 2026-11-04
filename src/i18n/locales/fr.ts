@@ -1363,6 +1363,8 @@ export default {
     sendTitle: 'Envoyer les 32 voix et choisir la banque de destination sur le FM1',
     sentStatus: '« {{bank}} » a été envoyée. Choisissez sa destination sur le FM1.',
     notSent: 'La banque n’a pas été envoyée. Consultez le journal MIDI, puis réessayez.',
+    sendUnavailable:
+      'La banque n’a pas pu être préparée pour l’envoi. Rechargez la page et réessayez.',
     importFailed: 'Échec de l’importation.',
     restoreFailed: 'Impossible de rétablir les sons d’usine dans les banques. Réessayez.',
     bankUnavailable: 'Cette banque n’est plus disponible. Fermez cette fenêtre et réessayez.',
