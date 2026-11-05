@@ -641,7 +641,7 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
 
 ## Nice to have
 
-- [ ] **Mark what a received bank changes.** On the **Receive patches** wizard's review screen,
+- [x] **Mark what a received bank changes.** On the **Receive patches** wizard's review screen,
       say how many received patches differ from the bank they would replace, such as "12 of 32
       differ from bank A", and mark those slots in the audition grid. It answers the one
       question asked at that point, whether replacing loses anything, without a new idea to
@@ -652,6 +652,10 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
   - Only for a bank, and only once a destination bank is known; the count follows the
     destination when it changes. Nothing changes on an empty destination.
   - Strings in every locale, with a rendered test in one non-English locale for the count.
+  - _Done (2026-11-05): the review screen says how many of the 32 differ from the destination
+    bank by `voiceFingerprint` of the voice data, and marks each with a dot (`BankPreview`'s
+    `differences`); the destination screen's warning repeats the count, which follows the bank
+    chosen. An empty slot counts as differing; an empty bank shows nothing._
 
 - [x] **Receive a DX7 voice over MIDI.** Offer to place a standard DX7 single-voice dump arriving at
       the MIDI input, from Dexed, a DX7, or another editor, into a chosen slot, with the same checks

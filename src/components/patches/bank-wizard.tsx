@@ -141,6 +141,11 @@ export function BankFileScreen({ disabled = false, file, onChoose }: BankFileScr
 }
 
 type BankPreviewProps = {
+  /**
+   * Marks the patches that differ from the ones they would replace: `marked` says which, `label`
+   * describes a marked patch, and `summary` says how many, above the patches.
+   */
+  differences?: { label: string; marked: boolean[]; summary: string }
   heading: string
   onPlay: (index: number) => void
   playingIndex: number | null
@@ -148,15 +153,30 @@ type BankPreviewProps = {
 }
 
 /** A bank's patches before it replaces anything, each played on the FM1 when clicked. */
-export function BankPreview({ heading, onPlay, playingIndex, voices }: BankPreviewProps) {
+export function BankPreview({
+  differences,
+  heading,
+  onPlay,
+  playingIndex,
+  voices,
+}: BankPreviewProps) {
   const { i18n, t } = useTranslation()
   const headingId = useId()
+  const markId = useId()
   const numberFormat = new Intl.NumberFormat(i18n.resolvedLanguage)
   return (
     <section aria-labelledby={headingId} className="grid gap-2">
       <h3 className="text-sm font-semibold" id={headingId}>
         {heading}
       </h3>
+      {differences ? (
+        <>
+          <p className="text-sm text-[var(--crt-ink-3)]">{differences.summary}</p>
+          <span hidden id={markId}>
+            {differences.label}
+          </span>
+        </>
+      ) : null}
       <ul className="dither-well grid grid-cols-2 gap-1 border border-[var(--crt-line-dk)] p-2 sm:grid-cols-4">
         {voices.map((voice, index) => (
           <li key={index}>
@@ -166,6 +186,7 @@ export function BankPreview({ heading, onPlay, playingIndex, voices }: BankPrevi
                 name: voice.name.trim(),
                 number: numberFormat.format(index + 1),
               })}
+              markId={differences?.marked[index] ? markId : undefined}
               name={voice.name}
               number={index + 1}
               onClick={() => onPlay(index)}

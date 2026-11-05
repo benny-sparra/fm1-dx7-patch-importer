@@ -685,6 +685,11 @@ export default {
     emptyBank: 'Vacío',
     bankWarning:
       'Todos los sonidos de «{{bank}}» se sustituirán por los 32 recibidos y sus efectos FM1 volverán a los valores predeterminados.',
+    bankDiffers: 'Uno de los 32 sonidos difiere de «{{bank}}» y está marcado con un punto.',
+    bankDiffers_other:
+      '{{count, number}} de los 32 sonidos difieren de «{{bank}}», cada uno marcado con un punto.',
+    bankMatches: 'Los 32 sonidos coinciden con los de «{{bank}}».',
+    differingPatch: 'Difiere de «{{bank}}»',
     patchBankLegend: 'Banco',
     slotLabel: 'Ranura que reemplazar',
     slotOption: '{{slot}} {{patch}}',

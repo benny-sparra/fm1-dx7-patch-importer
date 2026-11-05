@@ -688,6 +688,11 @@ export default {
     emptyBank: 'Vide',
     bankWarning:
       'Chaque son de « {{bank}} » sera remplacé par les 32 reçus, et leurs effets FM1 reviendront à leurs valeurs par défaut.',
+    bankDiffers: 'Un des 32 sons diffère de « {{bank}} » et porte un point.',
+    bankDiffers_other:
+      '{{count, number}} des 32 sons diffèrent de « {{bank}} », chacun marqué d’un point.',
+    bankMatches: 'Les 32 sons sont identiques à ceux de « {{bank}} ».',
+    differingPatch: 'Diffère de « {{bank}} »',
     patchBankLegend: 'Banque',
     slotLabel: 'Emplacement à remplacer',
     slotOption: '{{slot}} {{patch}}',

@@ -9,7 +9,7 @@ import { ToastProvider } from '@/components/ui/toast'
 import type { Patch } from '@/data/patches'
 import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
-import { updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
+import { parseDx7Bank, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import { makeDx7VoiceFile } from '@/lib/dx7-voice-file'
 import { makeDemoVoices, type PatchLibrarySnapshot } from '@/lib/patch-library'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
@@ -58,11 +58,13 @@ function renderWizard({
   initialSlot,
   initialSource = 'fm1',
   midi: midiOverrides = {},
+  voices = {},
 }: {
   initialBank?: string
   initialSlot?: number
   initialSource?: Props['initialSource']
   midi?: Partial<ReceiveMidi>
+  voices?: ReceiveLibrary['voices']
 } = {}) {
   const ports = makeFakeFm1Ports()
   const { inputs, selectedInputId } = makeFakeFm1Devices(ports)
@@ -83,6 +85,7 @@ function renderWizard({
     patches: [...bankPatches('A', 'LEAD'), ...bankPatches('B', 'PAD')],
     replaceVoice: vi.fn<PatchLibrary['replaceVoice']>(() => changed),
     undoChange: vi.fn<PatchLibrary['undoChange']>(),
+    voices,
   }
   const onClose = vi.fn()
   const onPlay = vi.fn<(voice: Dx7Voice) => void>()
@@ -116,6 +119,17 @@ function renderWizard({
   )
   const receive = (bytes: Uint8Array | number[]) => act(() => ports.input.receive(bytes))
   return { ...view, library, midi, onClose, onPlay, ports, receive, user: userEvent.setup() }
+}
+
+/** Bank B holding the captured export, with the patches at `changed` (0-based) renamed. */
+function bankBHoldingExport(edited: number[] = []) {
+  const exported = parseDx7Bank(stockV16BankExport().slice().buffer)
+  return Object.fromEntries(
+    exported.map((voice, index) => [
+      `bank-B-${index + 1}`,
+      edited.includes(index) ? updateDx7VoiceName(voice, 'EDITED') : voice,
+    ]),
+  )
 }
 
 const nextButton = () => screen.getByRole<HTMLButtonElement>('button', { name: 'Next' })
@@ -277,6 +291,75 @@ describe('ReceiveFromFm1Dialog', () => {
 
     expect(screen.queryByRole('alert')).toBeNull()
     expect(nextButton().disabled).toBe(false)
+  })
+
+  it('marks the received patches that differ from the bank they would replace', async () => {
+    const { receive, user } = renderWizard({ voices: bankBHoldingExport([1, 3]) })
+    await user.click(nextButton())
+    receive(stockV16BankExport())
+    await user.click(nextButton())
+
+    expect(screen.getByText('2 of the 32 differ from “Pads”, each marked with a dot.')).toBeTruthy()
+    const organ = screen.getByRole('button', { name: 'Play ORGAN 1, patch 2' })
+    expect(organ.getAttribute('aria-describedby')).not.toBeNull()
+    expect(document.getElementById(organ.getAttribute('aria-describedby')!)?.textContent).toBe(
+      'Differs from “Pads”',
+    )
+    expect(
+      screen
+        .getByRole('button', { name: 'Play j.piano 7+, patch 1' })
+        .getAttribute('aria-describedby'),
+    ).toBeNull()
+  })
+
+  it('counts the differences again when another bank is chosen', async () => {
+    const { receive, user } = renderWizard({ voices: bankBHoldingExport([1]) })
+    await user.click(nextButton())
+    receive(stockV16BankExport())
+    await user.click(nextButton())
+    await user.click(nextButton())
+
+    expect(screen.getByText('One of the 32 differs from “Pads”, marked with a dot.')).toBeTruthy()
+    await user.click(screen.getByRole('radio', { name: 'Leads' }))
+
+    expect(
+      screen.getByText('32 of the 32 differ from “Leads”, each marked with a dot.'),
+    ).toBeTruthy()
+  })
+
+  it('says every received patch matches the bank it would replace', async () => {
+    const { receive, user } = renderWizard({ voices: bankBHoldingExport() })
+    await user.click(nextButton())
+    receive(stockV16BankExport())
+    await user.click(nextButton())
+
+    expect(screen.getByText('All 32 match the patches in “Pads”.')).toBeTruthy()
+    expect(
+      screen
+        .getAllByRole('button', { name: /^Play / })
+        .some((button) => button.hasAttribute('aria-describedby')),
+    ).toBe(false)
+  })
+
+  it('marks nothing when the bank it fills is empty', async () => {
+    const { receive, user } = renderWizard({ initialBank: 'C' })
+    await user.click(nextButton())
+    receive(stockV16BankExport())
+    await user.click(nextButton())
+
+    expect(screen.queryByText(/differ|match/)).toBeNull()
+  })
+
+  it('counts the differing patches in Ukrainian', async () => {
+    await setLocale('uk')
+    const { receive, user } = renderWizard({ voices: bankBHoldingExport([1, 2, 3]) })
+    await user.click(screen.getByRole('button', { name: 'Далі' }))
+    receive(stockV16BankExport())
+    await user.click(screen.getByRole('button', { name: 'Далі' }))
+
+    expect(
+      screen.getByText('Крапкою позначено 3 з 32 патчів, що відрізняються від «Pads».'),
+    ).toBeTruthy()
   })
 
   it('explains a damaged bank in Ukrainian', async () => {

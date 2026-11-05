@@ -674,6 +674,16 @@ export default {
     emptyBank: 'Порожній',
     bankWarning:
       'Усі патчі в «{{bank}}» буде замінено 32 отриманими, а їхні ефекти FM1 скинуто до типових.',
+    bankDiffers:
+      'Крапкою позначено {{count, number}} з 32 патчів, що відрізняється від «{{bank}}».',
+    bankDiffers_few:
+      'Крапкою позначено {{count, number}} з 32 патчів, що відрізняються від «{{bank}}».',
+    bankDiffers_many:
+      'Крапкою позначено {{count, number}} з 32 патчів, що відрізняються від «{{bank}}».',
+    bankDiffers_other:
+      'Крапкою позначено {{count, number}} з 32 патчів, що відрізняються від «{{bank}}».',
+    bankMatches: 'Усі 32 патчі збігаються з патчами в «{{bank}}».',
+    differingPatch: 'Відрізняється від «{{bank}}»',
     patchBankLegend: 'Банк',
     slotLabel: 'Слот, який замінити',
     slotOption: '{{slot}} {{patch}}',
