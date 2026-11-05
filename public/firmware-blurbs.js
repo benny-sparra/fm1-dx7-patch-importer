@@ -23,7 +23,7 @@ function setOpen(entry, open) {
   button.setAttribute('aria-expanded', String(open))
   // The label names the firmware, since every card has a button that reads the same.
   const label = open ? 'Less' : 'More'
-  button.textContent = label
+  button.querySelector('.firmware-more-label').textContent = label
   button.setAttribute('aria-label', `${label} about ${button.dataset.name}`)
 }
 
@@ -36,16 +36,29 @@ function showToggles() {
 }
 
 function addToggles() {
-  for (const entry of document.querySelectorAll('.firmware-entry')) {
+  // A card's blurb folds to two lines, a watched firmware's note to one.
+  for (const entry of document.querySelectorAll('.firmware-entry, .firmware-watch-item')) {
     const blurbs = blurbsOf(entry)
     if (blurbs.length === 0) continue
     const name =
-      entry.querySelector('.firmware-title')?.textContent?.replace(/\s+/g, ' ').trim() ?? ''
+      entry
+        .querySelector('.firmware-title, .firmware-watch-name')
+        ?.textContent?.replace('↗', '')
+        .replace(/\s+/g, ' ')
+        .trim() ?? ''
     const button = document.createElement('button')
     button.type = 'button'
     button.className = 'firmware-more'
+    // A label and the page's chevron, which turns over while the blurb is open.
+    button.innerHTML =
+      '<span class="firmware-more-label"></span><svg aria-hidden="true" class="firmware-more-icon" height="12" width="12"><use href="#firmware-chevron" /></svg>'
     button.dataset.name = name
-    blurbs.at(-1).after(button)
+    // A watched firmware's button ends its name's row, so it adds no line of its own.
+    const nameRow = entry.matches('.firmware-watch-item')
+      ? entry.querySelector(':scope > p:first-child')
+      : null
+    if (nameRow) nameRow.append(button)
+    else blurbs.at(-1).after(button)
     toggles.set(entry, button)
     setOpen(entry, false)
     button.addEventListener('click', () => {
