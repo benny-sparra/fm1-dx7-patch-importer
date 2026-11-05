@@ -110,9 +110,9 @@ type CandidateEffectValues =
  * The editor's 24 effect values, in controller order, as the mapping in
  * docs/v16-fx-readback-validation.md proposes them: each effect's switch, and Filter's and Reverb's
  * type, from the table byte of that effect's number, and its other controls from its three values
- * in controller order. **Candidate, Likely only**: no row is proven on V16 until a run changes one
- * control at a time, so nothing but the development probe reads it. A value outside its control's
- * range is reported, never clamped.
+ * in controller order. Every row was confirmed on V16 in the run of 2026-11-05, but only the
+ * development probe reads it until **Read effects from FM1** is built. A value outside its
+ * control's range is reported, never clamped.
  */
 export function candidateEffectValues({ table, values }: V16LiveEffects): CandidateEffectValues {
   const decoded: number[] = []
