@@ -145,7 +145,7 @@ approval of its bytes. The bytes proposed are:
 Asked of the owner: approve the frame above (record it in `AGENTS.md`), and say whether a read of
 only 54 bytes, rather than the approved ceiling of 215, is acceptable (it is narrower).
 
-## 5. Production contract (unblocked 2026-11-05, not implemented)
+## 5. Production contract (built 2026-11-05 as **Read effects from FM1**)
 
 Only after all 24 rows are proven on hardware: an explicit **Read effects from FM1** action, offered
 only on a profile that lists it and while the ports are those the read started on; it takes its turn

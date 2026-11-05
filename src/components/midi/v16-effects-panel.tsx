@@ -14,6 +14,7 @@ import {
 } from '@/components/patches/library-panel'
 import { useFxLibrary, type FxLibrary } from '@/hooks/use-fx-library'
 import { useV16EffectOrder } from '@/hooks/use-v16-effect-order'
+import { useV16LiveEffectsRead } from '@/hooks/use-v16-live-effects-read'
 import type { MidiController } from '@/hooks/use-midi'
 import '@/i18n/fx-presets'
 import { applyEffectPreset, type EffectPresetId } from '@/lib/effect-presets'
@@ -38,7 +39,9 @@ export type V16EffectsMidi = Pick<
 
 type PanelProps = {
   fxLibrary?: FxLibrary
-  midi: V16EffectsMidi & Parameters<typeof useV16EffectOrder>[0]
+  midi: V16EffectsMidi &
+    Parameters<typeof useV16EffectOrder>[0] &
+    Parameters<typeof useV16LiveEffectsRead>[0]
 }
 
 /**
@@ -68,6 +71,7 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
   const route = v16EffectsRouteKey(midi.selectedOutputId, midi.effectChannel, midi.firmware)
   const previousRoute = useRef(route)
   const chain = useV16EffectOrder(midi)
+  const liveRead = useV16LiveEffectsRead(midi)
   const orderNotice =
     chain.status === 'reading'
       ? t('fxPresets.effectOrderReading')
@@ -110,11 +114,9 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
               <HelpPopover
                 className="text-[var(--crt-ink-3)] hover:text-[var(--crt-acc-lt)]"
                 label={t('fxPresets.effectsTitle')}
-                text={[
-                  t('fxPresets.help'),
-                  t('fxPresets.orderHelp'),
-                  t('fxPresets.noReadback'),
-                ].join(' ')}
+                text={[t('fxPresets.help'), t('fxPresets.orderHelp'), t('fxPresets.readback')].join(
+                  ' ',
+                )}
               />
             </CardTitle>
             {/* Below md the preset list is a sheet with its own search. */}
@@ -151,14 +153,16 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
         </div>
         <FxPresetLibrary
           fxLibrary={fxLibrary}
+          liveRead={liveRead}
           midi={midi}
           menuSlot={menuSlot}
+          onOrderRead={chain.adopt}
           onSearchChange={setSearch}
           onSendingChange={setSending}
           search={search}
         >
           <EffectsUnit
-            disabled={sending}
+            disabled={sending || liveRead.reading}
             effectOrder={
               chain.status === 'unavailable'
                 ? undefined
