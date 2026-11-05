@@ -31,7 +31,8 @@ import { trackAnalyticsEvent } from '@/lib/analytics'
 import { Dx7BankFileError, type Dx7Voice } from '@/lib/dx7'
 import type { Dx7VoiceFileError } from '@/lib/dx7-voice-file'
 import type { Dx7VoiceReceipt } from '@/lib/dx7-voice-receiver'
-import { patchSlotCode } from '@/lib/patch-library'
+import { patchSlotCode, voiceId } from '@/lib/patch-library'
+import { voiceFingerprint } from '@/lib/voice-fingerprint'
 
 /** What is sending: an FM1 on M-VAVE's V16 with Bank Export, or one patch from anything else. */
 export type ReceiveSource = 'fm1' | 'patch'
@@ -52,7 +53,7 @@ type ReceiveFromFm1DialogProps = {
   initialSource: ReceiveSource
   library: Pick<
     PatchLibrary,
-    'importBank' | 'loadedBanks' | 'patches' | 'replaceVoice' | 'undoChange'
+    'importBank' | 'loadedBanks' | 'patches' | 'replaceVoice' | 'undoChange' | 'voices'
   >
   midi: ReceiveMidi
   onClose: () => void
@@ -255,6 +256,20 @@ export function ReceiveFromFm1Dialog({
     .sort((first, second) => first.number - second.number)
   const destinationSlot = slots.find((patch) => patch.number === chosenSlot) ?? slots[0]
   const replacing = library.loadedBanks.includes(destinationBank)
+  // Which received patches differ from the ones they would replace, by voice data alone, since an
+  // Export carries no FM1 effects. An empty slot differs; an empty bank has nothing to lose.
+  const differing =
+    received?.kind === 'bank' && replacing
+      ? received.voices.map((voice, index) => {
+          const current = library.voices[voiceId(destinationBank, index + 1)]
+          return !current || voiceFingerprint(current.data) !== voiceFingerprint(voice.data)
+        })
+      : null
+  const differingCount = differing?.filter(Boolean).length ?? 0
+  const differenceSummary =
+    differingCount > 0
+      ? t('receiveWizard.bankDiffers', { bank: destinationName, count: differingCount })
+      : t('receiveWizard.bankMatches', { bank: destinationName })
 
   const screenReady =
     screen === 'source' || screen === 'review'
@@ -404,6 +419,15 @@ export function ReceiveFromFm1Dialog({
 
           {screen === 'review' && received?.kind === 'bank' ? (
             <BankPreview
+              differences={
+                differing
+                  ? {
+                      label: t('receiveWizard.differingPatch', { bank: destinationName }),
+                      marked: differing,
+                      summary: differenceSummary,
+                    }
+                  : undefined
+              }
               heading={t('receiveWizard.receivedTitle')}
               onPlay={play}
               playingIndex={playingIndex}
@@ -460,7 +484,10 @@ export function ReceiveFromFm1Dialog({
               </fieldset>
               {replacing ? (
                 <WarningNotice>
-                  <p>{t('receiveWizard.bankWarning', { bank: destinationName })}</p>
+                  <div className="grid gap-1">
+                    <p>{t('receiveWizard.bankWarning', { bank: destinationName })}</p>
+                    <p>{differenceSummary}</p>
+                  </div>
                 </WarningNotice>
               ) : null}
             </>

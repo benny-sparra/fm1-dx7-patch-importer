@@ -166,6 +166,11 @@ export default {
     emptyBank: 'Empty',
     bankWarning:
       'Every patch in “{{bank}}” will be replaced by the 32 received, and their FM1 effects reset to their defaults.',
+    bankDiffers: 'One of the 32 differs from “{{bank}}”, marked with a dot.',
+    bankDiffers_other:
+      '{{count, number}} of the 32 differ from “{{bank}}”, each marked with a dot.',
+    bankMatches: 'All 32 match the patches in “{{bank}}”.',
+    differingPatch: 'Differs from “{{bank}}”',
     patchBankLegend: 'Bank',
     slotLabel: 'Slot to replace',
     slotOption: '{{slot}} {{patch}}',

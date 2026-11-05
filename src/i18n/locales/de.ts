@@ -695,6 +695,11 @@ export default {
     emptyBank: 'Leer',
     bankWarning:
       'Jeder Sound in „{{bank}}“ wird durch die 32 empfangenen ersetzt, und ihre FM1-Effekte werden auf die Standardwerte zurückgesetzt.',
+    bankDiffers: 'Einer der 32 Sounds weicht von „{{bank}}“ ab und ist mit einem Punkt markiert.',
+    bankDiffers_other:
+      '{{count, number}} der 32 Sounds weichen von „{{bank}}“ ab, jeder mit einem Punkt markiert.',
+    bankMatches: 'Alle 32 Sounds stimmen mit denen in „{{bank}}“ überein.',
+    differingPatch: 'Weicht von „{{bank}}“ ab',
     patchBankLegend: 'Bank',
     slotLabel: 'Zu ersetzender Slot',
     slotOption: '{{slot}} {{patch}}',

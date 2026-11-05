@@ -675,6 +675,11 @@ export default {
     emptyBank: 'Vazio',
     bankWarning:
       'Cada som de “{{bank}}” será substituído pelos 32 recebidos, e seus efeitos FM1 voltarão aos valores padrão.',
+    bankDiffers: 'Um dos 32 sons difere de “{{bank}}” e está marcado com um ponto.',
+    bankDiffers_other:
+      '{{count, number}} dos 32 sons diferem de “{{bank}}”, cada um marcado com um ponto.',
+    bankMatches: 'Os 32 sons são iguais aos de “{{bank}}”.',
+    differingPatch: 'Difere de “{{bank}}”',
     patchBankLegend: 'Banco',
     slotLabel: 'Slot a substituir',
     slotOption: '{{slot}} {{patch}}',

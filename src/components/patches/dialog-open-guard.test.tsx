@@ -113,6 +113,7 @@ const openDialogs = {
         patches: [],
         replaceVoice: vi.fn(),
         undoChange: vi.fn(),
+        voices: {},
       }}
       midi={{
         connectMidi: vi.fn(),
