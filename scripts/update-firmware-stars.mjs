@@ -84,9 +84,11 @@ const longDate = today.toLocaleDateString('en-GB', {
   timeZone: 'UTC',
   year: 'numeric',
 })
+// The date the counts were read is the Order dropdown's tooltip.
 updated = updated.replace(
-  /(<p class="firmware-sort-note">[\s\S]*?)<time datetime="[\d-]+">[^<]*<\/time>/,
-  (_match, note) => `${note}<time datetime="${isoDate}">${longDate}</time>`,
+  /(id="firmware-order"\s+)data-stars-date="[\d-]+"(\s+)title="[^"]*"/,
+  (_match, before, between) =>
+    `${before}data-stars-date="${isoDate}"${between}title="Stars on GitHub as of ${longDate}"`,
 )
 
 const formatted = await format(updated, {

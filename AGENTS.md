@@ -661,10 +661,10 @@ open everything an earlier release could have saved.
   links its stylesheet (`src/firmware-page.css`, which imports `index.css`) from the HTML and takes
   the editor's finish through `public/firmware-colourway.js`, a plain script served unchanged. Add a
   firmware as another `<article class="firmware-entry">` whose `id` is its short anchor, such as
-  `felucca` (Baud Girl's is `baud-girl`), linked by the `#` beside its title, which people share, so
+  `felucca` (Baud Girl's is `baud-girl`), linked by its title, which people share, so
   never rename one; `src/firmware-page.test.ts` checks each has its heading, maker, blurb, sized
-  photo or placeholder, and links. Only a firmware this editor works with carries a support tag
-  (**Works with this editor**); the rest carry none rather than a tag saying they are not
+  photo or none (a placeholder is never used), and links. Only a firmware this editor works with
+  carries a support tag (**Works with this editor**); the rest carry none rather than a tag saying they are not
   supported. The page is in British English only, outside the
   locale files.
   A firmware photo under 4 KiB is inlined by Vite as a `data:` URI, which the page's `img-src 'self'`
@@ -675,23 +675,69 @@ open everything an earlier release could have saved.
   (`data-stars`, and in the status line Lucide's star from the page's one `<symbol>` beside the bare
   number, with the full label for assistive technology and the tooltip), never fetched by the page, since a visitor's browser asking
   GitHub would need a privacy and CSP review and meets its anonymous rate limit. Refresh them, and
-  the date beside the order buttons, with `npm run firmware:stars` whenever the page is edited.
+  the date in the Order dropdown's tooltip, with `npm run firmware:stars` whenever the page is edited.
   The entries `data-pinned` marks, M-VAVE's two firmwares (Official Open, then the stock one) and
   Baud Girl's, stay first in either order and have no count; an entry without a GitHub repository, such as Groove OS, has no count, says
   Not on GitHub beside an outline star, and follows the counted ones. A new firmware is written in alphabetical place, and the script gives
   it a count. Label the order **Most starred**, never popular, since stars say how widely a project
   was shared rather than how many FM1s run it.
+- The firmware page's controls are one row: **Show** and **Order**, then the search box at the far
+  right (on a phone, on its own row above them). Show is a `<details>` menu
+  (`.firmware-kind-menu`) rather than a native dropdown, so each kind carries its icon and count;
+  its button shows the kind chosen. Order is a native select drawn with the page's own chevron
+  symbol. The date the star counts were read is the Order dropdown's tooltip (`data-stars-date`
+  and `title`), which `npm run firmware:stars` refreshes. The search box has no visible label (its
+  placeholder and `aria-label` name it). Search (`public/firmware-filter.js`) keeps the entries
+  whose maker, name, and blurb hold every word typed, beside the kind chosen; when none match, the
+  **No firmwares found** panel replaces the grid, and its **Show all firmwares** clears both. A
+  link to a hidden card clears them too. Search covers the watch list too (name, maker, and note),
+  which has no kinds and so shows only under All. The watch list runs in two columns, three from
+  64rem, each note folded to one line with the cards' More button at the end of its name row (each
+  item's name and maker sit in one `<p>`). It is tinted violet, whatever the finish, as the Latest strip is amber.
+  From 64rem an FM1 sits beside the Latest strip and the controls (`.firmware-showcase`), one
+  photo per finish stacked in one cell, and `public/firmware-showcase.js` fades through them every
+  4 s, starting on the finish chosen in the editor. A photo is not displayed, and so not loaded, until
+  its turn is next: the page opens with one, and each next loads once the one shown has (by its
+  load event, since `decode()` never settled for a photo at no opacity). With reduced motion, or below 64rem where the
+  photo is not shown (nor loaded), it stays on that one. Its photos are decoration (`alt=""`, the
+  figure `aria-hidden`) and follow `fm1Colorways`' order, which a test checks. The controls row shows how many firmwares show, and the
+  watch list's heading how many of it show (`firmware-filter.js` fills both, so neither is kept
+  by hand). Each card's kinds show as the Show menu's icons at the end of its maker line, named in
+  a tooltip and for assistive technology; `firmware-filter.js` adds them from `data-categories`, so
+  an entry carries no markup of its own for them. There is one layout, compact: small photos, a two-line
+  blurb, and at most four columns (the owner's choice, 2026-11-05, which retired the Cards and
+  Compact toggle; its `fm1-firmware-view` key is no longer read, and is not to be reused). The
+  Latest strip's eye button (`public/firmware-latest.js`, in the head) hides its list, remembered
+  under `fm1-firmware-latest-hidden` as the strip's date, so the next day's news shows again. That
+  key is read and written inside `try/catch`; do not rename it. A card lightens under the pointer.
+  The page's plain scripts share one global scope, so no two may declare the same top-level name:
+  `firmware-menus.js` and `firmware-photos.js` each declared `close()`, and Escape closed the
+  photo instead of the menu, so both now keep their names inside a function.
+- An entry's links are a split button (`.firmware-links`): its first, most useful link (usually
+  Install) as `.firmware-link-main`, and any others in a `<details class="firmware-link-menu">`
+  whose summary is labelled `More links for <name>`; `public/firmware-menus.js` closes the others
+  when one opens, and on Escape, a click outside, or focus leaving it. Every link, kind, and
+  Updated carries a Lucide icon from the page's own `<symbol id="icon-…">` sprite, by what it
+  links to: download for Install and Download, tag for Release, play for a browser version, book
+  for a manual or guide, sliders for an editor, GitHub or code for Source, and globe for anything
+  else. `src/firmware-page.test.ts` checks both.
+- An entry with a photo shows it as a small thumbnail (4.5rem) at the top right, beside its maker and title in `.firmware-head`, so it is no taller
+  than an entry without one and the rows stay even. A click on it opens the full photo in a modal drawn
+  like the editor's `Dialog`, zooming out of the thumbnail with the classic Mac rectangles
+  (`public/firmware-photos.js`, which repeats `zoomRects`, since the page shares no JavaScript with
+  the editor), closed by Escape, its close button, or a click outside the photo.
 - Every firmware entry carries `data-updated`, the date the release its status line names came
   out (the last commit for a project without numbered releases), shown as **Updated** in its status
   line, and **Recently updated** orders by it, newest first. Change the date in the same edit that
   changes the version, never on a refresh that changes nothing else. The **Latest** strip above the
-  order buttons, tinted amber, lists only what changed on the page on its latest day, dated in its
+  controls, tinted amber, lists only what changed on the page on its latest day, dated in its
   heading: one line per kind of change (added, new versions, watched), each name linking to its
   card. A day's edit replaces the previous day's lines rather than adding to them;
   `src/firmware-page.test.ts` checks the date and that every link reaches a card.
 - The firmware page lays its entries out in `.firmware-grid`, one column on a phone, two from
-  40rem, and three from 60rem; the three pinned entries span the row with their photo beside the
-  text. Every entry carries `data-categories`, one or more of the kinds the **Show** filter lists
+  40rem, three from 60rem, and four from 80rem, in a page up to `max-w-7xl` wide. The three pinned entries sit above it in `.firmware-pinned`, a strip
+  of small cards (three across from 48rem, a small photo, a two-line blurb), since visitors come
+  for the community's firmwares, not M-VAVE's and Baud Girl's. Every entry carries `data-categories`, one or more of the kinds the **Show** filter lists
   (Synths, Grooveboxes, Samplers, Chords, Generative, Tools, Games & toys), and a new
   firmware names at least one, with the count on that kind's filter button raised in the same
   edit; `src/firmware-page.test.ts` checks both. `public/firmware-filter.js` hides the others and

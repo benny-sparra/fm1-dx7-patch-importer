@@ -27,6 +27,26 @@ const classTokens = (element: Element | null) => element?.getAttribute('class')?
   declares its reduced-motion snap rather than observing the motion itself.
 */
 describe('reduced motion', () => {
+  it('snaps every transition on the firmware page when reduced motion is requested', async () => {
+    const css = (await readFile(path.resolve('src/firmware-page.css'), 'utf8')).replace(
+      /\/\*[\s\S]*?\*\//g,
+      '',
+    )
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+      .join('\n')
+    const transitioned = [
+      ...css.matchAll(/\n  ([^{}@]+?)\s*\{[^}]*\btransition:(?!\s*none)/g),
+    ].flatMap(([, selectors]) => selectors.split(',').map((selector) => selector.trim()))
+
+    expect(transitioned.length).toBeGreaterThan(0)
+    for (const selector of transitioned) {
+      expect(reducedMotionBlocks).toContain(selector)
+    }
+  })
+
   it('stops the MIDI switch thumb sliding when reduced motion is requested', async () => {
     const css = await readFile(path.resolve('src/index.css'), 'utf8')
     const reducedMotionBlocks = css

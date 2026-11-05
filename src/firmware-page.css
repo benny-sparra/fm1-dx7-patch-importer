@@ -8,15 +8,17 @@
  */
 @layer components {
   /*
-   * The entries, in one column on a phone, then two, then three. The three pinned entries span the
-   * row with their photo beside the text: M-VAVE's two firmwares and Baud Girl's; every other card
-   * puts its photo above its text, and the cards in a row share its height.
+   * The entries, in one column on a phone, then two, three, and four, compact: a small photo, a
+   * two-line blurb, and tight spacing. The three pinned entries
+   * (M-VAVE's two firmwares and Baud Girl's) are in .firmware-pinned above, not here. A card's
+   * photo is a thumbnail beside its title, so a card with one is no taller than a card without,
+   * and the cards in a row share its height.
    */
   /* The grid is a .dither-well, so its dots show in the gutters between the solid cards. */
   .firmware-grid {
     display: grid;
-    gap: 1.25rem;
-    padding: 0.75rem;
+    gap: 0.75rem;
+    padding: 0.5rem;
     border: 1px solid var(--crt-line-dk);
   }
 
@@ -26,100 +28,90 @@
     }
   }
 
-  @media (width >= 60rem) {
+  @media (width >= 48rem) {
     .firmware-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (width >= 64rem) {
+    .firmware-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 
   .firmware-entry {
     scroll-margin-top: 1rem;
     display: grid;
-    grid-template-rows: auto 1fr;
-    gap: 1rem;
-    padding: 1rem;
+    grid-template-rows: 1fr;
+    gap: 0.5rem;
+    padding: 0.75rem;
   }
 
-  .firmware-entry[data-pinned] {
-    grid-column: 1 / -1;
-    grid-template-rows: none;
-  }
-
-  @media (width >= 40rem) {
-    .firmware-entry[data-pinned] {
-      grid-template-columns: 16rem minmax(0, 1fr);
-      gap: 1.25rem;
-    }
-  }
-
-  /* Pictures show only beside the text: on a narrow screen they would push it a screen away. */
-  .firmware-photo {
-    display: none;
-    align-self: start;
-    margin: 0;
-    padding: 0.25rem;
-  }
-
-  /*
-   * A card's photo bay, and a missing photo's placeholder, take their background from .dither-well
-   * instead, so the dots fill the bands beside a square screen.
-   */
-  .firmware-photo:not(.dither-well) {
-    background: var(--crt-bg-2);
-  }
-
-  @media (width >= 40rem) {
-    .firmware-photo {
-      display: block;
-    }
-
-    .firmware-photo-missing {
-      display: grid;
-    }
-  }
-
-  .firmware-photo img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  /* A card's photo fills a box of the photos' usual proportions, so square screens line up. */
-  .firmware-entry:not([data-pinned]) .firmware-photo img {
-    aspect-ratio: 923 / 554;
-    object-fit: contain;
-  }
-
-  /* Stands in for a photo the entry does not have yet, at the photos' own proportions. */
-  .firmware-photo-missing {
-    place-items: center;
-    aspect-ratio: 923 / 554;
-    border: 1px solid var(--crt-line-dk);
-    color: var(--crt-acc-mid);
-    font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
-    font-size: 1.5rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  /* The name sits on a solid panel, so the dither never runs behind the letters. */
-  .firmware-photo-missing > span {
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--crt-line);
-    background-color: var(--crt-bg-panel3);
-  }
-
-  .firmware-body {
+  /* The maker and title, with the photo, when there is one, beside them. */
+  .firmware-head {
     display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .firmware-head-text {
+    display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 0.5rem;
     min-width: 0;
   }
 
+  .firmware-photo {
+    flex: none;
+    width: 4.5rem;
+    margin: 0;
+    padding: 0.125rem;
+  }
+
+  /* A photo bay takes its background from .dither-well instead, so dots fill beside a square screen. */
+  .firmware-photo:not(.dither-well) {
+    background: var(--crt-bg-2);
+  }
+
+  /* A photo fills a box of the photos' usual proportions, so square screens line up. */
+  .firmware-photo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 923 / 554;
+    object-fit: contain;
+  }
+
+  /* The maker, with the firmware's kinds as small dim icons at the end of the line. */
+  .firmware-entry .synthwave-kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .firmware-kinds {
+    display: inline-flex;
+    gap: 0.375rem;
+    margin-left: auto;
+    color: var(--crt-ink-3);
+  }
+
+  .firmware-kind {
+    display: inline-flex;
+  }
+
+  .firmware-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
   .firmware-title {
     font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
-    font-size: 1.625rem;
+    font-size: 1.125rem;
     font-weight: 900;
     line-height: 1.1;
     letter-spacing: 0.03em;
@@ -127,23 +119,17 @@
     color: var(--crt-acc-br);
   }
 
-  .firmware-title-row {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-
-  /* The card's own address, for linking straight to it. */
-  .firmware-anchor {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--crt-ink-4);
+  /* The title is the card's own address, for linking straight to it. */
+  .firmware-title-link {
+    color: inherit;
     text-decoration: none;
   }
 
-  .firmware-anchor:hover,
-  .firmware-anchor:focus-visible {
-    color: var(--crt-acc-lt);
+  .firmware-title-link:hover,
+  .firmware-title-link:focus-visible {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
 
   .firmware-entry:target {
@@ -155,8 +141,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 0.75rem;
-    font-size: 0.75rem;
+    gap: 0.125rem 0.5rem;
+    font-size: 0.6875rem;
     color: var(--crt-ink-3);
   }
 
@@ -205,6 +191,39 @@
     background: color-mix(in srgb, var(--crt-led) 12%, var(--crt-bg-panel));
   }
 
+  /* The heading, with the eye button that hides and shows the list at the right. */
+  .firmware-latest-head {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .firmware-latest-toggle {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--crt-led);
+  }
+
+  .firmware-latest-toggle:hover,
+  .firmware-latest-toggle:focus-visible {
+    color: var(--crt-acc-br);
+  }
+
+  .firmware-latest-toggle[hidden],
+  .firmware-latest-toggle[aria-expanded='true'] .firmware-latest-show,
+  .firmware-latest-toggle[aria-expanded='false'] .firmware-latest-hide {
+    display: none;
+  }
+
+  /* public/firmware-latest.js marks the page before it paints, so a hidden list never shows. */
+  :root[data-firmware-latest-hidden] .firmware-latest-list {
+    display: none;
+  }
+
   .firmware-latest-title {
     font-size: 0.75rem;
     font-weight: 700;
@@ -235,21 +254,6 @@
     color: var(--crt-ink-3);
   }
 
-  /* The order of the entries, with the date their star counts were read. */
-  .firmware-sort {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 1rem;
-  }
-
-  .firmware-sort-options {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
   .firmware-sort-label {
     font-size: 0.75rem;
     font-weight: 700;
@@ -258,102 +262,169 @@
     color: var(--crt-ink-3);
   }
 
-  /* The order and the kinds of firmware to show, one row each, then the stars' date. */
+  /*
+   * Show and Order, each a label and its dropdown, then the search at the far end of the
+   * row. On a phone the search takes a row of its own above them.
+   */
   .firmware-controls {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+  }
+
+  .firmware-choice {
+    display: flex;
+    align-items: center;
     gap: 0.5rem;
   }
 
-  .firmware-sort-option,
-  .firmware-filter-option {
-    min-height: 2rem;
+  /* How many firmwares show, dim, just before the search box at the end of the row. */
+  .firmware-count {
+    margin-left: auto;
+    color: var(--crt-ink-3);
+    font-size: 0.75rem;
     white-space: nowrap;
-    padding: 0 0.75rem;
+  }
+
+  .firmware-search {
+    flex: 0 1 16rem;
+  }
+
+  @media (width < 40rem) {
+    .firmware-search {
+      flex-basis: 100%;
+      order: -1;
+    }
+  }
+
+  /* The watch list's count sits after its heading, on the same line. */
+  .firmware-watch .firmware-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .firmware-watch .firmware-count {
+    margin-left: 0;
+  }
+
+  .firmware-search-input {
+    width: 100%;
+    min-height: 2rem;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  /* Show's button looks like the dropdowns beside it, with the kind chosen, its icon and count. */
+  .firmware-kind-menu {
+    position: relative;
+  }
+
+  .firmware-kind-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2rem;
+    padding: 0 0.5rem;
+    background-color: var(--crt-bg-0);
+    color: var(--crt-ink);
     font-size: 0.75rem;
     font-weight: 700;
-    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    list-style: none;
   }
 
-  /* The order shown, lit like the editor's pressed toggles. */
-  .firmware-sort-option[aria-pressed='true'],
-  .firmware-sort-option[aria-pressed='true']:hover,
-  .firmware-filter-option[aria-pressed='true'],
-  .firmware-filter-option[aria-pressed='true']:hover {
-    color: var(--crt-bg-0);
-    background: var(--crt-led);
-    border-color: var(--crt-shadow) var(--crt-line-lt2) var(--crt-line-lt2) var(--crt-shadow);
+  .firmware-kind-toggle::-webkit-details-marker {
+    display: none;
   }
 
-  .firmware-filter-option {
+  .firmware-kind-toggle .firmware-chevron {
+    color: var(--crt-acc-lt);
+  }
+
+  .firmware-kind-current {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
   }
 
-  /*
-   * On a phone each label sits above its buttons, the order on one line and the kinds in two even
-   * columns with their counts at the right, so neither row wraps raggedly under its label.
-   */
-  @media (width < 40rem) {
-    .firmware-sort-label {
-      flex-basis: 100%;
-    }
-
-    .firmware-sort-option {
-      padding: 0 0.5rem;
-    }
-
-    .firmware-filter .firmware-sort-options {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .firmware-filter .firmware-sort-label {
-      grid-column: 1 / -1;
-    }
-
-    .firmware-filter-option {
-      justify-content: space-between;
-    }
+  .firmware-kind-menu .firmware-menu {
+    z-index: 20;
   }
 
-  /*
-   * Wider, both labels take one width beside their buttons, which hang from it: the order's and
-   * the kinds' start in line, and a row that wraps starts under its first button, not its label.
-   */
-  @media (width >= 40rem) {
-    .firmware-sort-options {
-      padding-left: 4rem;
-    }
-
-    .firmware-sort-label {
-      width: 3.5rem;
-      margin-left: -4rem;
-    }
+  .firmware-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2rem;
+    padding: 0 0.5rem;
+    color: var(--crt-ink-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: left;
+    white-space: nowrap;
   }
 
-  /* How many entries a kind holds, dimmer than its name. */
+  .firmware-filter-option:hover,
+  .firmware-filter-option:focus-visible {
+    background: var(--crt-bg-2);
+    color: var(--crt-acc-lt);
+  }
+
+  /* The kind shown, lit amber. */
+  .firmware-filter-option[aria-pressed='true'] {
+    color: var(--crt-led);
+  }
+
+  /* How many entries a kind holds, dimmer than its name, at the right of the menu. */
   .firmware-filter-count {
+    margin-left: auto;
+    padding-left: 0.75rem;
     font-weight: 400;
     opacity: 0.75;
   }
 
-  .firmware-sort-note {
+  .firmware-kind-current .firmware-filter-count {
+    padding-left: 0;
+  }
+
+  /* The browser's arrow is hidden and Lucide's chevron drawn 8 px in from the right edge. */
+  .firmware-select {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .firmware-select select {
+    appearance: none;
+    min-height: 2rem;
+    padding: 0 2rem 0 0.5rem;
+    background-color: var(--crt-bg-0);
+    color: var(--crt-ink);
     font-size: 0.75rem;
-    color: var(--crt-ink-3);
+    font-weight: 700;
+  }
+
+  .firmware-select .firmware-chevron {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    translate: 0 -50%;
+    pointer-events: none;
+    color: var(--crt-acc-lt);
   }
 
   .firmware-blurb {
     max-width: 65ch;
-    font-size: 0.875rem;
-    line-height: 1.6;
+    font-size: 0.8125rem;
+    line-height: 1.5;
     color: var(--crt-ink-2);
   }
 
   /*
    * public/firmware-blurbs.js marks the page before it paints, and folds each blurb to its first
-   * four lines until its More button opens it. Without the script nothing folds.
+   * two lines until its More button opens it. Without the script nothing folds.
    */
   :root[data-firmware-folds]
     .firmware-entry:not([data-open])
@@ -361,42 +432,90 @@
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   :root[data-firmware-folds] .firmware-entry:not([data-open]) .firmware-blurb ~ .firmware-blurb {
     display: none;
   }
 
+  /*
+   * The More button that opens a folded blurb: a small dashed chip, dim until the pointer or focus
+   * reaches it, when it glows like a lit control and its chevron dips. Open, the chevron turns over.
+   */
   .firmware-more {
+    display: inline-flex;
+    align-items: center;
     align-self: flex-start;
+    gap: 0.375rem;
     min-height: 1.5rem;
-    font-size: 0.75rem;
+    padding: 0 0.375rem 0 0.5rem;
+    border: 1px dashed var(--crt-acc-dim);
+    color: var(--crt-acc-mid);
+    font-size: 0.6875rem;
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--crt-acc-lt);
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    transition:
+      color 120ms ease-out,
+      border-color 120ms ease-out,
+      text-shadow 120ms ease-out;
   }
 
   .firmware-more:hover,
   .firmware-more:focus-visible {
+    border-style: solid;
+    border-color: var(--crt-acc-lt);
     color: var(--crt-acc-br);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--crt-acc-br) 60%, transparent);
   }
 
-  /* The links sit at the foot of the card, so a row of cards lines its links up. */
+  .firmware-more-icon {
+    flex: none;
+    transition:
+      translate 120ms ease-out,
+      rotate 120ms ease-out;
+  }
+
+  .firmware-more:hover .firmware-more-icon {
+    translate: 0 1px;
+  }
+
+  .firmware-more[aria-expanded='true'] .firmware-more-icon {
+    rotate: 180deg;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .firmware-more,
+    .firmware-more-icon {
+      transition: none;
+    }
+  }
+
+  /*
+   * The links sit at the foot of the card, so a row of cards lines its links up: the main one,
+   * and beside it a toggle for a menu of the rest, so every card has one row of links.
+   */
   .firmware-links {
+    position: relative;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 2px;
     margin-top: auto;
     padding-top: 0.25rem;
   }
 
   /* Firmwares that cannot be installed yet: one panel of short rows, with no photos or tags. */
+  /*
+   * The watch list is tinted violet, as the Latest strip is amber, so it reads as its own thing:
+   * firmwares still on their way. The violet is fixed, whatever the finish.
+   */
   .firmware-watch {
+    --firmware-watch: hsl(278 62% 74%);
+    --firmware-watch-lt: hsl(278 70% 84%);
+    --firmware-watch-line: color-mix(in srgb, var(--firmware-watch) 28%, var(--crt-bg-panel));
+
+    background: color-mix(in srgb, var(--firmware-watch) 10%, var(--crt-bg-panel));
     scroll-margin-top: 1rem;
     display: flex;
     flex-direction: column;
@@ -414,6 +533,7 @@
     flex-direction: column;
   }
 
+  /* Two columns, then three, each firmware a name, its maker, and one line of its note. */
   @media (width >= 40rem) {
     .firmware-watch-list {
       display: grid;
@@ -422,39 +542,420 @@
     }
   }
 
+  @media (width >= 64rem) {
+    .firmware-watch-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* firmware-blurbs.js folds each note to one line, with a More button at the end of its name row. */
+  :root[data-firmware-folds] .firmware-watch-item:not([data-open]) .firmware-blurb {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+  }
+
+  .firmware-watch-item > p:first-child > .firmware-more {
+    flex: none;
+    margin-left: auto;
+  }
+
+  /* The list's own introduction runs the panel's width. */
+  .firmware-watch > .firmware-blurb {
+    max-width: none;
+  }
+
+  .firmware-watch[hidden],
+  .firmware-watch-item[hidden] {
+    display: none;
+  }
+
   .firmware-watch-item {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.75rem 0;
-    border-top: 1px solid var(--crt-ink-4);
+    gap: 0.125rem;
+    min-width: 0;
+    padding: 0.5rem 0;
+    /* A quiet violet rule between watched firmwares. */
+    border-top: 1px solid var(--firmware-watch-line);
   }
 
+  /* One line: the name, its maker cut short when the column is narrow, then the More button. */
   .firmware-watch-item > p:first-child {
     display: flex;
-    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.25rem 0.75rem;
+    gap: 0.75rem;
+    min-width: 0;
   }
 
   .firmware-watch-name {
+    flex: none;
+    white-space: nowrap;
     font-weight: 700;
-    color: var(--crt-acc-lt);
+    color: var(--firmware-watch-lt);
     text-underline-offset: 2px;
   }
 
   .firmware-watch-maker {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 0.75rem;
     color: var(--crt-ink-3);
   }
 
+  /* Small, so three or four fit a card's width on one line; 1.5rem keeps WCAG 2.5.8's 24 px. */
   .firmware-link {
     display: inline-flex;
     align-items: center;
-    min-height: 2rem;
-    padding: 0 0.75rem;
-    font-size: 0.75rem;
+    gap: 0.375rem;
+    min-height: 1.5rem;
+    padding: 0 0.5rem;
+    font-size: 0.6875rem;
     font-weight: 700;
     text-transform: uppercase;
+  }
+}
+
+/*
+ * The three pinned entries sit in a short strip above the grid, since people come to this page
+ * for the community's firmwares, not these.
+ */
+@layer components {
+  .firmware-pinned {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  @media (width >= 48rem) {
+    .firmware-pinned {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}
+
+@layer components {
+  /* What shows where the entries would be when none match the search and the kind chosen. */
+  .firmware-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.5rem 1rem;
+    color: var(--crt-ink-2);
+  }
+
+  .firmware-grid[hidden],
+  .firmware-empty[hidden] {
+    display: none;
+  }
+
+  .firmware-empty-title {
+    font-family: 'Doto Variable', 'Doto Metrics Fallback', ui-monospace, monospace;
+    font-size: 1.625rem;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--crt-acc-br);
+  }
+}
+
+/* Lucide icons from the page's sprite, drawn in the text colour around them. */
+@layer components {
+  .firmware-icon {
+    flex: none;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .firmware-updated {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .firmware-link-main {
+    min-width: 0;
+  }
+
+  .firmware-link-main > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .firmware-link-more {
+    padding: 0 0.375rem;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .firmware-link-more::-webkit-details-marker {
+    display: none;
+  }
+
+  .firmware-link-more .firmware-chevron {
+    transition: rotate 120ms ease-out;
+  }
+
+  .firmware-link-menu[open] .firmware-link-more .firmware-chevron {
+    rotate: 180deg;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .firmware-link-more .firmware-chevron {
+      transition: none;
+    }
+  }
+
+  /* The menu hangs from the links' row, over the cards below, above the open card's neighbours. */
+  .firmware-entry:has(.firmware-link-menu[open]) {
+    position: relative;
+    z-index: 10;
+  }
+
+  .firmware-menu {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 12rem;
+    max-width: 18rem;
+    padding: 0.25rem;
+    border: 1px solid var(--crt-line);
+    background: var(--crt-bg-head);
+    box-shadow: var(--shadow-menu);
+  }
+
+  .firmware-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2rem;
+    padding: 0 0.5rem;
+    color: var(--crt-ink-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .firmware-menu-link:hover,
+  .firmware-menu-link:focus-visible {
+    background: var(--crt-bg-2);
+    color: var(--crt-acc-lt);
+  }
+}
+
+/* A card lightens a little under the pointer, or while focus is inside it. */
+@layer components {
+  .firmware-entry.synthwave-panel {
+    transition: background-color 120ms ease-out;
+  }
+
+  .firmware-entry.synthwave-panel:hover,
+  .firmware-entry.synthwave-panel:focus-within {
+    background: var(--crt-bg-head);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .firmware-entry.synthwave-panel {
+      transition: none;
+    }
+  }
+}
+
+/* A thumbnail is a button that opens the full photo in a modal (public/firmware-photos.js). */
+@layer components {
+  .firmware-photo-button {
+    display: block;
+    width: 100%;
+    cursor: zoom-in;
+  }
+
+  .firmware-photo-button:hover,
+  .firmware-photo-button:focus-visible {
+    outline: 1px solid var(--crt-acc-lt);
+    outline-offset: 1px;
+  }
+
+  /* Drawn like the editor's Dialog: its frame, title bar, and recessed well. */
+  /* As wide as its photo at full size, never wider, and no wider than the window allows. */
+  .firmware-lightbox {
+    width: fit-content;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100svh - 2rem);
+    margin: auto;
+    padding: 0;
+    overflow: hidden;
+    border: 2px solid var(--crt-acc-lt);
+    background: var(--crt-bg-panel2);
+    color: var(--crt-ink);
+  }
+
+  .firmware-lightbox[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .firmware-lightbox::backdrop {
+    background: hsl(0 0% 0% / 70%);
+  }
+
+  .firmware-lightbox-bar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 7px 0.625rem 0;
+  }
+
+  .firmware-lightbox-title {
+    min-width: 0;
+    margin: 0 0.25rem;
+    padding: 0 0.625rem;
+    color: var(--crt-acc-lt);
+    font-size: 0.875rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    overflow-wrap: break-word;
+  }
+
+  .firmware-lightbox-close {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding: 0 0.375rem;
+    color: var(--crt-acc-lt);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  .firmware-lightbox-close:hover {
+    color: white;
+  }
+
+  .firmware-lightbox-close:focus-visible {
+    outline: 2px solid var(--crt-acc-lt);
+    outline-offset: 1px;
+  }
+
+  .firmware-lightbox-well {
+    min-height: 0;
+    margin: 0.5rem 0.625rem 0.625rem;
+    padding: 0.5rem;
+    border: 1px solid;
+    border-color: var(--crt-shadow) var(--crt-line) var(--crt-line) var(--crt-shadow);
+    background: var(--crt-bg-1);
+  }
+
+  .firmware-lightbox-image {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: calc(100svh - 7rem);
+    object-fit: contain;
+  }
+}
+
+/* The watch list's heading, count, and More buttons take its violet. */
+@layer components {
+  .firmware-watch .firmware-title {
+    color: var(--firmware-watch);
+  }
+
+  .firmware-watch .firmware-more {
+    border-color: color-mix(in srgb, var(--firmware-watch) 45%, var(--crt-bg-panel));
+    color: var(--firmware-watch);
+  }
+
+  .firmware-watch .firmware-more:hover,
+  .firmware-watch .firmware-more:focus-visible {
+    border-color: var(--firmware-watch-lt);
+    color: var(--firmware-watch-lt);
+    text-shadow: 0 0 6px color-mix(in srgb, var(--firmware-watch) 60%, transparent);
+  }
+}
+
+/*
+ * The Latest strip and the controls, with an FM1 beside them from 64rem that fades through its
+ * finishes (public/firmware-showcase.js). Below 64rem the photo is not shown, nor loaded.
+ */
+@layer components {
+  .firmware-top {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .firmware-top-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+  }
+
+  .firmware-showcase {
+    display: none;
+    margin: 0;
+  }
+
+  @media (width >= 64rem) {
+    .firmware-top {
+      grid-template-columns: minmax(0, 1fr) 18rem;
+      align-items: center;
+    }
+
+    .firmware-showcase {
+      display: grid;
+    }
+  }
+
+  /*
+   * The photos share one cell, and only the one shown is opaque. A photo is not displayed, and so
+   * not loaded, until it is needed: the one for the finish chosen in the editor shows from the
+   * first frame, and firmware-showcase.js readies each next one while the one before is shown.
+   */
+  .firmware-showcase-photo {
+    display: none;
+    grid-area: 1 / 1;
+    width: 100%;
+    height: auto;
+    opacity: 0;
+    transition: opacity 1.2s ease-in-out;
+  }
+
+  :root:not([data-fm1-colorway]) .firmware-showcase-photo[data-colorway='black'],
+  :root[data-fm1-colorway='black'] .firmware-showcase-photo[data-colorway='black'],
+  :root[data-fm1-colorway='purple'] .firmware-showcase-photo[data-colorway='purple'],
+  :root[data-fm1-colorway='orange'] .firmware-showcase-photo[data-colorway='orange'],
+  :root[data-fm1-colorway='black-green'] .firmware-showcase-photo[data-colorway='black-green'],
+  :root[data-fm1-colorway='cool-gray'] .firmware-showcase-photo[data-colorway='cool-gray'],
+  :root[data-fm1-colorway='white-blue'] .firmware-showcase-photo[data-colorway='white-blue'],
+  .firmware-showcase-photo.is-ready {
+    display: block;
+  }
+
+  /* Until the script has chosen one, as without it, the photo displayed shows. */
+  .firmware-showcase:not(:has(.is-shown)) .firmware-showcase-photo,
+  .firmware-showcase-photo.is-shown {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .firmware-showcase-photo {
+      transition: none;
+    }
   }
 }

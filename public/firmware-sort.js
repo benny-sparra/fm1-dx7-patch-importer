@@ -3,7 +3,7 @@
 // first. Entries marked `data-pinned` stay first in every order, entries without a count, such as
 // a paid firmware with no repository, follow the counted ones, and ties keep alphabetical order.
 // A plain script served as it is, for the reason firmware-colourway.js gives.
-const options = [...document.querySelectorAll('.firmware-sort-option')]
+const select = document.getElementById('firmware-order')
 const entries = [...document.querySelectorAll('.firmware-entry:not([data-pinned])')]
 const anchor = entries.at(-1)?.nextElementSibling ?? null
 const parent = entries[0]?.parentElement
@@ -26,11 +26,9 @@ function showOrder(order) {
   const compare = comparators[order]
   const ordered = compare ? [...entries].sort(compare) : entries
   for (const entry of ordered) parent?.insertBefore(entry, anchor)
-  for (const option of options) {
-    option.setAttribute('aria-pressed', String(option.dataset.order === order))
-  }
 }
 
-for (const option of options) {
-  option.addEventListener('click', () => showOrder(option.dataset.order))
-}
+// A page restored from the back/forward cache, or a form the browser refilled, may show an order
+// other than the one written, so the entries follow the dropdown as the script starts.
+select?.addEventListener('change', () => showOrder(select.value))
+if (select && select.value !== 'name') showOrder(select.value)
