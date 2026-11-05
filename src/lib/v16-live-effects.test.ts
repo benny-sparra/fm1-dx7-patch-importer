@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
+import { capturedReplies, capturedReply, sentRack } from '@/test/v16-live-effects-captures'
 import { frame, table, values } from '@/test/v16-live-effects-replies'
 import { makeSettingsBlockReply } from '@/test/v16-settings-replies'
 import {
@@ -10,8 +11,8 @@ import {
   V16LiveEffectsReadError,
 } from '@/lib/v16-live-effects'
 
-// Every reply here is SYNTHETIC: made up from the research's layout, not captured from an FM1.
-// Nothing in this file proves a byte of V16's behaviour (docs/v16-fx-readback-validation.md).
+// Every reply here is SYNTHETIC, made up from the research's layout, except those from
+// `@/test/v16-live-effects-captures`, captured on the FM1 in the run of 2026-11-05.
 const prefix = [5, 0x9c, 0, 0, 0, 54, 0, 0]
 
 // The request's bytes worked out by hand with a separate packer, not by the module.
@@ -82,6 +83,21 @@ describe('parseV16LiveEffectsReply', () => {
       type: 'invalid',
     })
   })
+})
+
+describe('the replies captured on 2026-11-05', () => {
+  it.each(Object.keys(capturedReplies) as (keyof typeof capturedReplies)[])(
+    'decodes the reply read after sending %s to exactly that rack',
+    (name) => {
+      const answer = parseV16LiveEffectsReply(capturedReply(name))
+      expect(answer?.type).toBe('reading')
+      if (answer?.type !== 'reading') return
+      expect(candidateEffectValues(answer.reading)).toEqual({
+        type: 'values',
+        values: sentRack(name),
+      })
+    },
+  )
 })
 
 describe('candidateEffectValues', () => {

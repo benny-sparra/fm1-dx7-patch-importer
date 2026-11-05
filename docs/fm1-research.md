@@ -2802,6 +2802,24 @@ framing, 24-control mapping, checklist, and approval request in
 framing **Confirmed** from object 4's hardware read); the order of each effect's three values and
 whether the reply echoes the request's eight bytes are **Needs hardware test**. Nothing was sent.
 
+#### Live FX read: hardware run (2026-11-05)
+
+**Confirmed** on the orange FM1, stock `FM-1_016`, through the development probe
+([run record](hardware-runs/stock-v16-live-fx-read-2026-11-05.md)), with the approved request only:
+
+- The reply echoes the request: its payload is the 8 request bytes, then the 54 data bytes (62 in
+  all). Object 4's settings-block read echoes the same way (8, then 176).
+- All 24 effect controls are where the validation doc's section 2 put them, each stored as the
+  controller value, unscaled: effect `e`'s On/Off at table `3e + 1`, the Filter's Type and Reverb's
+  Space at `3e + 2`, and its other values from `values[3e]` in controller order (the Filter's and
+  Reverb's two after their Type, the other four's three). Each switch read 0 and 1, each type 0–2,
+  each value 0, its maximum, and a value no other control held. A value is stored while its effect
+  is off. `values[2]`, `[5]`, and `[18–26]` never moved.
+- The table's chain order matched object 4's table at `0x92` byte for byte, and followed a
+  front-panel move of Phaser as it happened, before SEL confirmed it.
+- A read follows the FX group chosen on the FM1; unsaved live changes stay with their group while
+  another is visited; a power cycle without SAVE discards them. No read changed anything on the FM1.
+
 #### Codex firmware reading (2026-10-28)
 
 Independent offline reading of stock `FM-1_016.fwsc`. **Likely** denotes a static behavioural

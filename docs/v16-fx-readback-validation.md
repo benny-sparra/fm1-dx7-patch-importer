@@ -1,5 +1,10 @@
 # V16 live FX readback: Phase 1 (offline)
 
+> **Run on hardware on 2026-11-05**
+> ([record](hardware-runs/stock-v16-live-fx-read-2026-11-05.md)): the reply echoes the request
+> (62 bytes), and all 24 rows of section 2 are **Confirmed**, stored as sent. The production
+> contract in section 5 is no longer blocked. The rest of this document is kept as prepared.
+
 Prepared 2026-11-02 for the owner's approval of 2026-11-02 (`AGENTS.md`, "MIDI", the "On stock V16"
 bullet that approves object 5's low-offset live read). **No device was connected, no message was
 sent, and no test needs hardware.** Static evidence is from `docs/fm1-research.md`, "Controlling
@@ -140,7 +145,7 @@ approval of its bytes. The bytes proposed are:
 Asked of the owner: approve the frame above (record it in `AGENTS.md`), and say whether a read of
 only 54 bytes, rather than the approved ceiling of 215, is acceptable (it is narrower).
 
-## 5. Production contract (blocked, not implemented)
+## 5. Production contract (unblocked 2026-11-05, not implemented)
 
 Only after all 24 rows are proven on hardware: an explicit **Read effects from FM1** action, offered
 only on a profile that lists it and while the ports are those the read started on; it takes its turn
