@@ -313,7 +313,7 @@ Short, in the editor itself with the fake-free build, once the plan's steps 2–
 1. With MIDI online on the green FM1, **Receive from the FM1…** offers the Official Open sources.
 2. Read track 1's voice into a slot holding a patch; it plays as on the FM1; Undo puts the patch back.
 3. Read library bank 1 into an empty bank; voice names match the FM1's programs 1–32.
-4. Save a 303 track's sound as `.fm1t`; the Workbench opens it.
+4. Read all four library banks; four new banks appear, in the FM1's program order.
 5. Unplug the FM1 during a bank read; the wizard says so in translated text, and reading again
    after reconnecting works.
 6. The MIDI log shows each read's begin and one line for its result, not every chunk.

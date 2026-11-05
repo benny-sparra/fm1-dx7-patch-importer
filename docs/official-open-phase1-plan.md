@@ -1,8 +1,8 @@
 # Official Open Phase 1: read what the FM1 holds
 
-Drafted 2026-11-05 for Ben's approval; nothing here is built yet. It expands Phase 1 of
-[the Official Open plan](official-open-plan.md) into work that can start once the decisions at
-the end are made. The protocol is in [the research notes](fm1-research.md#official-open-v14-read-2026-10-20);
+Drafted 2026-11-05; Ben made the decisions at the end the same day. Nothing here is built yet. It
+expands Phase 1 of [the Official Open plan](official-open-plan.md) into work that starts after the
+hardware run. The protocol is in [the research notes](fm1-research.md#official-open-v14-read-2026-10-20);
 the hardware run is [its own run sheet](hardware-runs/official-open-phase1-run-sheet.md).
 
 ## Where it stands
@@ -35,44 +35,43 @@ On an FM1 running Official Open:
 2. **Read a bank of the FM1's DX7 library** (V14 and later) into a bank of the library: review
    its 32 voices, then replace a bank (Undo) or fill an empty one, exactly as **Import DX7 bank**
    does. "All four banks" is a choice on the same screen and adds four new banks.
-3. **Save a track's sound, any engine, as a `.fm1t` file** (recommended, decision 2): the 223 bytes
-   exactly as read, with the 16-byte `FM1T` header and its CRC, which M-VAVE's Workbench opens.
-   The library cannot hold a 303 or SAMPLER sound until Phase 2 adds the `openTrack` map, so
-   nothing is stored in the browser; Phase 2 then imports these files, and reads straight into the
-   library.
+
+A track running another engine (303, 808, PSG, PLUCK, SAMPLER) shows its engine and cannot be
+chosen (decision 2): the library cannot hold its sound until Phase 2 adds the `openTrack` map, and
+Phase 2 reads those sounds straight into the library. The run still reads every engine's sound
+(kind 2), as research for Phase 2.
 
 Nothing in Phase 1 changes the FM1. Project reads (kind 0/3) and slot names wait for Phase 4,
 which can store them; command 9 is in the run only to record how it behaves on this FM1.
 
 ## Entry points
 
-Recommended (decision 1): **one wizard, the existing Receive patches**, so every way in that users
-already know works on Official Open too.
+**One wizard, the existing Receive patches** (decision 1), so every way in that users already know
+works on Official Open too.
 
 - **Receive from the FM1…** (a bank's ⋮ and Library actions) and **Receive over MIDI…** (a slot's
   **Import patch…**) open `ReceiveFromFm1Dialog` as today. While the profile has the new read
-  capability, its source screen offers **A track's voice**, **A track's sound (.fm1t)**, and **A
-  bank of the FM1's library** in place of "Send from the FM1"; the listen screen becomes a
+  capability, its source screen offers **A track's voice** and **A bank of the FM1's library** in
+  place of "Send from the FM1"; the listen screen becomes a
   **Reading…** screen with a barber pole, the track or bank chooser, and Cancel. Review and
   destination are the wizard's own, unchanged. From a slot, only the single-voice path shows.
 - `AGENTS.md` today says the wizard "sends nothing"; on Official Open it would send the approved
   reads, so that rule changes with this work.
-- The alternative is a separate **Read from the FM1…** item and dialog built from
-  `bank-wizard.tsx`'s pieces. It reads plainer on Official Open but adds a menu item and a second
-  wizard that does the same review and destination.
+- A separate **Read from the FM1…** wizard was the alternative, set aside for one more menu item
+  and a second wizard ending the same way.
 
 No track strip yet: Phase 3 grows it from the track status, and a per-track Read can go on it then.
 
 ## Modules and bundle boundaries
 
-| Module                                        | Loaded                                     | Holds                                                                                                                                                                                                     |
-| --------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/lib/firmware-profile.ts` (entry)         | eager                                      | Two capabilities: `trackRead` (kinds 1 and 2, release 0, as V12 had them) and `libraryBankRead` (kind 4, release 14). An unnumbered build (`FM1_COMMUNITY_n`, `FM1_OFFICIAL_OPEN`) gets only `trackRead`. |
-| `src/hooks/use-midi.ts` (entry)               | eager                                      | Expose the existing queue turn (`queueEffectOrder`, generalised to a named-group turn) so a lazy hook can hold one turn for a whole read. No read code here.                                              |
-| `src/lib/official-open-link.ts` (new)         | lazy, shared by track send and reads       | The token counter, and the `OfficialOpenLink` over a WebMidi input and output with logging and the activity LED.                                                                                          |
-| `src/lib/official-open-library-read.ts` (new) | lazy, with the wizard                      | `readTrackVoice` (kind 1 → `Dx7Voice` via `packDx7Voice`), `readLibraryBank` (kind 4 → 32 `Dx7Voice`, 7-bit checked), `readTrackSound` (kind 2 → bytes, engine from byte 0, `.fm1t` file).                |
-| `src/hooks/use-official-open-reader.ts` (new) | lazy, with the wizard                      | Takes a `MidiController` slice as `useFm1VaPresetReader` does; one queue turn per read; aborted when either port changes, MIDI goes off, or the wizard unmounts.                                          |
-| `ReceiveFromFm1Dialog` and its strings        | already lazy, `en-GB-librarian-dialogs.ts` | The Official Open source and reading screens.                                                                                                                                                             |
+| Module                                        | Loaded                                     | Holds                                                                                                                                                                                                      |
+| --------------------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/firmware-profile.ts` (entry)         | eager                                      | Two capabilities: `trackVoiceRead` (kind 1, release 0, as V12 had it) and `libraryBankRead` (kind 4, release 14). An unnumbered build (`FM1_COMMUNITY_n`, `FM1_OFFICIAL_OPEN`) gets only `trackVoiceRead`. |
+| `src/hooks/use-midi.ts` (entry)               | eager                                      | Expose the existing queue turn (`queueEffectOrder`, generalised to a named-group turn) so a lazy hook can hold one turn for a whole read. No read code here.                                               |
+| `src/lib/official-open-link.ts` (new)         | lazy, shared by track send and reads       | The token counter, and the `OfficialOpenLink` over a WebMidi input and output with logging and the activity LED.                                                                                           |
+| `src/lib/official-open-library-read.ts` (new) | lazy, with the wizard                      | `readTrackVoice` (kind 1 → `Dx7Voice` via `packDx7Voice`), `readLibraryBank` (kind 4 → 32 `Dx7Voice`, 7-bit checked).                                                                                      |
+| `src/hooks/use-official-open-reader.ts` (new) | lazy, with the wizard                      | Takes a `MidiController` slice as `useFm1VaPresetReader` does; one queue turn per read; aborted when either port changes, MIDI goes off, or the wizard unmounts.                                           |
+| `ReceiveFromFm1Dialog` and its strings        | already lazy, `en-GB-librarian-dialogs.ts` | The Official Open source and reading screens.                                                                                                                                                              |
 
 The entry should grow only by the two capabilities and the exposed queue turn, tens of bytes.
 Measure with `npm run bundle:check` before and after, and compare the initial chunk list with
@@ -117,7 +116,7 @@ run should come before the UI is final.
 ## Approvals still needed in `AGENTS.md`
 
 - No new protocol: every message is one approved on 2026-10-20.
-- The receive wizard's "sends nothing" rule, if decision 1 goes the recommended way.
+- The receive wizard's "sends nothing" rule: on Official Open it sends the approved reads.
 - The new profile capabilities and their releases, written into the Official Open paragraph.
 - Bundle boundaries: the Official Open reads in the receive wizard's chunk.
 
@@ -128,7 +127,7 @@ run should come before the UI is final.
   DRY CLAV, a 303, a SAMPLER, PSG, and four banks.
 - `official-open-library-read.test.ts`: kind 1 → the voice the FM1 names, byte for byte against
   `packDx7Voice`; kind 4 → 32 voices, PIANO 1 first; a byte above 7 bits, a short read, and a wrong
-  engine byte are refused with typed errors; the `.fm1t` header and CRC match a Workbench file.
+  engine byte are refused with typed errors. The kind 2 fixtures wait for Phase 2's tests.
 - `use-official-open-reader.test.ts` with a fake link and deferred replies: one queue turn per
   read; a port change mid-bank stops at the next chunk and sends no cancel; unmount aborts; a
   second click while reading starts nothing; tokens never repeat across a read and a send.
@@ -142,19 +141,18 @@ run should come before the UI is final.
 
 ## Order of work
 
-1. Ben's decisions below; the run (no code needed: the console snippet uses the existing reader).
+1. The run (no code needed: the console snippet uses the existing reader), and its results in
+   `docs/fm1-research.md`.
 2. Fixtures, `official-open-link.ts`, `official-open-library-read.ts`, the profile capabilities.
 3. The reader hook and the wizard's Official Open screens; strings in every locale.
 4. Bundle check, `npm run check`, the e2e journey, docs (user guide, help, README).
 5. The acceptance run in the editor; then one PR to `main`.
 
-## Decisions for Ben
+## Decisions (Ben, 2026-11-05)
 
-1. **Entry point:** extend **Receive from the FM1…** (recommended) or a separate **Read from the
-   FM1…** wizard.
-2. **A track's sound before Phase 2:** download as `.fm1t` (recommended), leave kind 2 out until
-   Phase 2, or keep only a DX7 track's voice.
-3. **All four library banks at once** as a choice, adding four new banks (recommended), or one bank
-   per read.
-4. **When to run the sheet:** before the UI is built (recommended, since its answers change the
-   wording), or with the acceptance run at the end.
+1. **Entry point:** extend **Receive from the FM1…**, not a separate **Read from the FM1…** wizard.
+2. **A track's sound before Phase 2:** left out. Phase 1 reads DX7 track voices and library banks
+   only; no `.fm1t` download.
+3. **All four library banks at once:** Ben had no preference, so it is offered, adding four new
+   banks.
+4. **The hardware run** goes ahead before the UI is built.
