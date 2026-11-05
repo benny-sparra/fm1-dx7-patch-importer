@@ -44,11 +44,13 @@ export default {
       'Diese Firmware hat keine gemeinsame V16-FX-Gruppe. Das Laden ändert nur diesen Browser.',
     help: 'Effekte bearbeiten und Presets speichern. Bei V16 teilen sich alle Voices die Effekte.',
     orderHelp: 'Presets enthalten die hier gezeigten Effektregler, nicht die Effekt-Reihenfolge.',
-    readback:
-      '„Effekte vom FM1 lesen“ holt die aktuellen Effekte des FM1 und ihre Reihenfolge hierher.',
-    readFromFm1: 'Effekte vom FM1 lesen',
+    readback: '„Vom FM1 lesen“ holt die aktuellen Effekte des FM1 und ihre Reihenfolge hierher.',
+    readFromFm1: 'Vom FM1 lesen',
     readDone: 'Die Effekte wurden vom FM1 gelesen.',
     reading: 'Effekte des FM1 werden gelesen…',
+    readingButton: 'Wird gelesen…',
+    readUnavailable:
+      'Schalte MIDI online und wähle Ein- und Ausgang des FM1, um seine Effekte zu lesen.',
     effectOrderReading: 'Die Effektreihenfolge wird vom FM1 gelesen…',
     effectOrderFailed:
       'Der FM1 hat seine Effektreihenfolge nicht geliefert, daher lässt sie sich hier nicht ändern.',

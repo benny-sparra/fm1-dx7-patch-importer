@@ -331,7 +331,7 @@ open everything an earlier release could have saved.
   never triggers the live-edit sender, updates only browser state on a complete valid reply, and
   never overwrites a named preset. The run of 2026-11-05
   (`docs/hardware-runs/stock-v16-live-fx-read-2026-11-05.md`) confirmed every byte, so
-  **Read effects from FM1**, in **FX preset actions**, sends that one read once per click while
+  **Read from FM1**, beside **Send to FM1** on the Effects view's strip, sends that one read once per click while
   the profile's `liveEffectsRead` allows (`useV16LiveEffectsRead`), on the effects' transfer queue,
   cancelled by a port change or leaving the view. It puts the 24 controls and the order in the rack,
   as the preset holding exactly them if one does, sends nothing back, and offers an Undo that
@@ -478,13 +478,14 @@ open everything an earlier release could have saved.
   becomes the loaded one. While a loaded preset is edited, **Save** and **Revert** sit beside its
   name: **Save** overwrites it with no confirmation and an Undo toast, and **Revert** loads it
   again as a recall does, sending it and offering Undo. There is no other save or update entry
-  point, so the strip otherwise holds only the name and **Send to FM1**. Recall stays one click and sends as above, then
+  point, so the strip otherwise holds only the name, **Read from FM1** (where the profile's
+  `liveEffectsRead` allows it, raised but not lit, to pair with Send as get and put; the owner's
+  choice, 2026-11-05), and **Send to FM1**. Recall stays one click and sends as above, then
   `toast.success` “Loaded “name”” offers **Undo**: it puts back the previous 24 values and loaded
   id and sends them through the same sender when MIDI is eligible. One step, no history; it is
   built in the component, since `undoToastOptions` takes a patch-library snapshot.
 - Rename…, Duplicate, Download preset, and Delete… live only in a row's ⋮, Delete last in the
-  danger colour; the list's own ⋮ (**FX preset actions**) holds **Read effects from FM1** (where the profile
-  allows it), Import… and Download all. The list
+  danger colour; the list's own ⋮ (**FX preset actions**) holds Import… and Download all. The list
   is flat and A–Z: no folders, tags, or recently-used order. Below `md` the sidebar is replaced by
   the name on the title strip, a button that opens the searchable list in a `Dialog` sheet;
   choosing a preset recalls it and closes the sheet. A menu opened in a modal passes `portalTarget`

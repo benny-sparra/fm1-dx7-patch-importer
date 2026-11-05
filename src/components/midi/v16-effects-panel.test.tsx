@@ -112,7 +112,7 @@ describe('V16 effects panel', () => {
 
     const help = screen.getByRole('note').textContent
     expect(help).toContain('not the effect order.')
-    expect(help).toContain('“Read effects from FM1” brings the FM1’s current effects')
+    expect(help).toContain('“Read from FM1” brings the FM1’s current effects')
   })
 })
 
@@ -329,11 +329,10 @@ function setupLiveFm1({
 }
 
 async function readFromFm1(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: 'FX preset actions' }))
-  await user.click(screen.getByRole('menuitem', { name: 'Read effects from FM1' }))
+  await user.click(screen.getByRole('button', { name: 'Read from FM1' }))
 }
 
-describe('Read effects from FM1', () => {
+describe('Read from FM1', () => {
   it('puts the FM1’s effects and order in the rack, sending nothing but the one read', async () => {
     const user = userEvent.setup()
     const { liveReads, midi, writes } = setupLiveFm1()
@@ -446,13 +445,37 @@ describe('Read effects from FM1', () => {
     expect(Array.from(getV16Effects())).toEqual(Array.from(before))
   })
 
-  it('is not offered before V16', async () => {
-    const user = userEvent.setup()
+  it('is not offered before V16', () => {
     const { midi } = setupLiveFm1({ identity: 'FM-1_015' })
     renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
 
-    await user.click(screen.getByRole('button', { name: 'FX preset actions' }))
+    expect(screen.queryByRole('button', { name: 'Read from FM1' })).toBeNull()
+  })
 
-    expect(screen.queryByRole('menuitem', { name: 'Read effects from FM1' })).toBeNull()
+  it('names only the state it is in while it reads', async () => {
+    const user = userEvent.setup()
+    const { midi } = setupLiveFm1({ liveReply: null })
+    renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await readFromFm1(user)
+
+    expect(screen.getByRole('button', { name: 'Reading…' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Read from FM1/ })).toBeNull()
+  })
+
+  it('stays focusable while MIDI is offline, says why, and reads nothing', async () => {
+    const user = userEvent.setup()
+    renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={offlineMidi} />)
+    const button = screen.getByRole('button', { name: 'Read from FM1' })
+
+    await user.click(button)
+
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.getAttribute('aria-describedby')).not.toBeNull()
+    expect(document.getElementById(button.getAttribute('aria-describedby')!)?.textContent).toBe(
+      'Switch MIDI online and choose the FM1’s input and output to read its effects.',
+    )
+    expect(screen.queryByText('Read the effects from the FM1.')).toBeNull()
   })
 })

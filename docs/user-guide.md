@@ -112,7 +112,7 @@ Download preset, and Delete…, which offers **Undo** and leaves the current eff
 phone the list opens from the name in the title strip, and choosing a preset closes it. Switching
 between Patches and Effects keeps the selected FX preset and any unsaved edits. Saving, renaming,
 duplicating, deleting, Undo, searching, importing and downloading send no MIDI. **FX preset
-actions** (the **⋮** by the search field) has **Read effects from FM1**, **Import…** and **Download all**, which writes
+actions** (the **⋮** by the search field) has **Import…** and **Download all**, which writes
 `fm1-fx-presets.json`; Import adds valid presets with new identities and keeps everything already
 present.
 
@@ -123,13 +123,13 @@ controls once, in their existing order, to the shared FX group. Repeated clicks 
 unchanged settings. **Send to FM1** on the strip sends the effects as they are, saved or not,
 for example after a send that failed or after turning the FM1's own knobs. The FM1 does not acknowledge or verify these messages.
 
-**Read effects from FM1** asks the FM1 once for the FX group it is playing, front-panel changes
+**Read from FM1**, beside **Send to FM1** on the strip, asks the FM1 once for the FX group it is playing, front-panel changes
 included, and puts its 24 controls and its effect order here. It sends the FM1 nothing else and
 changes nothing on it. If a preset holds exactly those effects, it is the one named on the strip;
 otherwise they show as **Unsaved effects**, ready for **New FX preset…**. **Undo** in its toast
 puts back the effects shown before, in this browser only. If the FM1 does not answer, or its answer
 cannot be read, nothing here changes; try again. It needs MIDI online with SysEx, and the FM1's
-input and output selected.
+input and output selected; until then the button says so.
 
 FX presets do not contain the hardware's effect-chain order. Loading does not select a Voice, change Voice setup, save on the FM1,
 or choose another hardware FX group. Use the FM1's own Save flow when you want to keep its live

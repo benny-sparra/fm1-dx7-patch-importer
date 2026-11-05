@@ -12,7 +12,15 @@ import {
   Upload,
 } from 'lucide-react'
 import { createPortal } from 'react-dom'
-import { type ReactNode, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import {
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { FxPresetDialog, FxPresetSheet } from '@/components/midi/fx-preset-dialog'
@@ -29,6 +37,7 @@ import {
   libraryContentClassName,
   libraryRailAddButtonClassName,
   libraryRailClassName,
+  libraryReadButtonClassName,
   librarySendButtonClassName,
   libraryStripClassName,
   libraryStripNameClassName,
@@ -148,6 +157,10 @@ export function FxPresetLibrary({
   }, [i18n.resolvedLanguage, ordered, search])
   const invalidName = !name.trim() || Array.from(name.trim()).length > fxLibraryPresetNameLength
   const readingLive = liveRead?.reading ?? false
+  const readReasonId = useId()
+  const readOffered = Boolean(
+    liveRead && resolveFirmwareProfile(midi.firmware).capabilities.liveEffectsRead,
+  )
   const busy = sending || working || readingLive || fxLibrary.pending
   const unavailable = busy || fxLibrary.status !== 'ready'
   const blocked = busy || mode !== null
@@ -389,16 +402,6 @@ export function FxPresetLibrary({
       triggerLook="size-7 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] hover:bg-[var(--crt-sel-bg)]"
       menuLabel={t('fxPresets.actions')}
       items={[
-        ...(resolveFirmwareProfile(midi.firmware).capabilities.liveEffectsRead && liveRead
-          ? [
-              {
-                label: t('fxPresets.readFromFm1'),
-                Icon: ArrowDownToLine,
-                disabled: !liveRead.offered || unavailable || mode !== null,
-                onSelect: () => void readFromFm1(),
-              },
-            ]
-          : []),
         {
           label: t('fxPresets.import'),
           Icon: Upload,
@@ -641,6 +644,41 @@ export function FxPresetLibrary({
             </span>
           ) : null}
           <div className="flex min-w-0 flex-wrap items-center gap-2 md:ml-auto">
+            {/* Brings the FM1's live group into the rack, as Send puts the rack on the FM1. */}
+            {readOffered ? (
+              <Button
+                aria-describedby={liveRead?.offered ? undefined : readReasonId}
+                aria-disabled={!liveRead?.offered || unavailable || mode !== null}
+                title={liveRead?.offered ? undefined : t('fxPresets.readUnavailable')}
+                className={cn(libraryReadButtonClassName, readingLive && 'barber-pole')}
+                onClick={() => void readFromFm1()}
+                size="bare"
+                type="button"
+                variant="bare"
+              >
+                <ArrowDownToLine aria-hidden="true" className="size-3.5" />
+                {/* Both labels share one cell, so the button keeps the longer one's width. */}
+                <span className="grid">
+                  <span
+                    aria-hidden={readingLive || undefined}
+                    className={cn('[grid-area:1/1]', readingLive && 'invisible')}
+                  >
+                    {t('fxPresets.readFromFm1')}
+                  </span>
+                  <span
+                    aria-hidden={!readingLive || undefined}
+                    className={cn('[grid-area:1/1]', !readingLive && 'invisible')}
+                  >
+                    {t('fxPresets.readingButton')}
+                  </span>
+                </span>
+              </Button>
+            ) : null}
+            {readOffered && !liveRead?.offered ? (
+              <span className="sr-only" id={readReasonId}>
+                {t('fxPresets.readUnavailable')}
+              </span>
+            ) : null}
             {/* Sends the whole rack, as it is, to the shared FX group: after the FM1's own knobs
                 changed it, a power cycle, or a send that failed. */}
             <Button
