@@ -51,6 +51,15 @@ export const officialOpenIdentityReply = Uint8Array.from([
   0x18, 0x30, 0x60, 0x44, 0x11, 0x03, ...Array<number>(17).fill(0), 0x15, 0xf7,
 ])
 
+// Not captured: built for FM-1_8747747, the name DX747 reports whatever its release
+// (docs/dx747-research.md), packed as the replies above are. Its checksum byte is a placeholder,
+// since the editor does not check it.
+// prettier-ignore
+export const dx747IdentityReply = Uint8Array.from([
+  0xf0, 0x00, 0x32, 0x45, 0x58, 0x01, 0x00, 0x00, 0x23, 0x4d, 0x5a, 0x44, 0x79, 0x05, 0x67, 0x0d,
+  0x1a, 0x37, 0x6e, 0x50, 0x39, 0x03, ...Array<number>(17).fill(0), 0x08, 0xf7,
+])
+
 // Captured from M-VAVE's SMK-37 Pro on its stock V015, 2026-11-03
 // (docs/hardware-runs/smk37-2026-11-03.md), with its own checksum.
 // prettier-ignore

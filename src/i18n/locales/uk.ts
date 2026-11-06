@@ -21,6 +21,7 @@ export default {
     bankOfficialOpenNote:
       'Прошивка Open від M-VAVE ігнорує банки DX7, тож надсилання цього банку не змінить її проєкти.',
     bankSmk37Title: 'SMK-37 записала б банк поверх своїх пресетів, тож жоден не надсилається',
+    bankDx747Title: 'DX747 не приймає банки через MIDI, тож жоден не надсилається',
     bankFeluccaNote: 'Felucca ігнорує банки DX7, тож надсилання цього банку не змінить її пресети.',
     bankFeluccaOrSloopNote:
       'Felucca і SLOOP ігнорують банки DX7, тож надсилання цього банку не змінить пресети FM1.',
@@ -1106,6 +1107,7 @@ export default {
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
+    firmwareDx747: 'DX747 {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca або SLOOP {{identity}}',
     firmwareNeedsInput: 'Оберіть FM1 як вхід, щоб редактор зміг визначити його прошивку.',
@@ -1178,6 +1180,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       'На V16 цей патч потрапляє на Voice, обрану на екрані FM1. Зміни звучать наживо лише на MIDI-каналі 1 або All; щоб почути його, оберіть Voice на каналі {{channel}}.',
+    dx747Notice:
+      'На DX747 цей патч потрапляє на партію на каналі {{channel}}. Якщо жодна партія не має цього каналу, нічого не відбувається.',
     effectsSharedNotice:
       'На V16 усі вісім Voice використовують спільні ефекти FM1; вони не належать цьому патчу. Поверніться до бібліотеки й відкрийте Ефекти, щоб змінити або завантажити їх. Натисніть SAVE і оберіть Globe на FM1, щоб зберегти їх.',
     back: 'До банків',
@@ -1329,6 +1333,9 @@ export default {
     officialOpenBadgeLabel: 'Прошивка Open від M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'На FM1 працює прошивка Open від M-VAVE, {{release}}, groovebox на вісім доріжок. Патч, який ви клацаєте чи редагуєте, надходить на доріжку на каналі нот, якщо ця доріжка працює на DX7. Банки DX7 вона ігнорує, а керування ефектами нічого не надсилає, бо вона сприйняла б його як зміни своїх доріжок.',
+    dx747BadgeLabel: 'Прошивка DX747, {{release}}',
+    dx747BadgeTitle:
+      'На FM1 працює DX747, {{release}}: до восьми партій, кожна на власному каналі. Патч, який ви клацаєте чи редагуєте, надходить на партію на каналі нот. Банків прошивка не приймає, а редактор не надсилає ні Program Change, ні керування ефектами.',
     smk37BadgeLabel: 'Прошивка SMK-37 від M-VAVE, {{release}}',
     smk37BadgeTitle:
       'Клавіатура SMK-37 від M-VAVE, {{release}}. Патчі надходять на неї як незбережені зміни.',

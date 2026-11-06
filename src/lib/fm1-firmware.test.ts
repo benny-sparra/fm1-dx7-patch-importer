@@ -98,12 +98,32 @@ describe('classifyFm1Firmware', () => {
       'FM-1_8000012',
       'FM-1_8000013',
       'FM-1_8000014',
-      'FM-1_8999999',
+      'FM-1_8000999',
       'FM1_COMMUNITY_0',
       'FM1_COMMUNITY_42',
       'FM1_OFFICIAL_OPEN',
     ]) {
       expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'official-open' })
+    }
+  })
+
+  it('counts the one name DX747 reports as DX747, not Official Open', () => {
+    expect(classifyFm1Firmware('FM-1_8747747')).toEqual({
+      identity: 'FM-1_8747747',
+      kind: 'dx747',
+    })
+  })
+
+  it('leaves every other Official Open name above release 999 unidentified', () => {
+    for (const identity of [
+      'FM-1_8001000',
+      'FM-1_8747746',
+      'FM-1_8747748',
+      'FM-1_8747747 ',
+      'FM-1_87477470',
+      'FM-1_8999999',
+    ]) {
+      expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'unidentified' })
     }
   })
 
@@ -174,6 +194,10 @@ describe('fm1FirmwareRelease', () => {
     )
   })
 
+  it('names DX747 by the name the FM1 reports, which carries no release', () => {
+    expect(fm1FirmwareRelease({ identity: 'FM-1_8747747', kind: 'dx747' })).toBe('FM-1_8747747')
+  })
+
   it('names an SMK-37 release as M-VAVE numbers it', () => {
     expect(fm1FirmwareRelease({ identity: 'SMK-37 Pro_015', kind: 'smk37' })).toBe('V15')
     expect(fm1FirmwareRelease({ identity: 'MKE-P37_016', kind: 'smk37' })).toBe('V16')
@@ -225,7 +249,14 @@ describe('fm1Device', () => {
   })
 
   it('takes every other answer, and none, as an FM1', () => {
-    for (const identity of ['FM-1_015', 'FM-1_089', 'FM-1_8000012', 'XR-9_015', 'SMK-37 Pro']) {
+    for (const identity of [
+      'FM-1_015',
+      'FM-1_089',
+      'FM-1_8000012',
+      'FM-1_8747747',
+      'XR-9_015',
+      'SMK-37 Pro',
+    ]) {
       expect(fm1Device(classifyFm1Firmware(identity))).toBe('fm1')
     }
     expect(fm1Device({ kind: 'checking' })).toBe('fm1')
