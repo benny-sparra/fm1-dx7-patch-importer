@@ -408,7 +408,7 @@ describe('firmware page filter', () => {
     await userEvent.click(filter(/^Samplers/))
     expect(
       document.getElementById('firmware-kind-current')?.textContent?.replace(/\s+/g, ' ').trim(),
-    ).toBe('Samplers 14')
+    ).toBe(`Samplers ${samplers.length}`)
     expect(menu?.open).toBe(false)
   })
 
