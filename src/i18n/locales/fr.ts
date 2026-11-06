@@ -1116,6 +1116,7 @@ export default {
     blackGreen: 'Noir-vert',
     coolGray: 'Gris froid',
     whiteBlue: 'Blanc-bleu',
+    pink: 'Rose',
     smkWhite: 'Blanc',
   },
   editor: {

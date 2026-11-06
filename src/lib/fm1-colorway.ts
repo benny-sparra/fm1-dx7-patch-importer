@@ -5,6 +5,7 @@ export const fm1Colorways = [
   { label: 'Black-Green', swatch: '#72d4c5', value: 'black-green' },
   { label: 'Cool Gray', swatch: '#d9d4cd', value: 'cool-gray' },
   { label: 'White-Blue', swatch: '#6588aa', value: 'white-blue' },
+  { label: 'Pink', swatch: '#d04a7e', value: 'pink' },
 ] as const
 
 export type Fm1Colorway = (typeof fm1Colorways)[number]['value']

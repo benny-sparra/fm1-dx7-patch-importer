@@ -191,6 +191,15 @@
     --crt-s-ink: 22%;
   }
 
+  /* Rose phosphor. */
+  :root[data-fm1-colorway='pink'] {
+    --crt-h: 336;
+    --crt-s-bg: 28%;
+    --crt-s-bevel: 23%;
+    --crt-s-acc: 62%;
+    --crt-s-ink: 24%;
+  }
+
   /*
    * Warm sand. The finish is a near-neutral, so the saturation tiers drop
    * well below the others rather than reading as a washed-out amber.

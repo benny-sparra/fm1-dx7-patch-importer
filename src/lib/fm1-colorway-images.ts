@@ -6,6 +6,8 @@ import coolGrayImage from '@/assets/fm1-cool-gray.webp'
 import coolGray460 from '@/assets/generated/fm1-cool-gray-460.webp'
 import orangeImage from '@/assets/fm1-orange.webp'
 import orange460 from '@/assets/generated/fm1-orange-460.webp'
+import pinkImage from '@/assets/fm1-pink.webp'
+import pink460 from '@/assets/generated/fm1-pink-460.webp'
 import purpleImage from '@/assets/fm1-purple.webp'
 import purple460 from '@/assets/generated/fm1-purple-460.webp'
 import whiteBlueImage from '@/assets/fm1-white-blue.webp'
@@ -32,4 +34,5 @@ export const fm1ColorwayImages = {
   'black-green': colorwayImage(blackGreenImage, blackGreen460),
   'cool-gray': colorwayImage(coolGrayImage, coolGray460),
   'white-blue': colorwayImage(whiteBlueImage, whiteBlue460),
+  pink: colorwayImage(pinkImage, pink460),
 } satisfies Fm1ColorwayImages

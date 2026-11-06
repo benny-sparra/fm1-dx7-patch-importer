@@ -943,6 +943,7 @@
   :root[data-fm1-colorway='black-green'] .firmware-showcase-photo[data-colorway='black-green'],
   :root[data-fm1-colorway='cool-gray'] .firmware-showcase-photo[data-colorway='cool-gray'],
   :root[data-fm1-colorway='white-blue'] .firmware-showcase-photo[data-colorway='white-blue'],
+  :root[data-fm1-colorway='pink'] .firmware-showcase-photo[data-colorway='pink'],
   .firmware-showcase-photo.is-ready {
     display: block;
   }
