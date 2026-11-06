@@ -475,7 +475,8 @@ open everything an earlier release could have saved.
   sits beside the current effects in session state; the `fm1-v16-effects` record is unchanged.
   Saving mirrors the bank rail (the owner's choice, 2026-11-01): **New FX preset…** sits at the
   rail's foot, styled as **Add new bank…**, and names the rack as a new preset in a modal, which
-  becomes the loaded one. While a loaded preset is edited, **Save** and **Revert** sit beside its
+  becomes the loaded one. While a loaded preset is edited, **Revert** (`outline`) and **Save** (the primary button), as
+  in the editor's unsaved changes dialog, sit beside its
   name: **Save** overwrites it with no confirmation and an Undo toast, and **Revert** loads it
   again as a recall does, sending it and offering Undo. There is no other save or update entry
   point, so the strip otherwise holds only the name, **Read from FM1** (where the profile's

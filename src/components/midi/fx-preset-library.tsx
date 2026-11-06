@@ -614,20 +614,11 @@ export function FxPresetLibrary({
               </span>
             ) : null}
           </h3>
-          {/* An edited preset is saved or put back beside its name; a new one starts in the rail. */}
+          {/* An edited preset is saved or put back beside its name; a new one starts in the rail.
+              Save is the primary button and Revert the outline one, as in the editor's unsaved
+              changes dialog. */}
           {loaded && modified ? (
-            <span className="flex items-center gap-1">
-              <Button
-                aria-disabled={unavailable || mode !== null}
-                onClick={() => {
-                  if (!unavailable && mode === null) void updateCurrent()
-                }}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                {t('fxPresets.saveButton')}
-              </Button>
+            <span className="flex items-center gap-2">
               <Button
                 aria-disabled={unavailable || mode !== null}
                 onClick={() => {
@@ -637,9 +628,19 @@ export function FxPresetLibrary({
                 }}
                 size="sm"
                 type="button"
-                variant="ghost"
+                variant="outline"
               >
                 {t('fxPresets.revert')}
+              </Button>
+              <Button
+                aria-disabled={unavailable || mode !== null}
+                onClick={() => {
+                  if (!unavailable && mode === null) void updateCurrent()
+                }}
+                size="sm"
+                type="button"
+              >
+                {t('fxPresets.saveButton')}
               </Button>
             </span>
           ) : null}
