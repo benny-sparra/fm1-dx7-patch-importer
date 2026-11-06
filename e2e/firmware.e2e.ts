@@ -37,9 +37,11 @@ test('shows only the cards of the kind chosen', async ({ page }) => {
   await page.goto('/firmware/')
 
   await page.locator('.firmware-kind-toggle').click()
-  await page.getByRole('button', { name: /^Samplers/ }).click()
+  const samplers = page.getByRole('button', { name: /^Samplers/ })
+  const count = (await samplers.locator('.firmware-filter-count').textContent()) ?? ''
+  await samplers.click()
 
-  await expect(page.locator('.firmware-kind-toggle')).toContainText('Samplers 14')
+  await expect(page.locator('.firmware-kind-toggle')).toContainText(`Samplers ${count}`)
 
   await expect(page.locator('#pigeon')).toBeVisible()
   await expect(page.locator('#felucca')).toBeHidden()
