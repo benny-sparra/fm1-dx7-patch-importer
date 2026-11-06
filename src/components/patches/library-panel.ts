@@ -20,6 +20,10 @@ export const libraryStripNameClassName =
 export const librarySendButtonClassName =
   'crt-raised-lit inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-white transition-colors hover:bg-[var(--crt-btn-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] md:ml-auto md:flex-none'
 
+/** A button beside Send on a strip that brings something in from the FM1: raised, not lit. */
+export const libraryReadButtonClassName =
+  'crt-raised-thin inline-flex h-8 flex-auto shrink-0 cursor-pointer items-center justify-center gap-2 bg-[var(--crt-btn-face)] px-3 text-xs font-semibold tracking-[0.08em] whitespace-nowrap text-[var(--crt-ink)] transition-colors hover:bg-[var(--crt-sel-bg)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--crt-led)] md:flex-none'
+
 export const libraryRailClassName = 'border-r-2 border-[var(--crt-shadow)] bg-[var(--crt-bg-panel)]'
 
 export const libraryContentClassName = 'bg-[var(--crt-bg-panel)] p-1.5 min-[360px]:p-[9px]'
