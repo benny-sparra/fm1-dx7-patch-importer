@@ -96,7 +96,9 @@ export function Fm1BankSelectionDialog({
               ? 'midi.sysexWarningTitle'
               : sendsBank
                 ? 'dialogs.bankTitle'
-                : 'dialogs.bankSmk37Title',
+                : firmwareKind === 'dx747'
+                  ? 'dialogs.bankDx747Title'
+                  : 'dialogs.bankSmk37Title',
           )}
         </DialogTitle>
         <DialogCloseButton

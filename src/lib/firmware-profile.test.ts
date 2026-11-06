@@ -325,7 +325,16 @@ describe('resolveFirmwareProfile', () => {
     }
   })
 
-  it('sends a bank dump to every firmware but the SMK-37', () => {
+  it('sends DX747 parameter changes and single-voice dumps, and nothing else', () => {
+    expect(resolveFirmwareProfile({ identity: 'FM-1_8747747', kind: 'dx747' })).toEqual({
+      capabilities: { ...nothing, parameterChanges: true, singleVoiceDumps: true },
+      effectControllerBase: 0,
+      family: 'dx747',
+      presetWriteTiming: presetsPageTiming,
+    })
+  })
+
+  it('sends a bank dump to every firmware but the SMK-37 and DX747', () => {
     for (const firmware of [
       { kind: 'checking' },
       { kind: 'unidentified' },
@@ -339,6 +348,9 @@ describe('resolveFirmwareProfile', () => {
     }
     expect(
       resolveFirmwareProfile({ identity: 'SMK-37 Pro_015', kind: 'smk37' }).capabilities.bankDumps,
+    ).toBe(false)
+    expect(
+      resolveFirmwareProfile({ identity: 'FM-1_8747747', kind: 'dx747' }).capabilities.bankDumps,
     ).toBe(false)
   })
 })
@@ -356,5 +368,6 @@ describe('sendsBankTo', () => {
   it('sends an identified firmware a bank by its profile, whatever the port is called', () => {
     expect(sendsBankTo({ identity: 'FM-1_015', kind: 'mvave' }, 'SMK-37 Pro-Private')).toBe(true)
     expect(sendsBankTo({ identity: 'SMK-37 Pro_015', kind: 'smk37' }, 'FM-1 MIDI 1')).toBe(false)
+    expect(sendsBankTo({ identity: 'FM-1_8747747', kind: 'dx747' }, 'FM-1 MIDI 1')).toBe(false)
   })
 })

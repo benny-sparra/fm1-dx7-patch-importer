@@ -261,7 +261,7 @@ open everything an earlier release could have saved.
   preset, survives a power cycle, and has no bank export to back its presets up, so its profile
   lists `parameterChanges` alone: no dump of any kind, no Program Change (ignored), no effect
   controllers (CC 0–1 and 70–71 on channel 2 did nothing), and no vendor command but the identity
-  query. Every other family lists `bankDumps`, so only the SMK-37 is refused a bank.
+  query. Every other family but DX747 lists `bankDumps`, so only the SMK-37 and DX747 are refused a bank.
   `sendsBankTo` (in the profile module) also refuses a bank to an output named `SMK` while the
   firmware is checking or unidentified, since an input on another device leaves the SMK-37
   unanswered. `useMidi.sendBank` returns `unsupported` without sending, and **Send to FM1** opens
@@ -366,6 +366,23 @@ open everything an earlier release could have saved.
   mute and solo go the same way, as a dump whose silenced operators' output levels are 0, set in
   the copy sent and never in the patch; every whole-voice sync carries them. The engine names
   (DX7, 303, 808, PSG, PLUCK, SAMPLER) are printed on the FM1 and stay in English.
+- DX747 (Esben von Buchwald's eight-part multitimbral DX7 firmware, built on Official Open's
+  code; `docs/dx747-research.md`) answers the identity query `FM-1_8747747`, which the editor
+  matches exactly and before Official Open's pattern. That pattern covers `FM-1_8` and six digits
+  from 000000 to 000999 only, so any other `FM-1_8` name is unidentified, since nothing says how a
+  later DX747 will number itself. The identity carries no release, so the badge and the firmware
+  setting show the name as reported, as FM-1+VA's do. Its profile lists `parameterChanges` and
+  `singleVoiceDumps` and nothing else: a part is addressed by its own MIDI channel, and a dump or
+  a parameter change on the note channel edits that part's framed layer, as an unsaved edit and
+  nothing when no part has that channel, which the editor cannot see and says in a notice (the
+  voice editor's `editor.dx747Notice`). It drops a bank dump, so **Send to FM1** opens the
+  title-only dialog as for the SMK-37; it has no effect controllers at CC 70–93; and a Program
+  Change loads a library voice the editor does not know, so none is sent. The editor sends no new
+  message for it: none of DX747's own vendor commands (23–31) and no `F0 7D 46 4D` command
+  (`trackEngineRead` is not listed, so not even command 0) is sent, and they stay **Dangerous /
+  excluded** until the owner approves each here. This is Likely, from DX747's source (v0.1 beta,
+  read 2026-11-06), and **Needs hardware test**: the runs listed in
+  `docs/dx747-research.md` come first. Analytics records the family `dx747` only.
 - Of FM-1+VA's own `F0 43 00 7D` commands, the editor may send only the preset read,
   `7D 10 <slot>` (`readFm1VaPreset` in `src/lib/fm1-va-preset-read.ts`, approved 2026-10-02),
   and only while the profile's `presetRead` allows it: FM-1+VA from `FM-1_079`, the release that
@@ -415,8 +432,9 @@ open everything an earlier release could have saved.
   while the FM1 plays the preset it edits: a slot in banks A–D, whose stored preset it has read
   with `7D 10` and found marked Virtual Analog, because an FM preset takes CC 70–78 as its own
   Envelope, LFO, and Brightness. Without that read, or when it fails, the editor stays local.
-- Send a patch as a DX7 single-voice dump only to firmware identified as M-VAVE's
-  (the profile's `singleVoiceDumps`). FM-1+VA writes a dump straight over the selected stored
+- Send a patch as a DX7 single-voice dump only to firmware whose profile lists
+  `singleVoiceDumps`: M-VAVE's, Official Open, and DX747, which hold it as an unsaved edit.
+  FM-1+VA writes a dump straight over the selected stored
   preset, so every other firmware, including one not yet identified, gets the patch as its 155
   parameter changes, which it holds as an unsaved edit. The bank destination instructions follow
   the firmware too: FM-1+VA asks **Replace Bank A?** starting on bank A, and chooses the bank with

@@ -29,9 +29,10 @@ export type EffectControllerBase = 0 | 70
 
 /**
  * - `singleVoiceDumps`: a patch may go as a DX7 single-voice dump, which M-VAVE's firmware puts in
- *   its edit buffer and Official Open in the track on the dump's channel. FM-1+VA writes one
- *   straight over the selected stored preset, so every other firmware gets the patch as parameter
- *   changes, which it holds as an unsaved edit (docs/fm1-research.md, "The editor on FM-1+VA").
+ *   its edit buffer, Official Open in the track on the dump's channel, and DX747 in the framed
+ *   layer of the part on it. FM-1+VA writes one straight over the selected stored preset, so every
+ *   other firmware gets the patch as parameter changes, which it holds as an unsaved edit
+ *   (docs/fm1-research.md, "The editor on FM-1+VA").
  * - `bankDumps`: **Send to FM1** may send a DX7 32-voice bank dump, whose destination the FM1 asks
  *   for on its own screen. The SMK-37 saves a single-voice dump over its selected preset and has
  *   no bank export to back its presets up, so a bank dump would very likely replace a stored bank
@@ -142,6 +143,11 @@ const channelMessages = {
 
 const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   checking: { capabilities: channelMessages },
+  // DX747, built on Official Open's code, takes DX7 parameter changes and single-voice dumps on a
+  // part's channel as edits to the part's framed layer, but drops a bank dump and has no effect
+  // controllers at CC 70–93, and a Program Change loads a library voice the editor does not know
+  // (docs/dx747-research.md; read from source, not yet run on hardware).
+  dx747: { capabilities: { parameterChanges: 0, singleVoiceDumps: 0 } },
   felucca: { capabilities: channelMessages },
   'fm1-va': {
     capabilities: {

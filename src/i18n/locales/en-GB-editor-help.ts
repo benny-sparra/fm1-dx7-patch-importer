@@ -8,6 +8,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       'On V16 this goes to the FM1’s selected Voice. Edits play live only on channel 1 or All; to hear it, select the Voice on channel {{channel}}.',
+    dx747Notice:
+      'On DX747 this goes to the part on channel {{channel}}. If no part has that channel, nothing happens.',
     effectsSharedNotice:
       'On V16 the FM1’s effects are shared by all eight Voices, not kept with this patch. Return to the library and open Effects to change or recall them; press SAVE and choose Globe on the FM1 to keep them.',
     editName: 'Edit patch name',

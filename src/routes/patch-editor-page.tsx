@@ -226,7 +226,9 @@ export function PatchEditorPage({
   const showNotice = useInfoToast(
     canSync && firmwareCapabilities.selectedVoiceEdits
       ? t('editor.selectedVoiceNotice', { channel: midi.channel })
-      : null,
+      : canSync && midi.firmware.kind === 'dx747'
+        ? t('editor.dx747Notice', { channel: midi.channel })
+        : null,
   )
   // Effect controllers without effects that follow a preset: the FM1's one shared FX group (V16).
   const sharesEffects =

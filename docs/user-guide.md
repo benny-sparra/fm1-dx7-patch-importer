@@ -165,6 +165,13 @@ control, so the FM1's own undo steps match the editor's. Official Open ignores D
 app sends it no Program Change and no effect controls, which it would take as changes to its
 tracks.
 
+DX747, Esben von Buchwald's eight-part multitimbral DX7 firmware, is named **DX747** with the name it
+reports, since that name carries no release. Each of its parts listens on its own MIDI channel, so a
+patch you click, open, or edit goes to the part on the **Note channel** as an unsaved edit of that
+part, and nothing happens when no part has that channel. DX747 takes no bank over MIDI, so **Send
+to FM1** sends none and says why, and the app sends it no Program Change and no effect controls.
+This support was built from DX747's source and has not been run on an FM1 yet.
+
 M-VAVE's SMK-37 keyboard (SMK-37 Pro, SMK-37 Elite, or MKE-P37) runs the FM1's engines. On its
 own firmware the app names it **M-VAVE SMK-37** with its release, such as V15, in the page title
 and on **Send to SMK-37**, and chooses its **Private** MIDI port, the one that answers. Choosing an

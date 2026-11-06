@@ -18,6 +18,7 @@ export default {
     bankOfficialOpenNote:
       'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此发送此音色库不会改变它的工程。',
     bankSmk37Title: 'SMK-37 会把音色库保存到自己的预设上，因此不会发送',
+    bankDx747Title: 'DX747 不通过 MIDI 接收音色库，因此不会发送',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
     bankFeluccaOrSloopNote:
       'Felucca 和 SLOOP 都会忽略 DX7 音色库，因此发送此音色库不会改变 FM1 的预设。',
@@ -932,6 +933,7 @@ export default {
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
+    firmwareDx747: 'DX747 {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca 或 SLOOP {{identity}}',
     firmwareNeedsInput: '请把 FM1 选为监听输入，这样编辑器才能询问它运行的固件。',
@@ -999,6 +1001,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       '在 V16 上，此音色会发送到 FM1 屏幕上选中的 Voice，只有它设在通道 1 或 All 时编辑才会实时生效。要在这里听到，请选中通道 {{channel}} 上的 Voice。',
+    dx747Notice:
+      '在 DX747 上，此音色会发送到通道 {{channel}} 上的声部。如果没有声部使用该通道，则不会有任何反应。',
     effectsSharedNotice:
       '在 V16 上，全部八个 Voice 共享 FM1 效果；它们不属于此音色。请返回资料库并打开“效果”来更改或调用它们。在 FM1 上按 SAVE 并选择 Globe 可保留这些效果。',
     back: '返回音色库',
@@ -1148,6 +1152,9 @@ export default {
     officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
     officialOpenBadgeTitle:
       'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
+    dx747BadgeLabel: 'DX747 固件，{{release}}',
+    dx747BadgeTitle:
+      'FM1 运行的是 DX747（{{release}}）：最多八个声部，每个声部使用各自的通道。你点击或编辑的音色会发送到音符通道上的声部。它不接收音色库，编辑器也不会发送 Program Change 或效果控制。',
     smk37BadgeLabel: 'M-VAVE SMK-37 固件，{{release}}',
     smk37BadgeTitle: '一台 M-VAVE SMK-37 键盘，{{release}}。音色以未保存的编辑发送给它。',
     panic: 'MIDI 紧急停止',

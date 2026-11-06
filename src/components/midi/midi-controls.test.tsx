@@ -97,6 +97,13 @@ describe('MidiSettingsMenu firmware', () => {
     expect(screen.queryByText(/Select on the FM1/)).toBeNull()
   })
 
+  it('names DX747 by its own name, not as Official Open', () => {
+    renderSettings({ identity: 'FM-1_8747747', kind: 'dx747' })
+
+    expect(screen.getByText('DX747 FM-1_8747747')).toBeTruthy()
+    expect(screen.queryByText(/M-VAVE Open/)).toBeNull()
+  })
+
   it('names an SMK-37 by its model', () => {
     renderSettings({ identity: 'SMK-37 Pro_015', kind: 'smk37' })
 
@@ -269,6 +276,39 @@ describe('MidiFirmwareBadge', () => {
     expect(
       screen.getByTitle(/^The FM1 runs M-VAVE’s Open firmware, V12, an eight-track/),
     ).toBeTruthy()
+  })
+
+  it('names DX747 as its maker’s firmware, with the name it reports', () => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_8747747', kind: 'dx747' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('DX747 firmware, FM-1_8747747')).toBeTruthy()
+    expect(container.textContent).toContain('DX747FM-1_8747747')
+    expect(screen.getByTitle(/^The FM1 runs DX747, FM-1_8747747: up to eight parts/)).toBeTruthy()
+  })
+
+  it('names DX747 in Ukrainian', async () => {
+    await setLocale('uk')
+
+    render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_8747747', kind: 'dx747' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Прошивка DX747, FM-1_8747747')).toBeTruthy()
+    expect(screen.getByTitle(/^На FM1 працює DX747, FM-1_8747747: до восьми партій/)).toBeTruthy()
   })
 
   it('names an SMK-37 with its own release', () => {

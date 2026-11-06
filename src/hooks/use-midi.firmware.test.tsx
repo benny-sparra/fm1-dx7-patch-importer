@@ -9,6 +9,7 @@ import { makeFm1ParameterPayload } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 import { makeDemoVoices } from '@/lib/patch-library'
 import {
+  dx747IdentityReply,
   feluccaIdentityReply,
   feluccaOrSloopIdentityReply,
   fm1VaIdentityReply,
@@ -129,6 +130,16 @@ describe('useMidi firmware identification', () => {
     expect(logMessages(result)).toContainEqual([
       'system',
       "The FM1 runs M-VAVE's Official Open firmware FM-1_8000012, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no Program Change or effect controller is sent.",
+    ])
+  })
+
+  it('identifies DX747, not Official Open, and says in the log where patches go', async () => {
+    const { result } = await connect(makeFakeFm1Ports({ reply: dx747IdentityReply }))
+
+    expect(result.current.firmware).toEqual({ identity: 'FM-1_8747747', kind: 'dx747' })
+    expect(logMessages(result)).toContainEqual([
+      'system',
+      'The FM1 runs DX747 firmware FM-1_8747747. Patches go to the part on the note channel, and nothing is sent to a channel no part has. No bank, Program Change, or effect controller is sent.',
     ])
   })
 
@@ -265,6 +276,14 @@ describe('useMidi firmware analytics', () => {
     expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'official-open' }]])
   })
 
+  it('reports DX747 by its family, without its name', async () => {
+    const firmwareEvents = trackFirmwareEvents()
+
+    await connect(makeFakeFm1Ports({ reply: dx747IdentityReply }))
+
+    expect(firmwareEvents()).toEqual([['fm1_identified', { firmware: 'dx747' }]])
+  })
+
   it('reports nothing while the FM1 has not answered', async () => {
     const firmwareEvents = trackFirmwareEvents()
 
@@ -329,6 +348,31 @@ describe('useMidi patch sends by firmware', () => {
       'out',
       `Sent ${voice.name} as parameter changes, an unsaved edit of the selected preset. Save on the FM1 to store it.`,
     ])
+  })
+
+  it('sends a patch to DX747 as one single-voice dump on the note channel, and no bank', async () => {
+    const ports = makeFakeFm1Ports({ reply: dx747IdentityReply })
+    const { result } = await connect(ports)
+
+    const sent = result.current.sendVoice(voice)
+    await act(() => vi.advanceTimersByTimeAsync(100))
+
+    await expect(sent).resolves.toBe(true)
+    expect(ports.output.sendSysex).toHaveBeenCalledTimes(1)
+    expect(ports.output.sendSysex.mock.calls[0][0]).toBe(0x43)
+    // Nothing but the identity query goes out as a short message: no Program Change, no effect.
+    expect(ports.output.send).toHaveBeenCalledTimes(identityQueries(ports.output).length)
+    expect(logMessages(result)).toContainEqual([
+      'out',
+      `Sent ${voice.name}. It is an unsaved edit of the part on that channel.`,
+    ])
+
+    ports.output.sendSysex.mockClear()
+    await expect(result.current.sendBank('A', makeDemoVoices())).resolves.toEqual({
+      ok: false,
+      reason: 'unsupported',
+    })
+    expect(ports.output.sendSysex).not.toHaveBeenCalled()
   })
 
   it('sends a patch as parameter changes while the firmware is still being checked', async () => {

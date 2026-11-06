@@ -131,6 +131,32 @@ describe('PatchEditorPage MIDI paths', () => {
     expect(screen.getByText(note)).toBeTruthy()
   })
 
+  it('says on DX747 which part the patch reaches, naming the note channel', () => {
+    setup({ channel: 12, firmware: { identity: 'FM-1_8747747', kind: 'dx747' } })
+
+    expect(
+      screen.getByText(
+        'On DX747 this goes to the part on channel 12. If no part has that channel, nothing happens.',
+      ),
+    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Show FM1 note' })).toBeTruthy()
+  })
+
+  it('says which part the patch reaches on DX747 in German', async () => {
+    await setLocale('de')
+    try {
+      setup({ channel: 12, firmware: { identity: 'FM-1_8747747', kind: 'dx747' } })
+
+      expect(
+        screen.getByText(
+          'Auf DX747 geht dieser Sound an den Part auf Kanal 12. Hat kein Part diesen Kanal, passiert nichts.',
+        ),
+      ).toBeTruthy()
+    } finally {
+      await setLocale('en-GB')
+    }
+  })
+
   it('offers no note button on firmware with nothing to say', () => {
     setup()
 

@@ -63,6 +63,12 @@ export function MidiConnectActions({ midi }: MidiConnectActionsProps) {
 // her name rather than FM-1+VA's, so her badge shows the name alone. SLOOP reports the name a
 // Felucca development build does, so that name shows both firmwares and no maker.
 const firmwareBadges = {
+  dx747: {
+    label: 'midi.dx747BadgeLabel',
+    maker: 'DX747',
+    product: null,
+    title: 'midi.dx747BadgeTitle',
+  },
   felucca: {
     label: 'midi.feluccaBadgeLabel',
     maker: 'HÜGELTON',
@@ -188,6 +194,8 @@ function firmwareName(firmware: MidiController['firmware'], t: TFunction) {
       return t('settings.firmwareFm1Va', { identity: firmware.identity })
     case 'official-open':
       return t('settings.firmwareOfficialOpen', { identity: firmware.identity })
+    case 'dx747':
+      return t('settings.firmwareDx747', { identity: firmware.identity })
     case 'felucca':
       return mayBeSloop(firmware)
         ? t('settings.firmwareFeluccaOrSloop', { identity: firmware.identity })

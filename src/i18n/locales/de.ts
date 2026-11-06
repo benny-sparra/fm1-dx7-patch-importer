@@ -22,6 +22,7 @@ export default {
       'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Projekte also nicht.',
     bankSmk37Title:
       'Das SMK-37 würde eine Bank über seine Presets speichern, deshalb wird keine gesendet',
+    bankDx747Title: 'DX747 nimmt keine Bank über MIDI an, deshalb wird keine gesendet',
     bankFeluccaNote:
       'Felucca ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Presets also nicht.',
     bankFeluccaOrSloopNote:
@@ -1059,6 +1060,7 @@ export default {
     firmwareMvave: 'M-VAVE {{identity}}',
     firmwareFm1Va: 'Baud Girl {{identity}}',
     firmwareOfficialOpen: 'M-VAVE Open {{identity}}',
+    firmwareDx747: 'DX747 {{identity}}',
     firmwareFelucca: 'Felucca {{identity}}',
     firmwareFeluccaOrSloop: 'Felucca oder SLOOP {{identity}}',
     firmwareNeedsInput:
@@ -1132,6 +1134,8 @@ export default {
   editor: {
     selectedVoiceNotice:
       'Auf V16 geht dieser Sound an die am FM1 gewählte Voice. Änderungen erklingen nur auf Kanal 1 oder All live; zum Hören wähle die Voice auf Kanal {{channel}}.',
+    dx747Notice:
+      'Auf DX747 geht dieser Sound an den Part auf Kanal {{channel}}. Hat kein Part diesen Kanal, passiert nichts.',
     effectsSharedNotice:
       'Auf V16 teilen sich alle acht Voices die Effekte des FM1; sie gehören nicht zu diesem Sound. Kehre zur Bibliothek zurück und öffne Effekte, um sie zu ändern oder abzurufen. Drücke am FM1 SAVE und wähle Globe, um sie zu behalten.',
     back: 'Zurück zu den Bänken',
@@ -1283,6 +1287,9 @@ export default {
     officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
     officialOpenBadgeTitle:
       'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
+    dx747BadgeLabel: 'DX747-Firmware, {{release}}',
+    dx747BadgeTitle:
+      'Auf dem FM1 läuft DX747, {{release}}: bis zu acht Parts, jeder auf einem eigenen Kanal. Ein Sound, den du anklickst oder bearbeitest, geht an den Part auf dem Notenkanal. Banken nimmt die Firmware nicht an, und der Editor sendet weder Program Change noch Effektregler.',
     smk37BadgeLabel: 'SMK-37-Firmware von M-VAVE, {{release}}',
     smk37BadgeTitle:
       'Ein SMK-37-Keyboard von M-VAVE, {{release}}. Sounds erreichen es als ungespeicherte Änderungen.',

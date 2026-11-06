@@ -3,7 +3,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import '@/i18n'
+import { setLocale } from '@/i18n'
 import { Fm1BankSelectionDialog } from '@/components/midi/fm1-bank-selection-dialog'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import { translatePageText } from '@/test/page-translator'
@@ -210,6 +210,35 @@ describe('Fm1BankSelectionDialog', () => {
     expect(
       screen.getByRole('button', { hidden: true, name: 'Close bank selection instructions' }),
     ).toBeTruthy()
+  })
+
+  it('offers DX747 no bank, since it drops one, and says so in German', async () => {
+    await setLocale('de')
+    try {
+      render(renderDialog(true, { identity: 'FM-1_8747747', kind: 'dx747' }))
+
+      expect(
+        screen.getByRole('dialog', {
+          hidden: true,
+          name: 'DX747 nimmt keine Bank über MIDI an, deshalb wird keine gesendet',
+        }),
+      ).toBeTruthy()
+      expect(screen.queryByRole('button', { hidden: true, name: 'An FM1 senden' })).toBeNull()
+    } finally {
+      await setLocale('en-GB')
+    }
+  })
+
+  it('offers DX747 no bank to send', () => {
+    render(renderDialog(true, { identity: 'FM-1_8747747', kind: 'dx747' }))
+
+    expect(
+      screen.getByRole('dialog', {
+        hidden: true,
+        name: 'DX747 takes no bank over MIDI, so none is sent',
+      }),
+    ).toBeTruthy()
+    expect(screen.queryByRole('button', { hidden: true, name: 'Send to FM1' })).toBeNull()
   })
 
   it('changes to the FM-1+VA steps once identified, after a page translator replaces its text', () => {
