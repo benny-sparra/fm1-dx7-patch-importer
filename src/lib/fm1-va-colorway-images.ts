@@ -6,6 +6,8 @@ import fm1VaCoolGrayImage from '@/assets/fm1-va-cool-gray.webp'
 import fm1VaCoolGray460 from '@/assets/generated/fm1-va-cool-gray-460.webp'
 import fm1VaOrangeImage from '@/assets/fm1-va-orange.webp'
 import fm1VaOrange460 from '@/assets/generated/fm1-va-orange-460.webp'
+import fm1VaPinkImage from '@/assets/fm1-va-pink.webp'
+import fm1VaPink460 from '@/assets/generated/fm1-va-pink-460.webp'
 import fm1VaPurpleImage from '@/assets/fm1-va-purple.webp'
 import fm1VaPurple460 from '@/assets/generated/fm1-va-purple-460.webp'
 import fm1VaWhiteBlueImage from '@/assets/fm1-va-white-blue.webp'
@@ -22,4 +24,5 @@ export const fm1VaColorwayImages = {
   'black-green': colorwayImage(fm1VaBlackGreenImage, fm1VaBlackGreen460),
   'cool-gray': colorwayImage(fm1VaCoolGrayImage, fm1VaCoolGray460),
   'white-blue': colorwayImage(fm1VaWhiteBlueImage, fm1VaWhiteBlue460),
+  pink: colorwayImage(fm1VaPinkImage, fm1VaPink460),
 } satisfies Fm1ColorwayImages

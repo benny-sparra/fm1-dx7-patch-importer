@@ -996,6 +996,7 @@ export default {
     blackGreen: '黑绿',
     coolGray: '冷灰',
     whiteBlue: '白蓝',
+    pink: '粉色',
     smkWhite: '白色',
   },
   editor: {

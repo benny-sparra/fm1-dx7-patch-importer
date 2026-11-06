@@ -275,6 +275,7 @@ export default {
     blackGreen: 'Black-Green',
     coolGray: 'Cool Gray',
     whiteBlue: 'White-Blue',
+    pink: 'Pink',
     smkWhite: 'White',
   },
   editor: {

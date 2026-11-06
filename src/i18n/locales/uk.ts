@@ -1175,6 +1175,7 @@ export default {
     blackGreen: 'Чорно-зелений',
     coolGray: 'Холодний сірий',
     whiteBlue: 'Біло-блакитний',
+    pink: 'Рожевий',
     smkWhite: 'Білий',
   },
   editor: {
