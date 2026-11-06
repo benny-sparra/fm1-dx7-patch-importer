@@ -53,6 +53,11 @@ The full feature list. The [README](../README.md) has the short version,
 - Recognise Baud Girl's FM-1+VA replacement firmware, and send it patches as parameter changes so auditions never overwrite a stored preset
 - Import the FM1's banks A–D with their effects, read straight from an FM1 on Baud Girl's firmware or from the presets file **Back up everything** saves in Baud Girl's Device Manager, into the library banks you choose or new ones, with a preview that marks the patches differing from the library, and Undo
 - Write library patches back to an FM1 on Baud Girl's firmware, preset by preset with their effects, only where they differ, each read back to confirm it
+- On M-VAVE's V16, edit the one FX group all eight Voices share in its own **Effects** view, beside the patch banks, with each change sent live
+- Keep FX settings as named **FX presets**: save the rack with **New FX preset…**, load one with a click, **Save** or **Revert** an edited one, rename, duplicate, delete with Undo, import and download them, and find them in backups
+- Bring the FM1's live effects and their order into the Effects view with **Read from FM1**, front-panel changes included, then keep them as an FX preset; it sends the FM1 nothing back
+- Change the order the sound passes through V16's effects by dragging the effect boxes, or from each box's **⋮** menu, and the FM1 plays the new order at once
+- See which of V16's eight Voices an edit reaches, named by the note channel, and change the note channel from the header
 - Monitor incoming and outgoing MIDI messages, inspect SysEx data, and copy it as hexadecimal
 - Play notes on the FM1 from an on-screen keyboard, or loop one of six short phrases to audition a patch hands-free
 - Release hanging notes on the FM1 with a MIDI panic button
