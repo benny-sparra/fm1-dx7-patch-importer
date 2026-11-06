@@ -11,7 +11,9 @@ import type { FxLibrary } from '@/hooks/use-fx-library'
 import { setLocale } from '@/i18n'
 import { installFakeIndexedDb } from '@/test/fake-indexed-db'
 import { renderWithToasts } from '@/test/render-with-toasts'
-import { resetV16EffectsForTests, setV16Effects } from '@/lib/v16-effects'
+import { createFxLibraryPreset } from '@/lib/fx-library-preset'
+import { getV16Effects, resetV16EffectsForTests, setV16Effects } from '@/lib/v16-effects'
+import { makeV16LiveEffectsReadRequest } from '@/lib/v16-live-effects'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import {
   fxTableOffset,
@@ -20,6 +22,8 @@ import {
   parseSettingsBlockReply,
 } from '@/lib/v16-settings-block'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
+import { capturedReply, sentRack } from '@/test/v16-live-effects-captures'
+import { frame, table } from '@/test/v16-live-effects-replies'
 import { makeSettingsBlockReply } from '@/test/v16-settings-replies'
 
 beforeAll(async () => {
@@ -101,14 +105,14 @@ describe('V16 effects panel', () => {
     expect(screen.queryByText(/last only while this tab stays open/)).toBeNull()
   })
 
-  it('explains in its help that presets leave out the order and front-panel changes', async () => {
+  it('explains in its help that presets leave out the order, and how to read the FM1’s', async () => {
     const user = userEvent.setup()
     renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={offlineMidi} />)
     await user.hover(screen.getByRole('button', { name: 'Help: Effects' }))
 
     const help = screen.getByRole('note').textContent
     expect(help).toContain('not the effect order.')
-    expect(help).toContain('Front-panel changes are not read back by the editor.')
+    expect(help).toContain('“Read effects from FM1” brings the FM1’s current effects')
   })
 })
 
@@ -300,5 +304,155 @@ describe('V16 effects panel effect order', () => {
     expect(await screen.findByText('The FM1 did not take the new order. Try again.')).toBeTruthy()
     expect(effectNames()[0]).toBe('Delay')
     vi.useRealTimers()
+  })
+})
+
+const isLiveRead = (data: Uint8Array) => {
+  const request = makeV16LiveEffectsReadRequest()
+  return data.length === request.length && data.every((byte, index) => byte === request[index])
+}
+
+/** An FM1 that answers the order read as `setupFm1` does, and the live read with `liveReply`. */
+function setupLiveFm1({
+  identity = 'FM-1_016',
+  liveReply = capturedReply('Read run A distinct') as Uint8Array | null,
+}: { identity?: string; liveReply?: Uint8Array | null } = {}) {
+  const fm1 = setupFm1({ identity })
+  const answerOrder = fm1.ports.output.send.getMockImplementation()
+  const liveReads: Uint8Array[] = []
+  fm1.ports.output.send.mockImplementation((data) => {
+    if (!isLiveRead(data)) return answerOrder?.(data)
+    liveReads.push(data)
+    if (liveReply) fm1.ports.input.receive(liveReply)
+  })
+  return { ...fm1, liveReads: () => liveReads }
+}
+
+async function readFromFm1(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: 'FX preset actions' }))
+  await user.click(screen.getByRole('menuitem', { name: 'Read effects from FM1' }))
+}
+
+describe('Read effects from FM1', () => {
+  it('puts the FM1’s effects and order in the rack, sending nothing but the one read', async () => {
+    const user = userEvent.setup()
+    const { liveReads, midi, writes } = setupLiveFm1()
+    renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await readFromFm1(user)
+
+    expect(await screen.findByText('Read the effects from the FM1.')).toBeTruthy()
+    expect(Array.from(getV16Effects())).toEqual(sentRack('Read run A distinct'))
+    expect(effectNames()).toEqual(sixEffects)
+    expect(screen.getByRole('heading', { name: 'Unsaved effects' })).toBeTruthy()
+    expect(liveReads()).toHaveLength(1)
+    expect(writes()).toEqual([])
+    expect(midi.sendSharedEffectParameter).not.toHaveBeenCalled()
+    expect(midi.sendSharedEffectSettings).not.toHaveBeenCalled()
+  })
+
+  it('names the preset that holds exactly the effects it read', async () => {
+    const user = userEvent.setup()
+    const { midi } = setupLiveFm1()
+    const library = {
+      ...makeLibrary(),
+      presets: [
+        createFxLibraryPreset({
+          effects: Uint8Array.from(sentRack('Read run A distinct')),
+          id: 'fx-a',
+          name: 'Stage plate',
+          now: '2026-11-05T12:00:00.000Z',
+        }),
+      ],
+    }
+    renderWithToasts(<V16EffectsPanel fxLibrary={library} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await readFromFm1(user)
+
+    expect(await screen.findByRole('heading', { name: 'Stage plate' })).toBeTruthy()
+  })
+
+  it('puts the previous rack back on Undo, sending nothing', async () => {
+    const user = userEvent.setup()
+    const { midi } = setupLiveFm1()
+    const before = new Uint8Array(24)
+    before[0] = 1
+    setV16Effects(before)
+    renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+    await readFromFm1(user)
+
+    await user.click(await screen.findByRole('button', { name: 'Undo' }))
+
+    expect(Array.from(getV16Effects())).toEqual(Array.from(before))
+    expect(midi.sendSharedEffectParameter).not.toHaveBeenCalled()
+    expect(midi.sendSharedEffectSettings).not.toHaveBeenCalled()
+  })
+
+  it('says the FM1 did not answer and changes nothing, asking only once', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    const { liveReads, midi } = setupLiveFm1({ liveReply: null })
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const before = getV16Effects().slice()
+    renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await readFromFm1(user)
+    await vi.advanceTimersByTimeAsync(4000)
+
+    expect(
+      await screen.findByText(
+        'The FM1 did not answer. Check that its MIDI input is selected, then try again.',
+      ),
+    ).toBeTruthy()
+    expect(Array.from(getV16Effects())).toEqual(Array.from(before))
+    expect(liveReads()).toHaveLength(1)
+    vi.useRealTimers()
+  })
+
+  it('takes nothing from a reading with a control out of its range', async () => {
+    const user = userEvent.setup()
+    const values = Array.from({ length: 27 }, () => 0)
+    values[0] = 120
+    const echoed = [5, 0x9c, 0, 0, 0, 54, 0, 0]
+    const { midi } = setupLiveFm1({ liveReply: frame([...echoed, ...values, ...table]) })
+    const before = getV16Effects().slice()
+    renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await readFromFm1(user)
+
+    expect(
+      await screen.findByText(
+        'The FM1’s effects could not be read, so nothing here changed. Try again.',
+      ),
+    ).toBeTruthy()
+    expect(Array.from(getV16Effects())).toEqual(Array.from(before))
+  })
+
+  it('changes nothing when the view closes before the FM1 answers', async () => {
+    const user = userEvent.setup()
+    const { midi, ports } = setupLiveFm1({ liveReply: null })
+    const before = getV16Effects().slice()
+    const view = renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+    await readFromFm1(user)
+
+    view.unmount()
+    act(() => ports.input.receive(capturedReply('Read run A distinct')))
+
+    expect(Array.from(getV16Effects())).toEqual(Array.from(before))
+  })
+
+  it('is not offered before V16', async () => {
+    const user = userEvent.setup()
+    const { midi } = setupLiveFm1({ identity: 'FM-1_015' })
+    renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={midi} />)
+
+    await user.click(screen.getByRole('button', { name: 'FX preset actions' }))
+
+    expect(screen.queryByRole('menuitem', { name: 'Read effects from FM1' })).toBeNull()
   })
 })

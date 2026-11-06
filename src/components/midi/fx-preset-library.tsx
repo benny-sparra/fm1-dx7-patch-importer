@@ -1,5 +1,6 @@
 import { bytesEqual } from '@/lib/bytes-equal'
 import {
+  ArrowDownToLine,
   ChevronDown,
   CopyPlus,
   Download,
@@ -22,6 +23,7 @@ import { InfoNotice } from '@/components/ui/info-notice'
 import { PortalMenu } from '@/components/ui/portal-menu'
 import { useToast } from '@/components/ui/toast'
 import type { FxLibrary } from '@/hooks/use-fx-library'
+import type { V16LiveEffectsRead } from '@/hooks/use-v16-live-effects-read'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import {
   libraryContentClassName,
@@ -69,8 +71,12 @@ type FxPresetUndo =
 type Props = {
   children?: ReactNode
   fxLibrary: FxLibrary
+  /** The read of the FM1's live effects, where its firmware allows it. */
+  liveRead?: V16LiveEffectsRead
   midi: V16EffectsMidi
   menuSlot?: HTMLElement | null
+  /** Takes the chain order a read of the FM1's live effects found. */
+  onOrderRead?: (order: readonly number[]) => void
   onSearchChange: (search: string) => void
   onSendingChange: (sending: boolean) => void
   search: string
@@ -87,8 +93,10 @@ function downloadPresets(presets: readonly FxLibraryPreset[]) {
 export function FxPresetLibrary({
   children,
   fxLibrary,
+  liveRead,
   midi,
   menuSlot,
+  onOrderRead,
   onSearchChange,
   onSendingChange,
   search,
@@ -139,7 +147,8 @@ export function FxPresetLibrary({
     )
   }, [i18n.resolvedLanguage, ordered, search])
   const invalidName = !name.trim() || Array.from(name.trim()).length > fxLibraryPresetNameLength
-  const busy = sending || working || fxLibrary.pending
+  const readingLive = liveRead?.reading ?? false
+  const busy = sending || working || readingLive || fxLibrary.pending
   const unavailable = busy || fxLibrary.status !== 'ready'
   const blocked = busy || mode !== null
   const notReached = loadedOnly && !eligible ? (sharedEffects ? 'offline' : 'ineligible') : null
@@ -317,6 +326,41 @@ export function FxPresetLibrary({
     }
   }
 
+  /**
+   * Puts the FM1's live effects and order in the rack, as the preset that holds exactly them if
+   * there is one, and sends nothing back: the FM1 already plays them. Undo puts the rack back here
+   * only, so it then differs from the FM1 until it is sent.
+   */
+  const readFromFm1 = async () => {
+    if (!liveRead?.offered || unavailable || mode !== null) return
+    setError('')
+    setLoadedOnly(false)
+    const before = { effects: getV16Effects().slice(), id: getV16EffectsPresetId() }
+    const result = await liveRead.read()
+    if (!result) return
+    if (result.type === 'failed') {
+      setError(
+        t(result.problem === 'no-reply' ? 'fxPresets.errors.readNoReply' : 'fxPresets.errors.read'),
+      )
+      return
+    }
+    const matching = fxLibrary.presets.find((preset) => bytesEqual(preset.effects, result.effects))
+    setV16Effects(result.effects)
+    setV16EffectsPresetId(matching?.id ?? '')
+    markV16EffectsSent(matching?.id ?? '', route, result.effects)
+    onOrderRead?.(result.order)
+    toast.success(t('fxPresets.readDone'), {
+      action: {
+        label: t('toasts.undo'),
+        onAction: () => {
+          setV16Effects(before.effects)
+          setV16EffectsPresetId(before.id)
+          clearV16EffectsLastSent()
+        },
+      },
+    })
+  }
+
   const failureNotice = (
     <>
       {error ? <ErrorNotice>{error}</ErrorNotice> : null}
@@ -345,6 +389,16 @@ export function FxPresetLibrary({
       triggerLook="size-7 border-t border-r border-b border-l border-t-[var(--crt-bevel)] border-r-[var(--crt-shadow)] border-b-[var(--crt-shadow)] border-l-[var(--crt-bevel)] bg-[var(--crt-btn-face)] text-[var(--crt-acc-lt)] hover:bg-[var(--crt-sel-bg)]"
       menuLabel={t('fxPresets.actions')}
       items={[
+        ...(resolveFirmwareProfile(midi.firmware).capabilities.liveEffectsRead && liveRead
+          ? [
+              {
+                label: t('fxPresets.readFromFm1'),
+                Icon: ArrowDownToLine,
+                disabled: !liveRead.offered || unavailable || mode !== null,
+                onSelect: () => void readFromFm1(),
+              },
+            ]
+          : []),
         {
           label: t('fxPresets.import'),
           Icon: Upload,
@@ -623,6 +677,8 @@ export function FxPresetLibrary({
           {/* Read aloud only: the Send button shows the send, so nothing below the strip moves. */}
           {sending ? (
             <span className="sr-only">{t('fxPresets.sending')}</span>
+          ) : readingLive ? (
+            <span className="sr-only">{t('fxPresets.reading')}</span>
           ) : notReached ? (
             <div className="px-2 pt-2">
               <InfoNotice>

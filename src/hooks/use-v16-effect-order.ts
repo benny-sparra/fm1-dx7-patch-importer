@@ -27,6 +27,8 @@ type EffectOrderMidi = Pick<
 >
 
 export type V16EffectOrder = {
+  /** Takes `order`, read from the FM1 some other way, as the order it holds now. */
+  adopt: (order: readonly number[]) => void
   /** Moves the effect at place `from` to place `to`; one read and one write of the FM1's table. */
   move: (from: number, to: number) => void
   /** The effects by number, first place first: as read from the FM1, or the default meanwhile. */
@@ -159,7 +161,20 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
     [input, logStore, makeLink, order, output, queueEffectOrder],
   )
 
+  const adopt = useCallback(
+    (found: readonly number[]) => {
+      if (!offered || !input || !output) return
+      const next = found.slice()
+      if (session.current) session.current.confirmed = next
+      setOrder(next)
+      setRead({ input, order: next, output })
+      setWriteFailed(false)
+    },
+    [input, offered, output],
+  )
+
   return {
+    adopt,
     move,
     order: shown,
     status: !offered ? 'unavailable' : !current ? 'reading' : current.order ? 'ready' : 'failed',

@@ -64,6 +64,9 @@ export type EffectControllerBase = 0 | 70
  * - `effectOrder`: V16's effect order, read and written as the FX order bytes of the updater's
  *   object 4 settings block (`src/lib/v16-settings-block.ts`, approved 2026-10-27). M-VAVE's V16
  *   (`docs/hardware-runs/stock-v16-effect-order-2026-11-01.md`).
+ * - `liveEffectsRead`: V16's live FX group read back through object 5's low-offset read
+ *   (`src/lib/v16-live-effects.ts`, approved 2026-11-02), which fills the Effects view's rack.
+ *   M-VAVE's V16 (`docs/hardware-runs/stock-v16-live-fx-read-2026-11-05.md`).
  * - `multitimbral`: the FM1 plays several Voices, each with its own preset and MIDI channel.
  *   M-VAVE's V16 (docs/hardware-runs/stock-v16-voices-2026-10-26.md).
  */
@@ -73,6 +76,7 @@ type FirmwareCapability =
   | 'effectControllers'
   | 'effectOrder'
   | 'knobChoices'
+  | 'liveEffectsRead'
   | 'multitimbral'
   | 'parameterChanges'
   | 'presetEffects'
@@ -168,6 +172,8 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
       sharedEffects: 16,
       // V16 takes a new effect order in object 4's FX table (2026-11-01).
       effectOrder: 16,
+      // V16's live FX group reads back through object 5 (2026-11-05).
+      liveEffectsRead: 16,
       singleVoiceDumps: 0,
     },
     effectControllerBase: { base: 70, from: 16 },
@@ -212,6 +218,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       effectControllers: from(capabilities.effectControllers),
       effectOrder: from(capabilities.effectOrder),
       knobChoices: from(capabilities.knobChoices),
+      liveEffectsRead: from(capabilities.liveEffectsRead),
       multitimbral: from(capabilities.multitimbral),
       parameterChanges: from(capabilities.parameterChanges),
       presetEffects: from(capabilities.presetEffects),

@@ -45,7 +45,10 @@ export default {
     help: 'Edita efectos y guarda presets. En V16, todas las Voces comparten los efectos.',
     orderHelp:
       'Los presets contienen los controles de efectos que aparecen aquí, no el orden de efectos.',
-    noReadback: 'El editor no vuelve a leer los cambios hechos en el panel del equipo.',
+    readback: '«Leer efectos del FM1» trae aquí los efectos actuales del FM1 y su orden.',
+    readFromFm1: 'Leer efectos del FM1',
+    readDone: 'Se leyeron los efectos del FM1.',
+    reading: 'Leyendo los efectos del FM1…',
     effectOrderReading: 'Leyendo el orden de los efectos del FM1…',
     effectOrderFailed: 'El FM1 no dio el orden de sus efectos, así que no se puede cambiar aquí.',
     effectOrderWriteFailed: 'El FM1 no aceptó el nuevo orden. Inténtalo de nuevo.',
@@ -74,6 +77,9 @@ export default {
       fileSize: 'Este archivo es demasiado grande para ser una biblioteca de presets de FX.',
       fileRead: 'No se pudo leer el archivo. Vuelve a elegirlo.',
       name: 'Escribe un nombre de entre 1 y {{max}} caracteres.',
+      readNoReply:
+        'El FM1 no respondió. Comprueba que su entrada MIDI esté seleccionada y vuelve a intentarlo.',
+      read: 'No se pudieron leer los efectos del FM1, así que aquí no cambió nada. Vuelve a intentarlo.',
     },
   },
 } as const

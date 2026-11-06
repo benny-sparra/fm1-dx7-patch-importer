@@ -78,6 +78,14 @@ sent. The spare bytes (values[2], [5], [18–26]) never moved.
   everything Off, Filter 80 and 3, the rest 30, the default order. Nothing the run sent, nor the
   accidental move, outlived it.
 
+## Through Read effects from FM1
+
+After the run, with the editor's rack still holding Read run C's zeros, Ben switched Reverb on and
+set its Mix to 42% on the FM1's own knobs, then chose **Read effects from FM1** in the Effects view
+(PR 467). The rack took the FM1's group exactly: Filter off, Low Pass, Cutoff 80 (the FM1 showed
+6065 Hz) and Resonance 3 (Q 30); Reverb on, Room, Decay 30% (it had shown 0 in the rack) and Mix
+42%; the other four off at 30%, in the default order; and the strip read **Unsaved effects**.
+
 ## Other observations
 
 - In the dev build the Effects view's settings-block read (object 4, `0x23`) went out twice, 2 ms

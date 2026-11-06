@@ -329,7 +329,13 @@ open everything an earlier release could have saved.
   `docs/v16-fx-readback-validation.md`, with no retry and nothing sent after a failure. A longer
   read, up to the 215 bytes, needs its own approval. A read
   never triggers the live-edit sender, updates only browser state on a complete valid reply, and
-  never overwrites a named preset. Every other `00 32` command stays **Dangerous / excluded**:
+  never overwrites a named preset. The run of 2026-11-05
+  (`docs/hardware-runs/stock-v16-live-fx-read-2026-11-05.md`) confirmed every byte, so
+  **Read effects from FM1**, in **FX preset actions**, sends that one read once per click while
+  the profile's `liveEffectsRead` allows (`useV16LiveEffectsRead`), on the effects' transfer queue,
+  cancelled by a port change or leaving the view. It puts the 24 controls and the order in the rack,
+  as the preset holding exactly them if one does, sends nothing back, and offers an Undo that
+  changes the rack alone. Every other `00 32` command stays **Dangerous / excluded**:
   object 5's write, offsets from `0x10000000` (raw storage), command `0x15`, any hardware SAVE
   or save helper, and object 8. Reading the group's name or number is not approved: no normal
   MIDI path gives it.
@@ -477,7 +483,8 @@ open everything an earlier release could have saved.
   id and sends them through the same sender when MIDI is eligible. One step, no history; it is
   built in the component, since `undoToastOptions` takes a patch-library snapshot.
 - Rename…, Duplicate, Download preset, and Delete… live only in a row's ⋮, Delete last in the
-  danger colour; the list's own ⋮ (**FX preset actions**) holds Import… and Download all. The list
+  danger colour; the list's own ⋮ (**FX preset actions**) holds **Read effects from FM1** (where the profile
+  allows it), Import… and Download all. The list
   is flat and A–Z: no folders, tags, or recently-used order. Below `md` the sidebar is replaced by
   the name on the title strip, a button that opens the searchable list in a `Dialog` sheet;
   choosing a preset recalls it and closes the sheet. A menu opened in a modal passes `portalTarget`

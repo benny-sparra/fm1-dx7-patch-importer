@@ -153,19 +153,23 @@ const isArrangement = (order: ArrayLike<number>) =>
   )
 
 /**
- * The effects of V16's chain by position, as the FM1 holds them: the numbers 0–5, one each, or
- * null when the table is not an arrangement the editor knows how to move (the firmware checks the
- * nine entries differ, and puts 6–8 in the entries the chain does not read).
+ * The effects of V16's chain by position in a 27-byte FX table: the numbers 0–5, one each, or null
+ * when the table is not an arrangement the editor knows how to move (the firmware checks the nine
+ * entries differ, and puts 6–8 in the entries the chain does not read). Object 4's block and
+ * object 5's live read carry the same table (docs/hardware-runs/stock-v16-live-fx-read-2026-11-05.md).
  */
-export function readEffectOrder(block: V16SettingsBlock) {
-  assertRead(block)
-  const entries = Array.from(
-    { length: fxTableEntries },
-    (_, entry) => block.bytes[fxTableOffset + entry * 3],
-  )
+export function effectOrderOfTable(table: ArrayLike<number>) {
+  if (table.length !== fxTableLength) return null
+  const entries = Array.from({ length: fxTableEntries }, (_, entry) => table[entry * 3])
   if (new Set(entries).size !== fxTableEntries || entries.some((effect) => effect > 8)) return null
   const order = entries.slice(0, effectOrderSize)
   return isArrangement(order) ? order : null
+}
+
+/** The effects of V16's chain by position, as the FM1 holds them in a block it sent. */
+export function readEffectOrder(block: V16SettingsBlock) {
+  assertRead(block)
+  return effectOrderOfTable(block.bytes.subarray(fxTableOffset, fxTableOffset + fxTableLength))
 }
 
 /**

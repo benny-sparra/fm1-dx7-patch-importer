@@ -8,6 +8,7 @@ const nothing = {
   effectControllers: false,
   effectOrder: false,
   knobChoices: false,
+  liveEffectsRead: false,
   multitimbral: false,
   parameterChanges: false,
   presetEffects: false,
@@ -116,6 +117,7 @@ describe('resolveFirmwareProfile', () => {
       capabilities: {
         ...cautious,
         effectOrder: true,
+        liveEffectsRead: true,
         multitimbral: true,
         presetEffects: false,
         selectedVoiceEdits: true,
@@ -147,6 +149,23 @@ describe('resolveFirmwareProfile', () => {
       { identity: 'FM1_OFFICIAL_OPEN', kind: 'official-open' },
     ] as const) {
       expect(resolveFirmwareProfile(firmware).capabilities.effectOrder).toBe(false)
+    }
+  })
+
+  it('reads the live effects back from M-VAVE’s firmware from V16 only', () => {
+    const reads = (firmware: Parameters<typeof resolveFirmwareProfile>[0]) =>
+      resolveFirmwareProfile(firmware).capabilities.liveEffectsRead
+    expect(reads({ identity: 'FM-1_016', kind: 'mvave' })).toBe(true)
+    expect(reads({ identity: 'FM-1_019', kind: 'mvave' })).toBe(true)
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+      { identity: 'FM1_OFFICIAL_OPEN', kind: 'official-open' },
+    ] as const) {
+      expect(reads(firmware)).toBe(false)
     }
   })
 

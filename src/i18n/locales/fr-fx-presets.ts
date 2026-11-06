@@ -45,7 +45,10 @@ export default {
       'Ce firmware ne possède pas le groupe FX partagé de la V16. Le chargement reste local au navigateur.',
     help: 'Modifiez les effets et enregistrez des presets. Sur V16, les effets sont partagés par toutes les Voix.',
     orderHelp: 'Les presets contiennent les réglages affichés ici, pas l’ordre des effets.',
-    noReadback: 'Les changements effectués sur la façade ne sont pas relus par l’éditeur.',
+    readback: '« Lire les effets du FM1 » charge ici les effets actuels du FM1 et leur ordre.',
+    readFromFm1: 'Lire les effets du FM1',
+    readDone: 'Effets lus depuis le FM1.',
+    reading: 'Lecture des effets du FM1…',
     effectOrderReading: 'Lecture de l’ordre des effets depuis le FM1…',
     effectOrderFailed:
       'Le FM1 n’a pas donné l’ordre de ses effets, il ne peut donc pas être changé ici.',
@@ -75,6 +78,9 @@ export default {
       fileSize: 'Ce fichier est trop volumineux pour être une bibliothèque de presets FX.',
       fileRead: 'Impossible de lire le fichier. Choisissez-le à nouveau.',
       name: 'Saisissez un nom de 1 à {{max}} caractères.',
+      readNoReply:
+        'Le FM1 n’a pas répondu. Vérifiez que son entrée MIDI est sélectionnée, puis réessayez.',
+      read: 'Les effets du FM1 n’ont pas pu être lus ; rien n’a changé ici. Réessayez.',
     },
   },
 } as const

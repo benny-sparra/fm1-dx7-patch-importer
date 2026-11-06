@@ -1,6 +1,11 @@
 import { unpackSevenBitStream } from '@/lib/fm1-firmware'
 import { fm1EffectParameters } from '@/lib/fm1-parameters'
-import { checksumOf, makeUpdaterFrame, type V16SettingsLink } from '@/lib/v16-settings-block'
+import {
+  checksumOf,
+  effectOrderOfTable,
+  makeUpdaterFrame,
+  type V16SettingsLink,
+} from '@/lib/v16-settings-block'
 
 /**
  * The one read of V16's live FX settings the owner approved on 2026-11-02 (AGENTS.md, "MIDI"):
@@ -9,13 +14,11 @@ import { checksumOf, makeUpdaterFrame, type V16SettingsLink } from '@/lib/v16-se
  * to choose another object, offset, length, or command, and parses its reply. It sends nothing:
  * the caller sends, on an explicit action (docs/v16-fx-readback-validation.md).
  *
- * The request is the object-4 read's framing, which the hardware confirmed on 2026-11-01, with
- * object 5, offset `0x9C`, and length 54: the 27 live effect values (`0x9C`–`0xB6`, three per
- * effect by number) and the 27-byte FX table (`0xB7`–`0xD1`). **Likely** (static): the handler
- * accepts any range inside its 215 bytes. **Needs hardware test**: whether the reply carries the
- * request's eight bytes before the data, as `parseSettingsBlockReply` also allows, and the order of
- * each effect's three values, which the candidate decoding below takes from FM-1+VA's record.
- * Synthetic fixtures are all there is until a run captures a reply.
+ * The request is the object-4 read's framing with object 5, offset `0x9C`, and length 54: the 27
+ * live effect values (`0x9C`–`0xB6`, three per effect by number) and the 27-byte FX table
+ * (`0xB7`–`0xD1`). **Confirmed** on stock `FM-1_016` on 2026-11-05
+ * (docs/hardware-runs/stock-v16-live-fx-read-2026-11-05.md): the reply echoes the request's eight
+ * bytes before the data, and every one of the 24 controls is where the decoding below reads it.
  */
 const readCommand = 0x23
 const liveObject = 5
@@ -209,4 +212,16 @@ export function readV16LiveEffects(
       }
     })()
   })
+}
+
+/**
+ * The rack and the chain order a complete live reading holds: the 24 effect controls in the
+ * editor's order and the effects by position. Null when any control is out of its range or the
+ * table is no order of the six effects, so a reading is taken whole or not at all.
+ */
+export function decodeV16LiveEffects(reading: V16LiveEffects) {
+  const decoded = candidateEffectValues(reading)
+  const order = effectOrderOfTable(reading.table)
+  if (decoded.type !== 'values' || !order) return null
+  return { effects: Uint8Array.from(decoded.values), order }
 }
