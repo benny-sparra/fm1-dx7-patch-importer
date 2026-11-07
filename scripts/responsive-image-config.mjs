@@ -31,6 +31,7 @@ export const responsiveImageConfig = [
   { height: 720, source: 'firmware-fizz.webp', width: 720, widths: [460] },
   { height: 600, source: 'firmware-monohull.webp', width: 600, widths: [460] },
   { height: 720, source: 'firmware-rainbow-mode.webp', width: 720, widths: [460] },
+  { height: 480, source: 'firmware-double-rainbow.webp', width: 480, widths: [460] },
   { height: 720, source: 'firmware-fumi.webp', width: 720, widths: [460] },
   { height: 770, source: 'firmware-melodee.webp', width: 1010, widths: [460] },
   { height: 480, source: 'firmware-amb-1.webp', width: 480, widths: [460] },
