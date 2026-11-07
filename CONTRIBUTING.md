@@ -125,45 +125,46 @@ mene311's themed banks are.
 
 ## Available scripts
 
-| Command                     | Description                                                         |
-| --------------------------- | ------------------------------------------------------------------- |
-| `npm run check`             | Run all deterministic checks expected before a pull request         |
-| `npm run format:check`      | Verify Prettier formatting and Tailwind class ordering              |
-| `npm run format`            | Apply Prettier formatting and Tailwind class ordering               |
-| `npm run images:generate`   | Regenerate committed responsive WebP candidates with Sharp          |
-| `npm run images:check`      | Verify responsive candidates are current, sized, and reproducible   |
-| `npm run images:check:dist` | Verify hashed responsive candidates in the production output        |
-| `npm run icons:generate`    | Regenerate the committed installed-app icons with Sharp             |
-| `npm run icons:check`       | Verify the manifest icons are present, square, and correctly typed  |
-| `npm run catalog:index`     | Regenerate the catalog patch-name and fingerprint index             |
-| `npm run firmware:stars`    | Refresh the firmware page's GitHub star counts and their date       |
-| `npm run lint`              | Run Oxlint and Stylelint; warnings fail the command                 |
-| `npm run lint:code`         | Run type-aware TypeScript, React, import, promise, and test linting |
-| `npm run lint:css`          | Check CSS with Stylelint                                            |
-| `npm run lint:fix`          | Apply ordinary safe Oxlint and Stylelint fixes                      |
-| `npm run lint:css:fix`      | Apply Stylelint fixes only                                          |
-| `npm run security:check`    | Verify the built Cloudflare Pages Content Security Policy           |
-| `npm run typecheck`         | Check TypeScript with `tsc` without emitting files                  |
-| `npm run deps:check`        | Find unused dependencies, source files, and exports with Knip       |
-| `npm run deps:audit:prod`   | Audit production dependencies (requires registry access)            |
-| `npm run deps:audit`        | Audit the full tree, allowing listed dev-only advisories (registry) |
-| `npm test`                  | Run all unit and rendered accessibility tests                       |
-| `npm run test:a11y`         | Run the focused rendered Axe accessibility suite                    |
-| `npm run test:coverage`     | Run all tests and write a V8 coverage report to `coverage/`         |
-| `npm run test:e2e`          | Build and run Chromium and Firefox browser journeys with Playwright |
-| `npm run test:e2e:touch`    | Build and run the advisory phone and tablet touch journeys          |
-| `npm run test:cls`          | Check layout stability across representative responsive viewports   |
-| `npm run build`             | Create a production Vite build in `dist/`                           |
-| `npm run bundle:check`      | Enforce the transitive initial JavaScript gzip budget               |
-| `npm run check:install`     | Validate a clean install (requires registry access)                 |
-| `npm run lockfile:refresh`  | Refresh the lockfile (requires registry access)                     |
-| `npm run setup:https`       | Create and trust the local HTTPS certificate                        |
-| `npm run sourcemaps:check`  | Validate every emitted JavaScript chunk and production source map   |
-| `npm run dev`               | Start Vite on `127.0.0.1` with HTTPS                                |
-| `npm run dev:http`          | Start the Vite development server with HTTP                         |
-| `npm run dev:https`         | Start Vite on `127.0.0.1` with HTTPS                                |
-| `npm run preview`           | Preview the production build locally                                |
-| `npm run preview:https`     | Preview the production build locally over HTTPS                     |
+| Command                      | Description                                                            |
+| ---------------------------- | ---------------------------------------------------------------------- |
+| `npm run check`              | Run all deterministic checks expected before a pull request            |
+| `npm run format:check`       | Verify Prettier formatting and Tailwind class ordering                 |
+| `npm run format`             | Apply Prettier formatting and Tailwind class ordering                  |
+| `npm run images:generate`    | Regenerate committed responsive WebP candidates with Sharp             |
+| `npm run images:check`       | Verify responsive candidates are current, sized, and reproducible      |
+| `npm run images:check:dist`  | Verify hashed responsive candidates in the production output           |
+| `npm run icons:generate`     | Regenerate the committed installed-app icons with Sharp                |
+| `npm run icons:check`        | Verify the manifest icons are present, square, and correctly typed     |
+| `npm run catalog:index`      | Regenerate the catalog patch-name and fingerprint index                |
+| `npm run firmware:stars`     | Refresh the firmware page's GitHub star counts and their date          |
+| `npm run screenshots:readme` | Build and retake the README's patch banks and voice editor screenshots |
+| `npm run lint`               | Run Oxlint and Stylelint; warnings fail the command                    |
+| `npm run lint:code`          | Run type-aware TypeScript, React, import, promise, and test linting    |
+| `npm run lint:css`           | Check CSS with Stylelint                                               |
+| `npm run lint:fix`           | Apply ordinary safe Oxlint and Stylelint fixes                         |
+| `npm run lint:css:fix`       | Apply Stylelint fixes only                                             |
+| `npm run security:check`     | Verify the built Cloudflare Pages Content Security Policy              |
+| `npm run typecheck`          | Check TypeScript with `tsc` without emitting files                     |
+| `npm run deps:check`         | Find unused dependencies, source files, and exports with Knip          |
+| `npm run deps:audit:prod`    | Audit production dependencies (requires registry access)               |
+| `npm run deps:audit`         | Audit the full tree, allowing listed dev-only advisories (registry)    |
+| `npm test`                   | Run all unit and rendered accessibility tests                          |
+| `npm run test:a11y`          | Run the focused rendered Axe accessibility suite                       |
+| `npm run test:coverage`      | Run all tests and write a V8 coverage report to `coverage/`            |
+| `npm run test:e2e`           | Build and run Chromium and Firefox browser journeys with Playwright    |
+| `npm run test:e2e:touch`     | Build and run the advisory phone and tablet touch journeys             |
+| `npm run test:cls`           | Check layout stability across representative responsive viewports      |
+| `npm run build`              | Create a production Vite build in `dist/`                              |
+| `npm run bundle:check`       | Enforce the transitive initial JavaScript gzip budget                  |
+| `npm run check:install`      | Validate a clean install (requires registry access)                    |
+| `npm run lockfile:refresh`   | Refresh the lockfile (requires registry access)                        |
+| `npm run setup:https`        | Create and trust the local HTTPS certificate                           |
+| `npm run sourcemaps:check`   | Validate every emitted JavaScript chunk and production source map      |
+| `npm run dev`                | Start Vite on `127.0.0.1` with HTTPS                                   |
+| `npm run dev:http`           | Start the Vite development server with HTTP                            |
+| `npm run dev:https`          | Start Vite on `127.0.0.1` with HTTPS                                   |
+| `npm run preview`            | Preview the production build locally                                   |
+| `npm run preview:https`      | Preview the production build locally over HTTPS                        |
 
 ## Tech stack
 
