@@ -11,6 +11,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent } fr
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/help'
+import { Fm1Wireframe } from '@/components/fm1-wireframe'
 import { Button } from '@/components/ui/button'
 import { InfoNotice } from '@/components/ui/info-notice'
 import type { MidiController } from '@/hooks/use-midi'
@@ -34,6 +35,11 @@ import {
   type KeyboardShortcut,
 } from '@/lib/keyboard-shortcuts'
 import { cn } from '@/lib/utils'
+
+// The welcome's turning outline of the FM1 shares the guide's chunk, which only the guide's own
+// button and a first visit load. As a chunk of its own it cost the entry 220 B: with no Lucide icon
+// of its own, Rolldown split React's JSX runtime out of the chunk the entry shares with the icons.
+const wireframeBox = 'aspect-[280/200] w-[280px] max-w-full shrink-0'
 
 // Baud Girl's page for FM-1+VA, the replacement firmware the editor recognises.
 const fm1VaUrl = 'https://baudgirl.com/work/FM-1+VA'
@@ -122,6 +128,20 @@ export function HelpDialog({ colorway, firstVisit, midi, onClose }: HelpDialogPr
   const tabRefs = useRef(new Map<string, HTMLButtonElement>())
   const focusTabsOnGuide = useRef(false)
   const photo = fm1ColorwayImages[colorway]
+  const photoBox = (
+    <div className={cn(wireframeBox, 'grid place-items-center')}>
+      <img
+        alt=""
+        className="h-auto w-[150px]"
+        decoding="async"
+        height={photo.height}
+        sizes="150px"
+        src={photo.src}
+        srcSet={photo.srcSet}
+        width={photo.width}
+      />
+    </div>
+  )
 
   const selectTabFromKeyboard = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const count = helpTabs.length
@@ -193,17 +213,9 @@ export function HelpDialog({ colorway, firstVisit, midi, onClose }: HelpDialogPr
           <DialogBody>
             <div className="grid gap-4 p-4">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-                {/* The FM1 in the finish the page wears; the sentence beside it names it. */}
-                <img
-                  alt=""
-                  className="h-auto w-[150px] shrink-0"
-                  decoding="async"
-                  height={photo.height}
-                  sizes="150px"
-                  src={photo.src}
-                  srcSet={photo.srcSet}
-                  width={photo.width}
-                />
+                {/* The FM1 in the finish the page wears, turning as an outline; the sentence beside
+                    it names it. The photo is what a browser that cannot draw it sees. */}
+                <Fm1Wireframe colorway={colorway} fallback={photoBox} />
                 <p className="min-w-48 flex-1 text-base leading-6 font-bold text-[var(--crt-ink)]">
                   {t('help.lead')}
                 </p>

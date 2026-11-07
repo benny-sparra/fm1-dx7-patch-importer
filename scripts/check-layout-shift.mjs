@@ -240,7 +240,7 @@ async function main() {
           return {
             dialog: dialog?.currentSrc || null,
             header: header?.currentSrc || null,
-            // A first visit's welcome shows the FM1 in the page's finish, at every width.
+            // A first visit's welcome draws the FM1 as an outline; its photo shows only without a canvas.
             welcome: [...document.querySelectorAll('dialog[open] img')].map(
               (image) => image.currentSrc,
             ),
