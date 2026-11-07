@@ -6,6 +6,7 @@ import '@/i18n/keyboard'
 import { Button } from '@/components/ui/button'
 import { PhraseTransport } from '@/components/midi/phrase-transport'
 import { PianoKeyButton } from '@/components/midi/piano-key'
+import { type MeterHit, VelocityMeter } from '@/components/midi/velocity-meter'
 import { useKeyboardKeyLabel } from '@/hooks/use-keyboard-key-label'
 import type { MidiController } from '@/hooks/use-midi'
 import {
@@ -16,6 +17,7 @@ import {
 } from '@/lib/audition-phrases'
 import { holdDialogForZoom, zoomDialogClosed, zoomDialogOpen } from '@/lib/dialog-zoom'
 import { defaultNoteVelocity, maxNoteVelocity, minNoteVelocity } from '@/lib/note-velocity'
+import { createPeakMeter } from '@/lib/peak-meter'
 import { createPhrasePlayer } from '@/lib/phrase-player'
 import { rangeStyle } from '@/lib/range-style'
 import {
@@ -97,6 +99,15 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
     }
   }, [open])
 
+  // Every note struck, from a key or the phrase, lights the velocity meter.
+  const [meter] = useState(createPeakMeter)
+  const [meterHit, setMeterHit] = useState<MeterHit | null>(null)
+  const [lightMeter] = useState(() => (velocity: number) => {
+    const value = velocity / maxNoteVelocity
+    meter.hit(value, performance.now())
+    setMeterHit((current) => ({ count: (current?.count ?? 0) + 1, value }))
+  })
+
   const playNote = useCallback(
     (key: PianoKey) => {
       if (activeNotesRef.current.has(key.note)) {
@@ -106,8 +117,9 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
       activeNotesRef.current.add(key.note)
       setActiveNotes(new Set(activeNotesRef.current))
       sendMidiNoteOn(key.note, key.label, { velocity: keyVelocity })
+      lightMeter(keyVelocity)
     },
-    [keyVelocity, sendMidiNoteOn],
+    [keyVelocity, lightMeter, sendMidiNoteOn],
   )
 
   const releaseNote = useCallback(
@@ -145,11 +157,13 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
   const [player] = useState(() =>
     createPhrasePlayer({
       onActiveNotesChange: setPhraseNotes,
-      startNote: (note, velocity) =>
+      startNote: (note, velocity) => {
         noteRouteRef.current.sendMidiNoteOn(note, `phrase note ${note}`, {
           quiet: true,
           velocity,
-        }),
+        })
+        lightMeter(velocity)
+      },
       stopNote: (note) => noteRouteRef.current.sendMidiNoteOff(note),
     }),
   )
@@ -498,10 +512,11 @@ export function PianoKeyboardDialog({ midi, onClose, open, triggerRef }: PianoKe
         {/* The controls share the drag handle, so using them must not start a drag. Where the
             header is too narrow for them, they take rows of their own below the title. */}
         <div
-          className="order-last flex basis-full cursor-auto items-center lg:order-none lg:basis-auto"
+          className="order-last flex basis-full cursor-auto items-center gap-3 lg:order-none lg:basis-auto"
           onPointerDown={(event) => event.stopPropagation()}
         >
           <KeyVelocity onChange={changeVelocity} velocity={keyVelocity} />
+          <VelocityMeter hit={meterHit} meter={meter} />
         </div>
         <div
           className="order-last flex basis-full cursor-auto justify-end lg:order-none lg:flex-1 lg:basis-auto"

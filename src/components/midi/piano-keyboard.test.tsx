@@ -351,6 +351,22 @@ describe('PianoKeyboard velocity', () => {
     expect(midi.startNote).toHaveBeenCalledWith(48, 'C3', { velocity: 40 })
   })
 
+  it('lights the velocity meter to the velocity a key strikes at', async () => {
+    // Reduced motion holds the meter still, so the test reads it without running frames.
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn(() => ({ matches: true })),
+    )
+    await openKeyboard()
+
+    fireEvent.change(velocitySlider(), { target: { value: '127' } })
+    fireEvent.keyDown(window, { code: 'KeyA', key: 'a' })
+    const lit = document.querySelectorAll('[data-meter-segment][data-lit]')
+    vi.unstubAllGlobals()
+
+    expect(lit).toHaveLength(12)
+  })
+
   it('starts at the velocity the keys struck at before the control existed', async () => {
     await openKeyboard()
 

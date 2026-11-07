@@ -13,6 +13,8 @@ import { rangeStyle } from '@/lib/range-style'
 import { segmentGhost } from '@/lib/segment-ghost'
 import { cn } from '@/lib/utils'
 
+import { PhosphorAfterglow } from './phosphor-afterglow'
+
 const lfoWaveKeys = [
   'ui.lfoWaves.triangle',
   'ui.lfoWaves.sawDown',
@@ -312,6 +314,12 @@ export function RotaryParameterControl({
           )}
           text={isFormatted ? displayValue : (draft ?? String(value))}
         />
+        {disabled ? null : (
+          <PhosphorAfterglow
+            className="font-seven-segment px-1.5 py-0.5 text-center text-[19px] whitespace-nowrap text-[var(--crt-led)] [grid-area:1/1]"
+            text={displayValue}
+          />
+        )}
         <input
           aria-label={name}
           aria-describedby={isFormatted ? valueLabelId : undefined}
@@ -542,7 +550,11 @@ export function FaderParameterControl({
         className={cn(ledClass, 'min-w-7 text-center text-2xl', disabled && 'opacity-40')}
         data-ghost={segmentGhost(displayValue)}
       >
-        {displayValue}
+        {/* Its own element, so the afterglow beside it never takes the figures' text node. */}
+        <span>{displayValue}</span>
+        {disabled ? null : (
+          <PhosphorAfterglow className="absolute inset-0 -z-1 text-center" text={displayValue} />
+        )}
       </output>
     </div>
   )
