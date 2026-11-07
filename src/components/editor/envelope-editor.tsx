@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEve
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
+import { traceDotProps, usePhosphorTrace } from '@/components/editor/phosphor-trace'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { SegmentGhost } from '@/components/ui/segment-ghost'
 import {
@@ -83,6 +84,15 @@ export function EnvelopeEditor({
   // Two envelopes share the page, so the fill gradient needs its own id.
   const fillId = `envelope-fill-${useId().replace(/:/g, '')}`
   const { graphRef, height } = useGraphHeight(fill)
+  const trace = usePhosphorTrace(`${rates.join()}|${levels.join()}|${variant}`)
+  const startGesture = () => {
+    trace.hold(true)
+    onGestureStart()
+  }
+  const endGesture = () => {
+    trace.hold(false)
+    onGestureEnd()
+  }
   const plot: EnvelopePlot = { bottom: height - labelBand, top: envelopePlot.top }
 
   const updateFromPointer = (event: PointerEvent<SVGRectElement>, point: number) => {
@@ -120,19 +130,19 @@ export function EnvelopeEditor({
 
     if (!event.key.startsWith('Arrow')) return
     event.preventDefault()
-    onGestureStart()
+    startGesture()
     onChange(nextRate, nextLevel, point)
   }
 
   const pointerHandlers = (point: number) => ({
     onPointerCancel: () => {
       activePointer.current = null
-      onGestureEnd()
+      endGesture()
     },
     onPointerDown: (event: PointerEvent<SVGRectElement>) => {
       activePointer.current = event.pointerId
       event.currentTarget.setPointerCapture(event.pointerId)
-      onGestureStart()
+      startGesture()
       updateFromPointer(event, point)
     },
     onPointerMove: (event: PointerEvent<SVGRectElement>) => {
@@ -142,7 +152,7 @@ export function EnvelopeEditor({
       if (activePointer.current !== event.pointerId) return
       activePointer.current = null
       event.currentTarget.releasePointerCapture(event.pointerId)
-      onGestureEnd()
+      endGesture()
     },
   })
 
@@ -174,6 +184,7 @@ export function EnvelopeEditor({
         '@container flex min-h-0 min-w-0 flex-col gap-[7px]',
         fill ? 'self-stretch' : null,
       )}
+      data-trace-owner=""
       style={{ '--operator-color': color } as React.CSSProperties}
     >
       <div
@@ -243,10 +254,13 @@ export function EnvelopeEditor({
             <path
               d={envelopePath(rates, levels, pointPosition)}
               fill="none"
+              pathLength={1}
+              ref={trace.pathRef}
               stroke={color}
               strokeLinejoin="round"
               strokeWidth="2.4"
             />
+            <circle aria-hidden="true" ref={trace.dotRef} {...traceDotProps} />
             {points.map((point, index) => (
               <g key={index}>
                 <text
@@ -286,7 +300,7 @@ export function EnvelopeEditor({
                   onBlur={onGestureEnd}
                   onKeyDown={(event) => handleKeyDown(event, index)}
                   onKeyUp={(event) => {
-                    if (event.key.startsWith('Arrow')) onGestureEnd()
+                    if (event.key.startsWith('Arrow')) endGesture()
                   }}
                   {...pointerHandlers(index)}
                   role="slider"
@@ -327,7 +341,7 @@ export function EnvelopeEditor({
                     updateNumericValue('rate', event.currentTarget.valueAsNumber, index)
                   }
                   onFocus={(event) => {
-                    onGestureStart()
+                    startGesture()
                     event.currentTarget.select()
                   }}
                   onKeyDown={(event) => {
@@ -357,7 +371,7 @@ export function EnvelopeEditor({
                     updateNumericValue('level', event.currentTarget.valueAsNumber, index)
                   }
                   onFocus={(event) => {
-                    onGestureStart()
+                    startGesture()
                     event.currentTarget.select()
                   }}
                   onKeyDown={(event) => {

@@ -2,7 +2,12 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { MidiActivityStore, midiActivityLitMs } from './midi-activity'
+import {
+  MidiActivityStore,
+  midiActivityDoubleBlipMs,
+  midiActivityLitMs,
+  midiActivityReducedLitMs,
+} from './midi-activity'
 
 /** A store with an LED showing, as the header's LEDs subscribe to it. */
 function shownStore() {
@@ -95,5 +100,36 @@ describe('MidiActivityStore', () => {
     store.signal('in')
 
     expect(listener).not.toHaveBeenCalled()
+  })
+
+  it('blips twice for a bank dump, the second once the first has gone dark', () => {
+    const store = shownStore()
+    const states: boolean[] = []
+    store.subscribe(() => states.push(store.getSnapshot().out))
+
+    store.signal('out', true)
+    vi.advanceTimersToNextFrame()
+    vi.advanceTimersByTime(midiActivityDoubleBlipMs)
+    vi.advanceTimersToNextFrame()
+    vi.advanceTimersByTime(midiActivityLitMs)
+
+    expect(states).toEqual([true, false, true, false])
+  })
+
+  it('stays lit a little longer, without a fade, when reduced motion is requested', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: string) => ({ matches: query.includes('reduce') })),
+    )
+    const store = shownStore()
+
+    store.signal('in')
+    vi.advanceTimersToNextFrame()
+    vi.advanceTimersByTime(midiActivityReducedLitMs - 1)
+    expect(store.getSnapshot().in).toBe(true)
+    vi.advanceTimersByTime(1)
+
+    expect(store.getSnapshot().in).toBe(false)
+    vi.unstubAllGlobals()
   })
 })

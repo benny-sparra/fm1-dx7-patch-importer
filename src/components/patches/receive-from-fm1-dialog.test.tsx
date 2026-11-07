@@ -16,6 +16,8 @@ import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { translatePageText } from '@/test/page-translator'
 import { stockV16BankExport, stockV16BankExportNames } from '@/test/stock-v16-bank-export'
 
+import { dumpStallMs } from '@/hooks/use-dx7-voice-receiver'
+
 import { ReceiveFromFm1Dialog } from './receive-from-fm1-dialog'
 
 beforeAll(() => {
@@ -460,5 +462,50 @@ describe('ReceiveFromFm1Dialog', () => {
     receive(stockV16BankExport())
 
     expect(container.ownerDocument.body.textContent).toContain('Received a bank of 32 patches')
+  })
+
+  it('fills the data ladder as a bank arrives in parts, then says OK', async () => {
+    const { receive, user } = renderWizard()
+    await user.click(nextButton())
+    const bank = stockV16BankExport()
+    const lit = () => document.querySelectorAll('.receive-ladder-cell[data-lit]').length
+    expect(document.querySelector('.receive-ladder')).toBeNull()
+
+    receive(bank.subarray(0, 2052))
+    expect(lit()).toBe(4)
+    expect(status().textContent).toBe('Receiving…')
+    expect(document.querySelector('.receive-ladder')?.getAttribute('aria-hidden')).toBe('true')
+    expect(document.querySelector('.receive-ladder')?.textContent).toBe('RECEIVING')
+    receive(bank.subarray(2052))
+
+    expect(lit()).toBe(8)
+    expect(document.querySelector('.receive-ladder')?.textContent).toBe('OK')
+    expect(status().textContent).toContain('Received a bank of 32 patches')
+  })
+
+  it('says a dump is arriving in German', async () => {
+    await setLocale('de')
+    const { receive, user } = renderWizard()
+    await user.click(screen.getByRole('button', { name: 'Weiter' }))
+
+    receive(stockV16BankExport().subarray(0, 2052))
+
+    expect(status().textContent).toBe('Empfang läuft …')
+  })
+
+  it('stops showing a dump the sender gave up on part-way', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    const { receive, user } = renderWizard()
+    await user.click(nextButton())
+
+    receive(stockV16BankExport().subarray(0, 2052))
+    expect(status().textContent).toBe('Receiving…')
+    act(() => {
+      vi.advanceTimersByTime(dumpStallMs)
+    })
+
+    expect(document.querySelector('.receive-ladder')).toBeNull()
+    expect(status().textContent).toContain('Listening on')
+    vi.useRealTimers()
   })
 })

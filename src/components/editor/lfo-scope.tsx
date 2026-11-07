@@ -8,6 +8,7 @@ import {
   scopeViewWidth,
   useAnimationLoop,
 } from '@/components/editor/scope-frame'
+import { usePhosphorTrace } from '@/components/editor/phosphor-trace'
 
 type LfoScopeProps = {
   /** 0–99, how far the LFO bends pitch; with amp depth, sets how bright the trace is. */
@@ -104,6 +105,7 @@ export function LfoScope({ ampModDepth, pitchModDepth, speed, wave }: LfoScopePr
   const traceRef = useRef<SVGGElement>(null)
   const dotRef = useRef<HTMLSpanElement>(null)
   const phaseRef = useRef(0)
+  const trace = usePhosphorTrace(String(wave), 'sweep')
 
   const active = pitchModDepth > 0 || ampModDepth > 0
 
@@ -135,6 +137,7 @@ export function LfoScope({ ampModDepth, pitchModDepth, speed, wave }: LfoScopePr
           <path
             d={wavePath(wave)}
             fill="none"
+            ref={trace.pathRef}
             stroke="var(--crt-acc)"
             strokeLinecap="round"
             strokeLinejoin="round"

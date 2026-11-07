@@ -130,6 +130,32 @@ describe('MidiSettingsMenu firmware', () => {
 })
 
 describe('MidiFirmwareBadge', () => {
+  it('marks the identified badge for the typewriter, its name whole from the first frame', () => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'FM-1_089', kind: 'fm1-va' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(container.firstElementChild?.hasAttribute('data-typed')).toBe(true)
+    expect(screen.getByText('Baud Girl firmware, FM-1_089').className).toContain('sr-only')
+  })
+
+  it('keeps the place empty and untyped while the answer is awaited', () => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        midi={{ firmware: { kind: 'checking' }, isConnecting: false, midiAccess: true }}
+      />,
+    )
+
+    expect(container.firstElementChild?.hasAttribute('data-typed')).toBe(false)
+    expect(container.textContent).toBe('')
+  })
+
   it('names Baud Girl with its version, as FM1 owners know the firmware', () => {
     const { container } = render(
       <MidiFirmwareBadge

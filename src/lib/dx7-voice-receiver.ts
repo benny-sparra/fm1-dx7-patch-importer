@@ -65,6 +65,17 @@ export class Dx7VoiceReceiver {
     return null
   }
 
+  /**
+   * How much of the Yamaha bulk dump now arriving has come, from 0 to 1: its length so far over
+   * the length of a bank or a single voice, by the format byte. 0 when nothing is arriving or what
+   * arrives is not a bulk dump.
+   */
+  get progress() {
+    if (!this.receiving || this.ignoring || this.bytes.length < 4) return 0
+    const expected = this.bytes[3] === 0x09 ? dx7BankFileSize : dx7VoiceFileSize
+    return Math.min(1, this.length / expected)
+  }
+
   /** Forgets a dump part-way through, as when the input changes. */
   reset() {
     this.bytes = []
