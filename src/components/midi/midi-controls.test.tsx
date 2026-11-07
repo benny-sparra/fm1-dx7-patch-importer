@@ -141,7 +141,7 @@ describe('MidiFirmwareBadge', () => {
       />,
     )
 
-    expect(container.firstElementChild?.hasAttribute('data-typed')).toBe(true)
+    expect(container.firstElementChild?.matches('span[title]:has(> .sr-only)')).toBe(true)
     expect(screen.getByText('Baud Girl firmware, FM-1_089').className).toContain('sr-only')
   })
 
@@ -152,7 +152,7 @@ describe('MidiFirmwareBadge', () => {
       />,
     )
 
-    expect(container.firstElementChild?.hasAttribute('data-typed')).toBe(false)
+    expect(container.firstElementChild?.matches('span[title]:has(> .sr-only)')).toBe(false)
     expect(container.textContent).toBe('')
   })
 

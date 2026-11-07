@@ -108,7 +108,7 @@ export function sendDx7Voice(output: Output, channel: number, voice: Dx7Voice) {
 
 export function sendDx7Bank(output: Output, channel: number, voices: Dx7Voice[]) {
   output.sendSysex(yamahaManufacturerId, makeDx7BankPayload(voices, channel))
-  midiActivity.signal('out', true)
+  midiActivity.signal('out')
 }
 
 function assertFm1ProgramChange(program: number, channel: number) {

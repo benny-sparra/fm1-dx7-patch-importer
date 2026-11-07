@@ -149,7 +149,6 @@ export function MidiFirmwareBadge({
   return (
     <span
       className={className ?? 'inline-flex min-h-8 items-center gap-2'}
-      data-typed=""
       title={t(title, { release })}
     >
       <span aria-hidden="true" className="text-xs font-bold tracking-[0.1em] text-[var(--crt-ink)]">

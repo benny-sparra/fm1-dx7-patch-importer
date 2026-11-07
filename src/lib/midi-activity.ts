@@ -1,5 +1,3 @@
-import { prefersReducedMotion } from '@/lib/reduced-motion'
-
 export type MidiActivityDirection = 'in' | 'out'
 
 /** Which of the MIDI activity LEDs are lit. A new object only when one turns on or off. */
@@ -11,12 +9,6 @@ type MidiActivity = Readonly<Record<MidiActivityDirection, boolean>>
  * synth's panel.
  */
 export const midiActivityLitMs = 80
-
-/** With reduced motion the LED stays lit a little longer, since it has no fade to be seen by. */
-export const midiActivityReducedLitMs = 150
-
-/** A bank dump blips twice, this long after the first, as the second lights once the first is dark. */
-export const midiActivityDoubleBlipMs = 180
 
 const dark: MidiActivity = { in: false, out: false }
 
@@ -40,10 +32,9 @@ export class MidiActivityStore {
     }
   }
 
-  signal(direction: MidiActivityDirection, twice = false) {
+  signal(direction: MidiActivityDirection) {
     // Nothing shows the LEDs, so there is nothing to light.
     if (this.listeners.size === 0) return
-    if (twice) window.setTimeout(() => this.signal(direction), midiActivityDoubleBlipMs)
     window.cancelAnimationFrame(this.frames[direction] ?? 0)
     window.clearTimeout(this.timers[direction])
     this.set(direction, true)
@@ -52,7 +43,7 @@ export class MidiActivityStore {
     this.frames[direction] = window.requestAnimationFrame(() => {
       this.timers[direction] = window.setTimeout(
         () => this.set(direction, false),
-        prefersReducedMotion() ? midiActivityReducedLitMs : midiActivityLitMs,
+        midiActivityLitMs,
       )
     })
   }

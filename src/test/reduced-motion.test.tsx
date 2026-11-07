@@ -395,8 +395,10 @@ describe('reduced motion for the retro decoration', () => {
   it('shows the firmware badge whole, with no typing or cursor', async () => {
     const blocks = await reducedBlocks()
 
-    expect(blocks).toMatch(/\[data-typed\],\s*\[data-typed\]::after\s*\{\s*animation:\s*none;/)
-    expect(blocks).toMatch(/\[data-typed\]::after,[^{]*\{\s*display:\s*none;/)
+    expect(blocks).toMatch(
+      /span\[title\]:has\(> \.sr-only\),\s*span\[title\]:has\(> \.sr-only\)::after\s*\{\s*animation:\s*none;/,
+    )
+    expect(blocks).toMatch(/span\[title\]:has\(> \.sr-only\)::after,[^{]*\{\s*display:\s*none;/)
   })
 
   it('skips the photo screen wake and shows only the receive wizard’s text line', async () => {

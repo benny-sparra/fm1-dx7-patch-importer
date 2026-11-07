@@ -1824,12 +1824,12 @@
    * text. The text is all there from the first frame, only clipped, so its name never changes
    * and the badge's reserved place never grows.
    */
-  [data-typed] {
+  span[title]:has(> .sr-only) {
     position: relative;
     animation: badge-type 700ms steps(18, end) backwards;
   }
 
-  [data-typed]::after {
+  span[title]:has(> .sr-only)::after {
     content: '';
     position: absolute;
     top: 15%;
@@ -1924,12 +1924,12 @@
 
   @media (prefers-reduced-motion: reduce) {
     .toast-surface,
-    [data-typed],
-    [data-typed]::after {
+    span[title]:has(> .sr-only),
+    span[title]:has(> .sr-only)::after {
       animation: none;
     }
 
-    [data-typed]::after,
+    span[title]:has(> .sr-only)::after,
     .toast-step-out,
     .fm1-photo-wake,
     .receive-ladder {

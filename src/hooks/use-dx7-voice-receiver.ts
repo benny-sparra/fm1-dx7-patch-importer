@@ -45,8 +45,8 @@ export function useDx7VoiceReceiver(
       if (progress > 0 && progress < 1) {
         stalled = window.setTimeout(() => reportProgress(0), dumpStallMs)
       }
-      // A bank blips IN twice, as one that is sent blips OUT.
-      if (receipt?.kind === 'bank') midiActivity.signal('in', true)
+      // A bank blips IN twice. The editor's own sends stay single, to keep the entry small.
+      if (receipt?.kind === 'bank') window.setTimeout(() => midiActivity.signal('in'), 180)
       if (receipt) report(receipt)
     }
     input.addListener('midimessage', hear)
