@@ -17,6 +17,7 @@ import { createNamedBank } from '@/lib/named-bank'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { Fm1ColorwayPicker } from '@/components/ui/fm1-colorway-picker'
 import { ToastProvider } from '@/components/ui/toast'
+import { makeFakeCanvas } from '@/test/fake-canvas'
 
 afterEach(cleanup)
 
@@ -306,6 +307,46 @@ describe('reduced motion', () => {
     expect(arrows).toHaveLength(5)
     for (const arrow of arrows) {
       expect(classTokens(arrow)).toContain('motion-reduce:transition-none')
+    }
+  })
+
+  it('holds the algorithm wireframe still, with no frames scheduled, only when reduced motion is requested', () => {
+    vi.useFakeTimers()
+    const { context } = makeFakeCanvas()
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      context as unknown as CanvasRenderingContext2D,
+    )
+    localStorage.setItem('fm1-algorithm-view', '3d')
+    const noop = vi.fn()
+    const renderWireframe = () =>
+      render(
+        <AlgorithmPanel
+          algorithm={0}
+          feedback={0}
+          onAlgorithmChange={noop}
+          onFeedbackChange={noop}
+          onFeedbackGestureEnd={noop}
+          onFeedbackGestureStart={noop}
+          operatorFrequencies={['1.00×', '1.00×', '1.00×', '1.00×', '1.00×', '1.00×']}
+        />,
+      )
+    try {
+      vi.stubGlobal('matchMedia', () => ({ matches: true }))
+      renderWireframe()
+      vi.advanceTimersByTime(500)
+      expect(vi.getTimerCount()).toBe(0)
+      cleanup()
+
+      vi.stubGlobal('matchMedia', () => ({ matches: false }))
+      renderWireframe()
+      vi.advanceTimersByTime(500)
+      expect(vi.getTimerCount()).toBe(1)
+    } finally {
+      cleanup()
+      localStorage.clear()
+      vi.unstubAllGlobals()
+      vi.restoreAllMocks()
+      vi.useRealTimers()
     }
   })
 

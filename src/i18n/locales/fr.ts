@@ -561,6 +561,8 @@ export default {
     envelopeRate: '{{title}}, vitesse {{point}}',
     envelopeLevel: '{{title}}, niveau {{point}}',
     chooseAlgorithm: 'Algorithme {{number}}. Choisir l’algorithme',
+    algorithmWireframe: 'Vue filaire 3D',
+    algorithmWireframeView: 'Algorithme {{number}} en fil de fer. Tournez-le avec les flèches.',
     algorithmNumber: 'Algorithme {{number}}',
     operatorSummary: 'Opérateur {{number}}, {{role}}',
     operatorSummaryWithAudition: 'Opérateur {{number}}, {{role}}, {{audition}}',

@@ -136,6 +136,8 @@ export default {
     envelopeRate: '{{title}}: Rate {{point}}',
     envelopeLevel: '{{title}}: Level {{point}}',
     chooseAlgorithm: 'Алгоритм {{number}}. Оберіть алгоритм',
+    algorithmWireframe: 'Каркасний 3D-вигляд',
+    algorithmWireframeView: 'Алгоритм {{number}} у вигляді каркаса. Обертайте його стрілками.',
     algorithmNumber: 'Algorithm {{number}}',
     operatorSummary: 'Operator {{number}}, {{role}}',
     operatorSummaryWithAudition: 'Operator {{number}}, {{role}}, {{audition}}',

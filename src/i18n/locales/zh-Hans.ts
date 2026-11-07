@@ -495,6 +495,8 @@ export default {
     envelopeRate: '{{title}} 速率 {{point}}',
     envelopeLevel: '{{title}} 电平 {{point}}',
     chooseAlgorithm: '算法 {{number}}。选择算法',
+    algorithmWireframe: '3D 线框视图',
+    algorithmWireframeView: '算法 {{number}} 的线框图。用方向键旋转。',
     algorithmNumber: '算法 {{number}}',
     operatorSummary: '操作器 {{number}}，{{role}}',
     operatorSummaryWithAudition: '操作器 {{number}}，{{role}}，{{audition}}',
