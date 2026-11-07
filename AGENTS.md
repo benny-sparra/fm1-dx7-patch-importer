@@ -658,6 +658,9 @@ open everything an earlier release could have saved.
   crash the entire application. Every deploy renames every chunk, so a tab left open across a
   deploy cannot load any lazy part it has not loaded yet. When a lazy feature fails to open, explain
   it with `LoadFailedNotice`, which offers the reload that fetches the current deployment.
+- Measure the budget as CI builds: with a release name, such as `GITHUB_SHA=$(git rev-parse HEAD)
+npm run build`, since `resolveSentryRelease` puts it in the entry. A local build without one
+  read 25 B of headroom where CI's was 13 B over.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
   Dynamic imports are excluded. Do not weaken or bypass the 169 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
@@ -1320,7 +1323,8 @@ open everything an earlier release could have saved.
   the accessibility tree: flip visibility once the transition has finished.
 - Decoration in the librarian's eager code, such as the chosen menu item's flash and a patch
   name's LCD scramble when its sound changes, lives in `src/lib/retro-motion.ts`, imported once
-  the page goes idle. It watches the page (a capture-phase click and a `MutationObserver` for
+  the page goes idle through `src/lib/retro-motion-start.ts`, which installs it as it loads, so
+  the entry's import holds no code to call it. It watches the page (a capture-phase click and a `MutationObserver` for
   `patch-cell-changed`) rather than living in the components, since it costs the entry nothing
   that way: in React it cost about 300 B, with 87 B to spare. Decoration never blanks or masks
   content that is already showing: an interlaced redraw of the patch grid on a bank change was
