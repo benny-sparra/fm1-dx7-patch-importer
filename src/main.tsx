@@ -37,5 +37,9 @@ void i18nReady.then(() => {
     void initializeMonitoring().then((options) => {
       monitoringRootOptions = options
     })
+    // Decoration only, so a chunk a deploy has renamed leaves the page as it was.
+    import('./lib/retro-motion.ts')
+      .then(({ installRetroMotion }) => installRetroMotion())
+      .catch(() => {})
   })
 })

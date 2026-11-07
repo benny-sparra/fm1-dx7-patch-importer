@@ -1656,6 +1656,118 @@
     }
   }
 
+  /*
+   * A menu item chosen with a click blinks inverted twice, as System 7's did, in a copy of its
+   * menu left where the menu was (`flashChosenMenuItem`). The item takes its own colour as the
+   * flash, so a danger item flashes red.
+   */
+  .menu-flash-copy {
+    position: fixed !important;
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  .menu-flash {
+    animation: menu-flash 320ms steps(1, end) forwards;
+  }
+
+  @keyframes menu-flash {
+    0%,
+    50%,
+    100% {
+      background-color: var(--menu-flash-ink);
+      color: var(--crt-bg-panel2);
+    }
+
+    25%,
+    75% {
+      background-color: transparent;
+      color: var(--menu-flash-ink);
+    }
+  }
+
+  /*
+   * A patch name whose sound has just changed redraws like a character LCD (`scramblePatchName`):
+   * the glyphs in `data-scramble` are drawn over the name, which turns see-through meanwhile, and
+   * are left out of the accessible name. A browser that cannot give generated text an empty
+   * alternative keeps the plain name, rather than reading the glyphs aloud.
+   */
+  @supports (content: 'x' / '') {
+    .patch-name[data-scramble] {
+      position: relative;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .patch-name[data-scramble]::after {
+      content: attr(data-scramble) / '';
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      -webkit-text-fill-color: currentColor;
+    }
+  }
+
+  /*
+   * A readout's last value fades out behind its new one, like slow phosphor (`PhosphorAfterglow`).
+   * The figures come from `data-afterglow`, so the old value is never text on the page.
+   */
+  .phosphor-afterglow {
+    opacity: 0;
+    animation: phosphor-afterglow 260ms ease-out;
+  }
+
+  .phosphor-afterglow::after {
+    content: attr(data-afterglow);
+  }
+
+  @keyframes phosphor-afterglow {
+    from {
+      opacity: 0.7;
+      filter: blur(0);
+      text-shadow: 0 0 10px currentColor;
+    }
+
+    to {
+      opacity: 0;
+      filter: blur(1.5px);
+      text-shadow: none;
+    }
+  }
+
+  /*
+   * The keyboard's velocity meter, lit segment by segment from its left (`VelocityMeter`). The top
+   * segments and the held peak take the LED's amber.
+   */
+  .velocity-meter-segment {
+    background-color: var(--crt-bg-well);
+  }
+
+  .velocity-meter-segment[data-lit='on'] {
+    background-color: var(--crt-acc);
+    box-shadow: 0 0 5px color-mix(in srgb, var(--crt-acc) 55%, transparent);
+  }
+
+  .velocity-meter-segment[data-lit='hot'],
+  .velocity-meter-segment[data-lit='peak'] {
+    background-color: var(--crt-led);
+    box-shadow: 0 0 6px var(--crt-led-glow);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .menu-flash-copy,
+    .phosphor-afterglow {
+      display: none;
+    }
+
+    .patch-name[data-scramble] {
+      -webkit-text-fill-color: currentColor;
+    }
+
+    .patch-name[data-scramble]::after {
+      content: none;
+    }
+  }
+
   input[type='range'] {
     /* The well over the unlit segments, thin enough that they still glow faintly. */
     --range-unlit: color-mix(in oklab, var(--crt-bg-well) 78%, transparent);
