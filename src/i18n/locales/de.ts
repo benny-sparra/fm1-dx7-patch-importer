@@ -579,7 +579,7 @@ export default {
     copyOperatorAction: 'Operator {{number}} kopieren',
     pasteOperatorAction: 'Operator {{source}} einfügen',
     pasteOperatorFromPatchAction: 'Operator {{source}} aus „{{patch}}“ einfügen',
-    pasteOperatorEmpty: 'Einfügen (zuerst einen Operator oder seine Hüllkurve kopieren)',
+    pasteOperatorEmpty: 'Einfügen',
     copyEnvelopeAction: 'Hüllkurve von Operator {{number}} kopieren',
     pasteEnvelopeAction: 'Hüllkurve von Operator {{source}} einfügen',
     pasteEnvelopeFromPatchAction: 'Hüllkurve von Operator {{source}} aus „{{patch}}“ einfügen',
