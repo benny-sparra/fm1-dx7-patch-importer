@@ -183,6 +183,12 @@ bank and says why, and neither does a port named SMK-37 whose firmware has not a
 ignores Program Change and the effect controls, so the editor hides the effects; the patch keeps
 them. A port of another FM1 firmware to the SMK-37 shows as **Not identified**.
 
+To keep a patch on the SMK-37, select the preset to replace on its synth screen, where **BANK A**
+to **BANK D** shows, then choose **Write to SMK-37…** in the patch's ⋮ menu. The SMK-37 cannot
+be told which preset to replace or send one back, and cannot back up its presets, so the write
+replaces the preset you selected for good. It is offered on the SMK-37's V15, the release it was
+tested on.
+
 To move your FM1 between these firmwares, see [Switching FM1 firmware](switching-firmware.md).
 
 To bring the FM1's own presets into the library while it runs Baud Girl's firmware, FM-1_079 or

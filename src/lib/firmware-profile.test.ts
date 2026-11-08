@@ -15,6 +15,7 @@ const nothing = {
   presetRead: false,
   presetWrite: false,
   programChanges: false,
+  selectedPresetWrite: false,
   selectedVoiceEdits: false,
   sharedEffects: false,
   singleVoiceDumps: false,
@@ -315,13 +316,40 @@ describe('resolveFirmwareProfile', () => {
   })
 
   it('sends the SMK-37 only parameter changes, since it saves any dump over its presets', () => {
-    for (const identity of ['SMK-37 Pro_015', 'SMK-37 Elite_016', 'MKE-P37_013']) {
+    for (const identity of ['SMK-37 Elite_016', 'MKE-P37_013', 'SMK-37 Pro_014']) {
       expect(resolveFirmwareProfile({ identity, kind: 'smk37' })).toEqual({
         capabilities: { ...nothing, parameterChanges: true },
         effectControllerBase: 0,
         family: 'smk37',
         presetWriteTiming: presetsPageTiming,
       })
+    }
+  })
+
+  it('offers the SMK-37 a confirmed write over its selected preset only on V015, as tested', () => {
+    for (const identity of ['SMK-37 Pro_015', 'SMK-37 Elite_015', 'MKE-P37_015']) {
+      expect(resolveFirmwareProfile({ identity, kind: 'smk37' }).capabilities).toEqual({
+        ...nothing,
+        parameterChanges: true,
+        selectedPresetWrite: true,
+      })
+    }
+    for (const identity of ['SMK-37 Pro_014', 'SMK-37 Pro_016']) {
+      expect(
+        resolveFirmwareProfile({ identity, kind: 'smk37' }).capabilities.selectedPresetWrite,
+      ).toBe(false)
+    }
+  })
+
+  it('offers a write over the selected preset to no firmware but the SMK-37', () => {
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_015', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'SMK-37 Pro_8000001', kind: 'official-open' },
+    ] as const) {
+      expect(resolveFirmwareProfile(firmware).capabilities.selectedPresetWrite).toBe(false)
     }
   })
 

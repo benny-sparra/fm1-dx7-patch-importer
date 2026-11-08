@@ -13,8 +13,10 @@ import { RestoreFactoryBanksDialog } from '@/components/patches/restore-factory-
 import { DuplicatePatchesDialog } from '@/components/patches/duplicate-patches-dialog'
 import { ImportDx7BankDialog } from '@/components/patches/import-dx7-bank-dialog'
 import { ReceiveFromFm1Dialog } from '@/components/patches/receive-from-fm1-dialog'
+import { WriteSmk37PatchDialog } from '@/components/patches/write-smk37-patch-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { setLocale } from '@/i18n'
+import { makeInitDx7Voice } from '@/lib/init-voice'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import { makeWorkspaceWithCopies } from '@/test/factory-voices'
 
@@ -141,6 +143,22 @@ const openDialogs = {
     </FxPresetDialog>
   ),
   'midi-log': () => <MidiLogDialog logStore={new MidiLogStore([])} onClose={vi.fn()} />,
+  'write-smk37': () => (
+    <WriteSmk37PatchDialog
+      midi={{
+        channel: 1,
+        firmware: { identity: 'SMK-37 Pro_015', kind: 'smk37' },
+        logStore: new MidiLogStore([]),
+        outputs: [],
+        queueEffectOrder: vi.fn(),
+        selectedOutputId: '',
+        sysexAvailable: true,
+      }}
+      onClose={vi.fn()}
+      patch={{ bank: 'A', family: 'DX7', id: 'bank-A-1', name: 'INIT VOICE', number: 1 }}
+      voice={makeInitDx7Voice()}
+    />
+  ),
 }
 
 describe('a dialog that opens itself as it mounts', () => {

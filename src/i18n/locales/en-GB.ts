@@ -93,6 +93,10 @@ export default {
     changed: 'Changed {{slot}} to FM as “{{patch}}”.',
     openFailed: 'Changing to FM could not be opened. Reload the page and try again.',
   },
+  smk37Write: {
+    menuItem: 'Write to SMK-37…',
+    openFailed: 'Writing to the SMK-37 could not be opened. Reload the page and try again.',
+  },
   fm1VaSend: {
     bankTooltip:
       'Choose an FM1 bank to write these patches over; only the ones that differ are written',

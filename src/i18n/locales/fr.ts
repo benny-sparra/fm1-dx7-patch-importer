@@ -865,6 +865,20 @@ export default {
     changed: '{{slot}} est passé en FM sous le nom « {{patch}} ».',
     openFailed: 'Le passage en FM n’a pas pu s’ouvrir. Rechargez la page et réessayez.',
   },
+  smk37Write: {
+    menuItem: 'Écrire sur le SMK-37…',
+    title: 'Écrire {{slot}} « {{patch}} » sur le SMK-37 ?',
+    step: 'Sur le SMK-37, sélectionnez d’abord le preset à remplacer sur son écran de synthé, là où s’affiche BANK A–D.',
+    warning:
+      'Cela remplace ce preset définitivement. Le SMK-37 ne peut pas sauvegarder ses presets, donc c’est irréversible.',
+    action: 'Écrire le son',
+    writing: 'Écriture…',
+    noOutput: 'Choisissez le SMK-37 comme sortie MIDI, puis réessayez.',
+    sysexUnavailable: 'Autorisez SysEx en activant le MIDI, puis réessayez.',
+    failed: 'Le son n’a pas été écrit. Vérifiez que le SMK-37 est connecté, puis réessayez.',
+    written: '« {{patch}} » a été écrit sur le SMK-37.',
+    openFailed: 'L’écriture sur le SMK-37 n’a pas pu s’ouvrir. Rechargez la page et réessayez.',
+  },
   fm1VaSend: {
     title: 'Envoyer {{bank}} au FM1',
     help: 'Écrit {{bank}} sur l’une des banques de presets du FM1. Seuls les sons qui diffèrent sont écrits.',

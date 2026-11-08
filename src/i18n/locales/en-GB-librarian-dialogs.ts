@@ -331,6 +331,18 @@ export default {
       'If the FM1 holds this Virtual Analogue preset, writing to the FM1 leaves it there: erase it on the FM1 to change its engine there too.',
     action: 'Change to FM',
   },
+  smk37Write: {
+    title: 'Write {{slot}} “{{patch}}” to the SMK-37?',
+    step: 'On the SMK-37, first select the preset to replace on its synth screen, where BANK A–D shows.',
+    warning:
+      'This replaces that preset for good. The SMK-37 cannot back up its presets, so it cannot be undone.',
+    action: 'Write patch',
+    writing: 'Writing…',
+    noOutput: 'Choose the SMK-37 as the MIDI output, then try again.',
+    sysexUnavailable: 'Allow SysEx when switching MIDI on, then try again.',
+    failed: 'The patch was not written. Check the SMK-37 is connected, then try again.',
+    written: 'Wrote “{{patch}}” to the SMK-37.',
+  },
   fm1VaSend: {
     title: 'Send {{bank}} to the FM1',
     help: 'Writes {{bank}} over one of the FM1’s banks of presets. Only patches that differ are written.',
