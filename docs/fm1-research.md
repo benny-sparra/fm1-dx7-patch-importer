@@ -3177,6 +3177,15 @@ The SMK-37 Pro is a 37-key controller on the FM1's board family (chip, loader, a
 - **DX7 single-voice dump:** saved over the selected preset at once, surviving a power cycle, as
   on FM-1+VA. **Dangerous** to send: there is no bank export to back the presets up.
 - **Effect controllers:** CC 0–1 and 70–71 on channel 2 did nothing audible.
+- **No readback** (run 2026-11-08,
+  [`hardware-runs/smk37-2026-11-08.md`](hardware-runs/smk37-2026-11-08.md)): the DX7
+  single-voice and bank dump requests (`F0 43 20 00 F7`, `F0 43 20 09 F7`) got no reply.
+- **No preset selection** (same run): Bank Select 0 or 1 before Program Change on channel 1,
+  and Program Change on channels 10 (the Pad channel) and 16, left the sound unchanged. A dump
+  can only replace the preset selected on the keyboard.
+- **Two kinds of preset** (same run): the home screen's and GLOBE's **Preset-n** is the
+  controller preset. The sound shows on the synth screen as a number and name in **BANK A** to
+  **BANK D**, with **SAVE** on K8.
 
 #### SMK-37 Pro FX page
 
