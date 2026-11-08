@@ -238,6 +238,19 @@ describe('WriteFm1VaPresetsDialog', () => {
     expect(screen.getByText('Wrote 2 patches to the FM1.')).toBeTruthy()
   })
 
+  it('writes nothing when a double-click on Write patches… reaches the confirmation', async () => {
+    const fm1 = fakeFm1()
+    const { user } = renderDialog(fm1.midi)
+    await user.click(await screen.findByRole('button', { name: 'Write 2 patches…' }))
+
+    // The second click of the double-click lands where the first button was.
+    fireEvent.click(screen.getByRole('button', { name: 'Write 2 patches' }), { detail: 2 })
+
+    expect(screen.queryByText(/Writing patch/)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Write 2 patches' })).toBeTruthy()
+    expect(fm1.writtenSlots()).toEqual([])
+  })
+
   it('goes back to the banks without writing when the confirmation is cancelled', async () => {
     const fm1 = fakeFm1()
     const { user } = renderDialog(fm1.midi)
