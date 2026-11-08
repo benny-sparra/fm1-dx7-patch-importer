@@ -5,18 +5,13 @@ import {
   clampPitch,
   frameLines,
   makeCamera,
-  makeStars,
   maxPitch,
   minPitch,
-  orbitDot,
-  orbitLines,
   project,
   restingView,
   rotate,
   roundedRectPoints,
   sideFacesCamera,
-  starIsFlaring,
-  starIsLit,
   swayYaw,
   type Vec2,
 } from './fm1-wireframe'
@@ -146,42 +141,9 @@ describe('the wireframe geometry', () => {
       wallLines(0).length * 0.1,
     )
   })
-
-  it('draws a dashed ring that is not a closed line, and a dot that moves round it', () => {
-    const view = restingView
-    const ring = orbitLines(view, camera)
-    expect(ring.length).toBeGreaterThan(10)
-    expect(ring.length).toBeLessThan(60)
-    const [x1, y1] = orbitDot(view, camera, 0)
-    const [x2, y2] = orbitDot(view, camera, 0.5)
-    expect(Math.hypot(x2 - x1, y2 - y1)).toBeGreaterThan(50)
-    expect(orbitDot(view, camera, 1)[0]).toBeCloseTo(x1, 6)
-  })
 })
 
-describe('the stars and the sway', () => {
-  it('scatters the same stars every time, inside the canvas', () => {
-    const stars = makeStars(280, 200)
-    expect(makeStars(280, 200)).toEqual(stars)
-    expect(stars).toHaveLength(36)
-    for (const star of stars) {
-      expect(star.x).toBeGreaterThanOrEqual(0)
-      expect(star.x).toBeLessThan(280)
-      expect(star.y).toBeGreaterThanOrEqual(0)
-      expect(star.y).toBeLessThan(200)
-    }
-  })
-
-  it('twinkles most stars most of the time, and only a big star flares', () => {
-    const stars = makeStars(280, 200, 200)
-    const times = Array.from({ length: 50 }, (_, index) => index * 0.13)
-    const lit = stars.flatMap((star) => times.map((time) => starIsLit(star, time)))
-    expect(lit.filter(Boolean).length / lit.length).toBeGreaterThan(0.6)
-    expect(lit.some((value) => !value)).toBe(true)
-    const flared = stars.filter((star) => times.some((time) => starIsFlaring(star, time)))
-    expect(flared.every((star) => star.big)).toBe(true)
-  })
-
+describe('the sway', () => {
   it('sways slowly about where the viewer left it, and begins there', () => {
     expect(swayYaw(0)).toBe(0)
     const swings = Array.from({ length: 400 }, (_, index) => swayYaw(index * 0.1))

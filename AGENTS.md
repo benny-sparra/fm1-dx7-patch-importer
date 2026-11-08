@@ -685,9 +685,15 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   points it at `src/lib/use-sync-external-store-shim.ts`, which takes the hook from React, so the
   entry leaves out the shim's fallback (283 B). Keep the alias while react-i18next imports the shim.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
-- The firmware page (`firmware/index.html`) is static HTML and shares no JavaScript with the app.
-  Vite splits any module two pages import into a chunk of its own that the app's entry loads too,
-  and its module preload polyfill counts: importing the colourway helpers cost the entry 237 B. It
+- The firmware page (`firmware/index.html`) is static HTML and shares one module with the app:
+  its showcase's `src/firmware-wireframe.ts`, which runs the welcome's FM1 outline
+  (`src/lib/fm1-wireframe-canvas.ts`). Vite splits any module two pages import into a chunk of its
+  own, which the app's entry loads too when eager code imports it: importing the colourway helpers
+  cost the entry 237 B. Only a module the app loads lazily, as the wireframe is with the help guide,
+  may be shared, measured with `npm run bundle:check`. Vite's module preload polyfill is switched
+  off (`build.modulePreload.polyfill`), because the firmware page's module made Rolldown split it
+  into a chunk the entry shared, 131 B over the budget; every browser with Web MIDI supports
+  modulepreload. Everything else on the page is a plain script in `public/`. It
   links its stylesheet (`src/firmware-page.css`, which imports `index.css`) from the HTML and takes
   the editor's finish through `public/firmware-colourway.js`, a plain script served unchanged. Add a
   firmware as another `<article class="firmware-entry">` whose `id` is its short anchor, such as
@@ -724,13 +730,10 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   which has no kinds and so shows only under All. The watch list runs in two columns, three from
   64rem, each note folded to one line with the cards' More button at the end of its name row (each
   item's name and maker sit in one `<p>`). It is tinted violet, whatever the finish, as the Latest strip is amber.
-  From 64rem an FM1 sits beside the Latest strip and the controls (`.firmware-showcase`), one
-  photo per finish stacked in one cell, and `public/firmware-showcase.js` fades through them every
-  4 s, starting on the finish chosen in the editor. A photo is not displayed, and so not loaded, until
-  its turn is next: the page opens with one, and each next loads once the one shown has (by its
-  load event, since `decode()` never settled for a photo at no opacity). With reduced motion, or below 64rem where the
-  photo is not shown (nor loaded), it stays on that one. Its photos are decoration (`alt=""`, the
-  figure `aria-hidden`) and follow `fm1Colorways`' order, which a test checks. The controls row shows how many firmwares show, and the
+  From 64rem the welcome's turning FM1 outline sits beside the Latest strip and the controls
+  (`.firmware-showcase`, a 280 by 200 canvas shown at that size), in the finish chosen in the
+  editor; below 64rem it is not shown and stops turning. It is decoration (the figure
+  `aria-hidden`), and turns when dragged. The controls row shows how many firmwares show, and the
   watch list's heading how many of it show (`firmware-filter.js` fills both, so neither is kept
   by hand). Each card's kinds show as the Show menu's icons at the end of its maker line, named in
   a tooltip and for assistive technology; `firmware-filter.js` adds them from `data-categories`, so
@@ -754,8 +757,8 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
 - An entry with a photo shows it as a small thumbnail (4.5rem) at the top right, beside its maker and title in `.firmware-head`, so it is no taller
   than an entry without one and the rows stay even. A click on it opens the full photo in a modal drawn
   like the editor's `Dialog`, zooming out of the thumbnail with the classic Mac rectangles
-  (`public/firmware-photos.js`, which repeats `zoomRects`, since the page shares no JavaScript with
-  the editor), closed by Escape, its close button, or a click outside the photo.
+  (`public/firmware-photos.js`, which repeats `zoomRects`, since the page's plain scripts share no
+  JavaScript with the editor), closed by Escape, its close button, or a click outside the photo.
 - Every firmware entry carries `data-updated`, the date the release its status line names came
   out (the last commit for a project without numbered releases), shown as **Updated** in its status
   line, and **Recently updated** orders by it, newest first. Change the date in the same edit that
@@ -927,8 +930,9 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   warning only where `isUnsupportedBrowser` holds, where it replaces the steps, and the Baud Girl
   note only once the FM1 is identified as running FM-1+VA. The guide's strings, apart from the
   button's name, load with its chunk from `src/i18n/locales/en-GB-help.ts`.
-- The welcome's outline (`src/components/fm1-wireframe.tsx`, geometry and camera in
-  `src/lib/fm1-wireframe.ts`) is decoration, not content: its canvas is `aria-hidden`, takes no
+- The welcome's outline (`src/components/fm1-wireframe.tsx`, drawn by
+  `src/lib/fm1-wireframe-canvas.ts`, which the firmware page's showcase runs too, with geometry and
+  camera in `src/lib/fm1-wireframe.ts`) is decoration, not content: its canvas is `aria-hidden`, takes no
   focus, and adds no text or name to the dialog, so the arrow keys are heard on the dialog rather
   than the canvas. It is traced from the stock photo into the table in `src/lib/fm1-outline.ts`
   (how is in that file's comment; `docs/fm1-outline-check.png` shows the trace on the photo); only
@@ -936,7 +940,7 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   because no photo shows them. Change a control's place there, never by eye in the renderer. It
   takes its colours from the `--crt-*` tokens, so every finish works, draws about 12 frames a
   second, and stops while the tab is hidden, the canvas is off screen, or the dialog is closed.
-  With reduced motion it holds one still frame, with no sway, orbit, or twinkle, and still turns
+  With reduced motion it holds one still frame, with no sway, and still turns
   when dragged. It shares the guide's chunk: as a chunk of its own, with no Lucide icon, it made
   Rolldown split the JSX runtime out of the entry's shared chunk, 220 B. It reads reduced motion
   itself, since importing `src/lib/reduced-motion.ts` split that out too. The photo is what shows

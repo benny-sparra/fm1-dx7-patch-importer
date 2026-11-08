@@ -890,8 +890,8 @@
 }
 
 /*
- * The Latest strip and the controls, with an FM1 beside them from 64rem that fades through its
- * finishes (public/firmware-showcase.js). Below 64rem the photo is not shown, nor loaded.
+ * The Latest strip and the controls, with the editor's turning FM1 outline beside them from 64rem
+ * (src/firmware-wireframe.ts). Below 64rem it is not shown, and stops turning.
  */
 @layer components {
   .firmware-top {
@@ -913,7 +913,7 @@
 
   @media (width >= 64rem) {
     .firmware-top {
-      grid-template-columns: minmax(0, 1fr) 18rem;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
     }
 
@@ -922,41 +922,19 @@
     }
   }
 
-  /*
-   * The photos share one cell, and only the one shown is opaque. A photo is not displayed, and so
-   * not loaded, until it is needed: the one for the finish chosen in the editor shows from the
-   * first frame, and firmware-showcase.js readies each next one while the one before is shown.
-   */
-  .firmware-showcase-photo {
-    display: none;
-    grid-area: 1 / 1;
-    width: 100%;
-    height: auto;
-    opacity: 0;
-    transition: opacity 1.2s ease-in-out;
-  }
-
-  :root:not([data-fm1-colorway]) .firmware-showcase-photo[data-colorway='black'],
-  :root[data-fm1-colorway='black'] .firmware-showcase-photo[data-colorway='black'],
-  :root[data-fm1-colorway='purple'] .firmware-showcase-photo[data-colorway='purple'],
-  :root[data-fm1-colorway='orange'] .firmware-showcase-photo[data-colorway='orange'],
-  :root[data-fm1-colorway='black-green'] .firmware-showcase-photo[data-colorway='black-green'],
-  :root[data-fm1-colorway='cool-gray'] .firmware-showcase-photo[data-colorway='cool-gray'],
-  :root[data-fm1-colorway='white-blue'] .firmware-showcase-photo[data-colorway='white-blue'],
-  :root[data-fm1-colorway='pink'] .firmware-showcase-photo[data-colorway='pink'],
-  .firmware-showcase-photo.is-ready {
+  /* Drawn at 280 by 200 and shown at that size, so every line is one pixel. */
+  .firmware-showcase-canvas {
     display: block;
+    box-sizing: content-box;
+    width: 280px;
+    height: 200px;
+    background: var(--crt-bg-well);
+    cursor: grab;
+    image-rendering: pixelated;
+    touch-action: pan-y;
   }
 
-  /* Until the script has chosen one, as without it, the photo displayed shows. */
-  .firmware-showcase:not(:has(.is-shown)) .firmware-showcase-photo,
-  .firmware-showcase-photo.is-shown {
-    opacity: 1;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .firmware-showcase-photo {
-      transition: none;
-    }
+  .firmware-showcase-canvas:active {
+    cursor: grabbing;
   }
 }
