@@ -70,6 +70,11 @@ export type EffectControllerBase = 0 | 70
  *   M-VAVE's V16 (`docs/hardware-runs/stock-v16-live-fx-read-2026-11-05.md`).
  * - `multitimbral`: the FM1 plays several Voices, each with its own preset and MIDI channel.
  *   M-VAVE's V16 (docs/hardware-runs/stock-v16-voices-2026-10-26.md).
+ * - `selectedPresetWrite`: **Write to SMK-37…** may send one DX7 single-voice dump, which the
+ *   SMK-37 saves over the preset selected on its synth screen for good. It cannot be told which
+ *   preset (no Program Change or Bank Select reaches it) or read one back, so the user selects it
+ *   first and confirms. The SMK-37's V015 (docs/hardware-runs/smk37-2026-11-03.md and
+ *   smk37-2026-11-08.md); another release needs its own run.
  */
 type FirmwareCapability =
   | 'bankDumps'
@@ -84,6 +89,7 @@ type FirmwareCapability =
   | 'presetRead'
   | 'presetWrite'
   | 'programChanges'
+  | 'selectedPresetWrite'
   | 'selectedVoiceEdits'
   | 'sharedEffects'
   | 'singleVoiceDumps'
@@ -192,15 +198,20 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   // M-VAVE's SMK-37 keyboard on its stock V015 (docs/hardware-runs/smk37-2026-11-03.md) holds DX7
   // parameter changes as an unsaved edit, but saves a single-voice dump over its selected preset,
   // ignores Program Change, and did nothing with the effect controllers on channel 2. With no
-  // bank export to back its presets up, it gets no dump of any kind.
-  smk37: { capabilities: { parameterChanges: 0 } },
+  // bank export to back its presets up, only a write the user confirms sends one, and no bank. The
+  // run of 2026-11-08 found no readback and no way to choose the preset, so the user selects it.
+  smk37: { capabilities: { parameterChanges: 0, selectedPresetWrite: { before: 16, from: 15 } } },
   unidentified: { capabilities: channelMessages },
 }
 
-/** The release an FM-1+VA, Felucca, or M-VAVE firmware reports, such as 89 for `FM-1_089`. */
+/**
+ * The release a firmware reports as three digits after its model, such as 89 for `FM-1_089`, or 15
+ * for the SMK-37's own `SMK-37 Pro_015`. Official Open's and DX747's longer numbers name no release
+ * here, and their families list every capability from 0.
+ */
 function releaseNumber(firmware: Fm1Firmware) {
   if (firmware.kind === 'checking' || firmware.kind === 'unidentified') return null
-  const match = /^FM-1_(\d{3})$/.exec(firmware.identity)
+  const match = /^[^_]+_(\d{3})$/.exec(firmware.identity)
   return match ? Number(match[1]) : null
 }
 
@@ -231,6 +242,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       presetRead: from(capabilities.presetRead),
       presetWrite: from(capabilities.presetWrite),
       programChanges: from(capabilities.programChanges),
+      selectedPresetWrite: from(capabilities.selectedPresetWrite),
       selectedVoiceEdits: from(capabilities.selectedVoiceEdits),
       sharedEffects: from(capabilities.sharedEffects),
       singleVoiceDumps: from(capabilities.singleVoiceDumps),

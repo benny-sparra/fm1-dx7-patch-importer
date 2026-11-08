@@ -163,6 +163,12 @@ const ChangeToFmDialog = lazy(() =>
     default: module.ChangeToFmDialog,
   })),
 )
+// Writing a patch over the SMK-37's selected preset opens from its slot menu on first use.
+const WriteSmk37PatchDialog = lazy(() =>
+  import('@/components/patches/write-smk37-patch-dialog').then((module) => ({
+    default: module.WriteSmk37PatchDialog,
+  })),
+)
 const ReplacePatchDialog = lazy(() =>
   import('@/components/patches/replace-patch-dialog').then((module) => ({
     default: module.ReplacePatchDialog,
@@ -317,6 +323,7 @@ type LibrarianMidi = ComponentProps<typeof Fm1BankSelectionDialog>['midi'] &
   ComponentProps<typeof ReceiveFromFm1Dialog>['midi'] &
   ComponentProps<typeof MidiConnectionRequiredDialog>['midi'] &
   ComponentProps<typeof V16EffectsPanel>['midi'] &
+  ComponentProps<typeof WriteSmk37PatchDialog>['midi'] &
   Pick<MidiController, 'channel' | 'firmware' | 'hasMidiOutput' | 'sendBank' | 'sysexAvailable'>
 
 type LibrarianPageProps = {
@@ -389,6 +396,8 @@ export function LibrarianPage({
   const [receiveRequest, setReceiveRequest] = useState<ReceiveRequest | null>(null)
   // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
   const [changeToFmTarget, setChangeToFmTarget] = useState<Patch | null>(null)
+  // The FM patch a slot menu asked to write over the SMK-37's selected preset, while its dialog is open.
+  const [smk37WriteTarget, setSmk37WriteTarget] = useState<Patch | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferError, setTransferError] = useState('')
@@ -512,6 +521,10 @@ export function LibrarianPage({
   const requestChangeToFm = (patch: Patch) => {
     setDialogLoadError('')
     setChangeToFmTarget(patch)
+  }
+  const requestSmk37Write = (patch: Patch) => {
+    setDialogLoadError('')
+    setSmk37WriteTarget(patch)
   }
   // The single-voice file format loads with the first download rather than with the page.
   const downloadPatch = async (patch: Patch) => {
@@ -1471,6 +1484,9 @@ export function LibrarianPage({
           }
           onPatchDownload={(patch) => void downloadPatch(patch)}
           onPatchShare={copyShareLink}
+          onPatchWriteToSmk37={
+            firmwareProfile.capabilities.selectedPresetWrite ? requestSmk37Write : undefined
+          }
           // Importing a file puts it in a bank slot; Favourites takes sounds through their hearts.
           onPatchReplace={showsFavourites ? undefined : requestReplace}
           onPatchChangeToFm={showsFavourites ? undefined : requestChangeToFm}
@@ -1872,6 +1888,22 @@ export function LibrarianPage({
             }
             onClose={() => setChangeToFmTarget(null)}
             patch={changeToFmTarget}
+          />
+        </LazyDialogBoundary>
+      ) : null}
+      {smk37WriteTarget && library.voices[smk37WriteTarget.id] ? (
+        <LazyDialogBoundary
+          key={smk37WriteTarget.id}
+          onError={() => {
+            setSmk37WriteTarget(null)
+            setDialogLoadError(t('smk37Write.openFailed'))
+          }}
+        >
+          <WriteSmk37PatchDialog
+            midi={midi}
+            onClose={() => setSmk37WriteTarget(null)}
+            patch={smk37WriteTarget}
+            voice={library.voices[smk37WriteTarget.id]}
           />
         </LazyDialogBoundary>
       ) : null}

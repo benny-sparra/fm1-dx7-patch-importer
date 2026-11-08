@@ -878,6 +878,22 @@ export default {
     openFailed:
       'Das Umwandeln in FM konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
   },
+  smk37Write: {
+    menuItem: 'Auf den SMK-37 schreiben…',
+    title: '{{slot}} „{{patch}}“ auf den SMK-37 schreiben?',
+    step: 'Wähle am SMK-37 zuerst auf seinem Synth-Bildschirm, wo BANK A–D steht, das Preset, das ersetzt werden soll.',
+    warning:
+      'Das ersetzt dieses Preset dauerhaft. Der SMK-37 kann seine Presets nicht sichern, daher lässt sich das nicht rückgängig machen.',
+    action: 'Sound schreiben',
+    writing: 'Wird geschrieben…',
+    noOutput: 'Wähle den SMK-37 als MIDI-Ausgang und versuche es erneut.',
+    sysexUnavailable: 'Erlaube SysEx beim Einschalten von MIDI und versuche es erneut.',
+    failed:
+      'Der Sound wurde nicht geschrieben. Prüfe, ob der SMK-37 verbunden ist, und versuche es erneut.',
+    written: '„{{patch}}“ wurde auf den SMK-37 geschrieben.',
+    openFailed:
+      'Das Schreiben auf den SMK-37 konnte nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
+  },
   fm1VaSend: {
     title: '{{bank}} an den FM1 senden',
     help: 'Schreibt {{bank}} über eine der Presetbänke des FM1. Nur Sounds, die sich unterscheiden, werden geschrieben.',

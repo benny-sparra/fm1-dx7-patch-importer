@@ -6,6 +6,7 @@ import {
   Download,
   Link,
   Pencil,
+  Save,
   Upload,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +29,7 @@ type PatchSlotMenuProps = {
   onEdit?: () => void
   onReplace?: () => void
   onShare?: () => void
+  onWriteToSmk37?: () => void
   /** The slot's code, so slots holding patches of one name keep menus of their own names. */
   slot: string
 }
@@ -45,6 +47,7 @@ export function PatchSlotMenu({
   onEdit,
   onReplace,
   onShare,
+  onWriteToSmk37,
   slot,
 }: PatchSlotMenuProps) {
   const { t } = useTranslation()
@@ -65,6 +68,12 @@ export function PatchSlotMenu({
           onSelect: onDownload,
         },
         { Icon: Link, group: transfer, label: t('shareLink.menuItem'), onSelect: onShare },
+        {
+          Icon: Save,
+          group: transfer,
+          label: t('smk37Write.menuItem'),
+          onSelect: onWriteToSmk37,
+        },
         {
           Icon: ArrowUp,
           disabled: move && !move.canMoveEarlier,

@@ -34,6 +34,8 @@ type PatchButtonProps = {
   onCopy?: (patch: Patch) => void
   onDownload?: (patch: Patch) => void
   onShare?: (patch: Patch) => void
+  /** Offered on an FM patch only, while the SMK-37 takes a write over its selected preset. */
+  onWriteToSmk37?: (patch: Patch) => void
   onEdit?: (patch: Patch) => void
   /** Arrow-key navigation across the grid, owned by the grid itself. */
   onNavigate?: (event: KeyboardEvent<HTMLButtonElement>, patch: Patch) => void
@@ -69,6 +71,7 @@ export function PatchButton({
   onCopy,
   onDownload,
   onShare,
+  onWriteToSmk37,
   onEdit,
   onNavigate,
   onReplace,
@@ -273,6 +276,9 @@ export function PatchButton({
               onEdit={editSlot && (() => editSlot(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
               onShare={onShare && (() => onShare(patch))}
+              onWriteToSmk37={
+                onWriteToSmk37 && patch.family === 'DX7' ? () => onWriteToSmk37(patch) : undefined
+              }
               slot={patchSlotCode(patch)}
             />
           ) : null}

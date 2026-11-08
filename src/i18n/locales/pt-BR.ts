@@ -851,6 +851,21 @@ export default {
     changed: '{{slot}} mudou para FM como “{{patch}}”.',
     openFailed: 'Não foi possível abrir a mudança para FM. Recarregue a página e tente novamente.',
   },
+  smk37Write: {
+    menuItem: 'Gravar no SMK-37…',
+    title: 'Gravar {{slot}} “{{patch}}” no SMK-37?',
+    step: 'No SMK-37, selecione primeiro o preset a substituir na tela do sintetizador, onde aparece BANK A–D.',
+    warning:
+      'Isso substitui esse preset para sempre. O SMK-37 não consegue fazer backup dos presets, então não dá para desfazer.',
+    action: 'Gravar som',
+    writing: 'Gravando…',
+    noOutput: 'Escolha o SMK-37 como saída MIDI e tente novamente.',
+    sysexUnavailable: 'Permita SysEx ao ativar o MIDI e tente novamente.',
+    failed: 'O som não foi gravado. Verifique se o SMK-37 está conectado e tente novamente.',
+    written: '“{{patch}}” foi gravado no SMK-37.',
+    openFailed:
+      'Não foi possível abrir a gravação no SMK-37. Recarregue a página e tente novamente.',
+  },
   fm1VaSend: {
     title: 'Enviar {{bank}} ao FM1',
     help: 'Grava {{bank}} sobre um dos bancos de presets do FM1. Só os sons diferentes são gravados.',
