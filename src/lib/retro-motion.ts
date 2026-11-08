@@ -171,7 +171,13 @@ export function tickWatchCursor(event: Event) {
  * so the notification is announced once and its buttons cannot be reached while it leaves.
  */
 export function stepOutToast(removed: HTMLElement, parent: Node, before: Node | null) {
-  if (!motionAllowed() || !parent.isConnected || !removed.classList.contains('toast-surface')) {
+  // The step out's own removal is seen too, and stepping it out again would loop forever.
+  if (
+    !motionAllowed() ||
+    !parent.isConnected ||
+    !removed.classList.contains('toast-surface') ||
+    removed.classList.contains('toast-step-out')
+  ) {
     return
   }
   removed.removeAttribute('role')
@@ -188,7 +194,13 @@ export function stepOutToast(removed: HTMLElement, parent: Node, before: Node | 
  * place is laid back over the lit screen for `photoWakeMs`. Decoration only, and it takes no room.
  */
 export function wakePhotoScreen(overlay: HTMLElement, parent: Node) {
-  if (!motionAllowed() || !parent.isConnected || !overlay.classList.contains('fm1-photo-screen')) {
+  // The wake shares the overlay's class, so its own removal must not wake the screen again.
+  if (
+    !motionAllowed() ||
+    !parent.isConnected ||
+    !overlay.classList.contains('fm1-photo-screen') ||
+    overlay.classList.contains('fm1-photo-wake')
+  ) {
     return
   }
   const wake = overlay.ownerDocument.createElement('span')

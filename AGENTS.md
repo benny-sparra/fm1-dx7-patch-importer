@@ -1370,6 +1370,9 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   removed (the owner, 2026-11-07), since a grid that flickers on every click reads as a fault. Never let it run an action
   late: the flash draws on an inert copy of the menu while the item's action runs at once, since a
   delayed action loses the click's user activation (file choosers, the clipboard) and its focus.
+  What it puts back on the page for a moment, such as a toast stepping out or the photo's wake,
+  is ignored when the observer sees it leave again, or it puts it back for ever: a toast once
+  stepped in and out on a loop until the page was reloaded.
   It imports nothing, and no other chunk imports it: a shared module gave it a dependency list
   and cost the entry 226 B. It writes only `data-` attributes React does not render, never
   text React owns, and its glyphs are generated content with an empty alternative

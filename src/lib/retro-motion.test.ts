@@ -337,6 +337,23 @@ describe('stepOutToast', () => {
 
     expect(region.querySelector('.toast-step-out')).not.toBeNull()
   })
+
+  it('lets a notification that has stepped out go, rather than stepping it out again', async () => {
+    vi.useFakeTimers()
+    const region = document.createElement('div')
+    document.body.append(region)
+    const toast = toastIn(region)
+    const stop = installRetroMotion()
+
+    toast.remove()
+    await vi.advanceTimersByTimeAsync(0)
+    await vi.advanceTimersByTimeAsync(toastStepOutMs)
+    stop()
+
+    expect(region.contains(toast)).toBe(false)
+    expect(vi.getTimerCount()).toBe(0)
+    vi.useRealTimers()
+  })
 })
 
 describe('wakePhotoScreen', () => {
@@ -380,5 +397,20 @@ describe('wakePhotoScreen', () => {
     wakePhotoScreen(other, frame)
 
     expect(frame.querySelector('.fm1-photo-wake')).toBeNull()
+  })
+
+  it('lets the wake go, rather than waking the screen again when it leaves', async () => {
+    vi.useFakeTimers()
+    const { frame, overlay } = photo()
+    const stop = installRetroMotion()
+
+    overlay.remove()
+    await vi.advanceTimersByTimeAsync(0)
+    await vi.advanceTimersByTimeAsync(photoWakeMs)
+    stop()
+
+    expect(frame.querySelector('.fm1-photo-wake')).toBeNull()
+    expect(vi.getTimerCount()).toBe(0)
+    vi.useRealTimers()
   })
 })
