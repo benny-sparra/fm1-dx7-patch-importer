@@ -955,6 +955,13 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   Rolldown split the JSX runtime out of the entry's shared chunk, 220 B. It reads reduced motion
   itself, since importing `src/lib/reduced-motion.ts` split that out too. The photo is what shows
   when the browser has no 2D canvas.
+- A button that appears where the button before it was, such as a confirmation's action or the
+  wizard footer's Next turning into the last screen's action, ignores the second click of a
+  double-click (`isRepeatClick` from `src/components/patches/bank-wizard.tsx`, which reads the
+  browser's click count, `event.detail`), or a double-click on the first carries through to it
+  unread. It lives there because a module of its own, shared by two lazy dialogs, became a chunk
+  the entry preloads and cost 41 B; there it costs 5 B. A test double-clicks through it
+  (`user.dblClick`, or `fireEvent.click` with `detail: 2` when the button is a new element).
 - While a dialog's action is in progress, keep the dialog open: block Escape with `onCancel` and
   backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
 - A button whose action is under way, or that cannot act yet, does not take `disabled` when the

@@ -16,6 +16,16 @@ import { sysexFileAccept } from '@/lib/sysex-file'
  * Next in the footer.
  */
 
+/**
+ * Whether a click is the second or a later click of a double-click. The browser counts the clicks
+ * by where and when they land, not which element they hit, so a button that takes another's place,
+ * as a confirmation's does, ignores these: otherwise a double-click on the button before it carries
+ * straight through. A single click counts 1, and keyboard activation 0.
+ */
+export function isRepeatClick(event: { detail: number }) {
+  return event.detail > 1
+}
+
 /** Focuses a screen's first control: its chosen radio, or else its first field or button. */
 function focusFirstControl(form: HTMLFormElement | null) {
   const control =
@@ -97,6 +107,11 @@ export function WizardFooter({
         className="ml-auto"
         disabled={working || disabled}
         form={formId}
+        // The button stays where it is from screen to screen, so a double-click would move on twice
+        // or reach the last screen's action without its screen being seen.
+        onClick={(event) => {
+          if (isRepeatClick(event)) event.preventDefault()
+        }}
         type="submit"
         variant={action?.variant ?? 'default'}
       >

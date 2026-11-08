@@ -2,6 +2,7 @@ import { Download, Send, Square } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { isRepeatClick } from '@/components/patches/bank-wizard'
 import { Fm1VaReadLeds } from '@/components/patches/fm1-va-read-leds'
 import { fm1VaReadErrorMessage } from '@/components/patches/fm1-va-read-error-message'
 import { useWorkspaceBankLabel } from '@/components/patches/workspace-bank-label'
@@ -444,7 +445,15 @@ export function WriteFm1VaPresetsDialog({
             <Button onClick={() => setPhase('choosing')} type="button" variant="ghost">
               <span>{t('common.cancel')}</span>
             </Button>
-            <Button onClick={() => void write()} type="button" variant="danger">
+            {/* It takes the place of the button that asked for it, so a double-click there must not
+                write presets the FM1 cannot get back before the warning is seen. */}
+            <Button
+              onClick={(event) => {
+                if (!isRepeatClick(event)) void write()
+              }}
+              type="button"
+              variant="danger"
+            >
               <Send />
               <span>{t('fm1VaWrite.confirm', { count: writes.length })}</span>
             </Button>

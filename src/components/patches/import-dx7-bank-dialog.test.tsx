@@ -207,6 +207,19 @@ describe('ImportDx7BankDialog screens', () => {
     expect(screen.getByText(/will be wiped/)).toBeTruthy()
   })
 
+  it('stops a double-click on Next at the patches rather than replacing the bank', async () => {
+    const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
+    const { user } = renderDialog(importBank)
+    await chooseFile(user)
+    const next = nextButton()
+    await waitFor(() => expect(next).toHaveProperty('disabled', false))
+
+    await user.dblClick(next)
+
+    expect(replaceButton()).toBeTruthy()
+    expect(importBank).not.toHaveBeenCalled()
+  })
+
   it('switches screens after a page translator has replaced the dialog’s text', async () => {
     const importBank = vi.fn<PatchLibrary['importBank']>(() => changed)
     const { user, view } = renderDialog(importBank)
