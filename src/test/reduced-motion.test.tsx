@@ -415,7 +415,7 @@ describe('reduced motion', () => {
     vi.unstubAllGlobals()
     Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
   })
-  it('holds the welcome’s FM1 outline still: no sway, no orbit, no twinkle, no animation loop', () => {
+  it('holds the welcome’s FM1 outline still: no sway, no animation loop', () => {
     const strokes: string[] = []
     let stroke: string[] = []
     const context = {

@@ -246,7 +246,7 @@ export type Camera = {
 
 /** A camera for a canvas: far enough for a gentle perspective, and the case framed. */
 export function makeCamera(width: number, height: number): Camera {
-  return { distance: 2600, height, scale: width * 0.00072, width }
+  return { distance: 2600, height, scale: width * 0.00063, width }
 }
 
 /** A point in camera space to the canvas, with perspective shrinking what is further away. */
@@ -254,7 +254,7 @@ export function project([x, y, z]: Vec3, camera: Camera): Vec2 {
   const shrink = camera.distance / (camera.distance + z)
   return [
     camera.width / 2 + x * camera.scale * shrink,
-    camera.height * 0.47 - y * camera.scale * shrink,
+    camera.height * 0.4 - y * camera.scale * shrink,
   ]
 }
 
@@ -336,68 +336,6 @@ export function frameLines(view: WireframeView, camera: Camera): WireLine[] {
   const [from, to] = masterMark()
   push(at(from[0], from[1], from[2]), at(to[0], to[1], to[2]), false)
   return lines
-}
-
-/** A ring on the ground under the case, drawn dashed, and the point a dot is at on it. */
-const orbitRadius = 560
-const orbitSegments = 60
-
-export function orbitLines(view: WireframeView, camera: Camera): WireLine[] {
-  const level = -fm1BodyThickness - 8 - lift
-  const lines: WireLine[] = []
-  const ring = Array.from({ length: orbitSegments }, (_, index) => {
-    const angle = (index / orbitSegments) * Math.PI * 2
-    return project(
-      rotate([Math.cos(angle) * orbitRadius, level, Math.sin(angle) * orbitRadius], view),
-      camera,
-    )
-  })
-  // Every other pair of points, so the ring reads as dashes.
-  ring.forEach((point, index) => {
-    if (index % 4 < 2) {
-      const next = ring[(index + 1) % ring.length]
-      lines.push([point[0], point[1], next[0], next[1], true])
-    }
-  })
-  return lines
-}
-
-export function orbitDot(view: WireframeView, camera: Camera, turns: number): Vec2 {
-  const angle = turns * Math.PI * 2
-  return project(
-    rotate(
-      [Math.cos(angle) * orbitRadius, -fm1BodyThickness - 8 - lift, Math.sin(angle) * orbitRadius],
-      view,
-    ),
-    camera,
-  )
-}
-
-export type Star = { big: boolean; phase: number; x: number; y: number }
-
-/** A fixed scatter of stars, the same every time so a test can rely on it. */
-export function makeStars(width: number, height: number, count = 36): Star[] {
-  let seed = 7
-  const next = () => {
-    seed = (seed * 1664525 + 1013904223) % 4294967296
-    return seed / 4294967296
-  }
-  return Array.from({ length: count }, () => ({
-    big: next() < 0.12,
-    phase: next() * Math.PI * 2,
-    x: Math.floor(next() * width),
-    y: Math.floor(next() * height),
-  }))
-}
-
-/** Whether a star is lit at a moment: most of the time, dark for a short part of its cycle. */
-export function starIsLit(star: Star, seconds: number) {
-  return Math.sin(seconds * 2.2 + star.phase) > -0.6
-}
-
-/** Whether a big star is at the flare of its cycle, when it grows a cross. */
-export function starIsFlaring(star: Star, seconds: number) {
-  return star.big && Math.sin(seconds * 2.2 + star.phase) > 0.6
 }
 
 /** The sway of the resting view: a slow swing about where the viewer left it. */

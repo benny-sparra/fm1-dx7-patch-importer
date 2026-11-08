@@ -10,12 +10,7 @@ import {
   clampPitch,
   frameLines,
   makeCamera,
-  makeStars,
-  orbitDot,
-  orbitLines,
   restingView,
-  starIsFlaring,
-  starIsLit,
   swayYaw,
   type WireLine,
 } from '@/lib/fm1-wireframe'
@@ -32,7 +27,7 @@ const tiltPerPixel = 0.006
 const keyTurn = 0.16
 const keyTilt = 0.08
 
-type Palette = { bright: string; dim: string; faint: string; ground: string }
+type Palette = { bright: string; dim: string; ground: string }
 
 // Read from the page's tokens, so the outline follows the finish chosen.
 function readPalette(element: Element): Palette {
@@ -41,7 +36,6 @@ function readPalette(element: Element): Palette {
   return {
     bright: token('--crt-acc-lt', '#9ff'),
     dim: token('--crt-acc-dim', '#488'),
-    faint: token('--crt-line-lt2', '#355'),
     ground: token('--crt-bg-well', '#000'),
   }
 }
@@ -90,7 +84,6 @@ export function Fm1Wireframe({ colorway, fallback }: Fm1WireframeProps) {
     }
 
     const camera = makeCamera(wireframeWidth, wireframeHeight)
-    const stars = makeStars(wireframeWidth, wireframeHeight)
     // Read here rather than from `@/lib/reduced-motion`: importing that made Rolldown split it out of
     // the entry into a chunk of its own, costing the entry bytes it never needed.
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
@@ -113,38 +106,11 @@ export function Fm1Wireframe({ colorway, fallback }: Fm1WireframeProps) {
       context.fillStyle = palette.ground
       context.fillRect(0, 0, wireframeWidth, wireframeHeight)
 
-      // The stars, a few of them twinkling; with reduced motion all of them hold still and lit.
-      for (const star of stars) {
-        if (!reduced && !starIsLit(star, seconds)) continue
-        context.fillStyle = star.big ? palette.bright : palette.faint
-        const size = star.big ? 2 : 1
-        context.fillRect(star.x, star.y, size, size)
-        if (!reduced && starIsFlaring(star, seconds)) {
-          context.fillRect(star.x - 3, star.y, 8, 1)
-          context.fillRect(star.x, star.y - 3, 1, 8)
-        }
-      }
-
       context.lineWidth = 1
-      strokeLines(context, orbitLines(view, camera), true, palette.faint)
       const lines = frameLines(view, camera)
       strokeLines(context, lines, true, palette.dim)
       strokeLines(context, lines, false, palette.bright)
 
-      // The dot travelling the ring; with reduced motion it rests at the ring's left.
-      const [dotX, dotY] = orbitDot(view, camera, reduced ? 0.5 : seconds * 0.12)
-      context.fillStyle = palette.bright
-      context.fillRect(Math.round(dotX) - 2, Math.round(dotY) - 2, 5, 5)
-
-      // Outlined lettering, as on a vector arcade cabinet's marquee.
-      context.font = 'bold 20px VT323, ui-monospace, monospace'
-      context.strokeStyle = palette.dim
-      const text = 'F M 1'
-      context.strokeText(
-        text,
-        Math.round((wireframeWidth - context.measureText(text).width) / 2),
-        wireframeHeight - 6,
-      )
       drawn = true
     }
     redraw.current = draw

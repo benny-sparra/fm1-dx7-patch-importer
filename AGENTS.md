@@ -936,7 +936,7 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   because no photo shows them. Change a control's place there, never by eye in the renderer. It
   takes its colours from the `--crt-*` tokens, so every finish works, draws about 12 frames a
   second, and stops while the tab is hidden, the canvas is off screen, or the dialog is closed.
-  With reduced motion it holds one still frame, with no sway, orbit, or twinkle, and still turns
+  With reduced motion it holds one still frame, with no sway, and still turns
   when dragged. It shares the guide's chunk: as a chunk of its own, with no Lucide icon, it made
   Rolldown split the JSX runtime out of the entry's shared chunk, 220 B. It reads reduced motion
   itself, since importing `src/lib/reduced-motion.ts` split that out too. The photo is what shows
