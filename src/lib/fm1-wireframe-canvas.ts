@@ -131,10 +131,7 @@ export function runFm1Wireframe(canvas: HTMLCanvasElement): (() => void) | null 
     start()
   }, 0)
 
-  // Heard on the document, after React's own handlers at its root, so a key a control in the
-  // dialog already used, such as the guide's tabs, is not also a turn.
   const onKeyDown = (event: KeyboardEvent) => {
-    if (!(event.target instanceof Node) || !dialog?.contains(event.target)) return
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return
     if (
       event.target instanceof HTMLElement &&
@@ -150,7 +147,7 @@ export function runFm1Wireframe(canvas: HTMLCanvasElement): (() => void) | null 
     event.preventDefault()
     draw()
   }
-  if (dialog) document.addEventListener('keydown', onKeyDown)
+  dialog?.addEventListener('keydown', onKeyDown)
 
   let dragging: { x: number; y: number } | null = null
   const onPointerDown = (event: PointerEvent) => {
@@ -177,7 +174,7 @@ export function runFm1Wireframe(canvas: HTMLCanvasElement): (() => void) | null 
     stop()
     observer?.disconnect()
     document.removeEventListener('visibilitychange', onVisibility)
-    document.removeEventListener('keydown', onKeyDown)
+    dialog?.removeEventListener('keydown', onKeyDown)
     canvas.removeEventListener('pointerdown', onPointerDown)
     canvas.removeEventListener('pointermove', onPointerMove)
     canvas.removeEventListener('pointerup', endDrag)

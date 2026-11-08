@@ -266,13 +266,7 @@ export function HelpDialog({ colorway, firstVisit, midi, onClose }: HelpDialogPr
       ) : (
         <Fragment key="guide">
           <DialogBody>
-            {/* The welcome's turning FM1, so the guide opened from ? shows it too. */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 pt-4">
-              <Fm1Wireframe colorway={colorway} fallback={photoBox} />
-              <p className="min-w-48 flex-1 text-sm leading-6 text-[var(--crt-ink-2)]">
-                {t('help.lead')}
-              </p>
-            </div>
+            <p className="px-4 pt-4 text-sm leading-6 text-[var(--crt-ink-2)]">{t('help.lead')}</p>
             {unsupportedNotice ? <div className="mx-4 mt-4">{unsupportedNotice}</div> : null}
 
             <div

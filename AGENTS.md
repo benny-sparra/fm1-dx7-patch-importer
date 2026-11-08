@@ -940,12 +940,11 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   warning only where `isUnsupportedBrowser` holds, where it replaces the steps, and the Baud Girl
   note only once the FM1 is identified as running FM-1+VA. The guide's strings, apart from the
   button's name, load with its chunk from `src/i18n/locales/en-GB-help.ts`.
-- The welcome's outline, shown in the full guide too (`src/components/fm1-wireframe.tsx`, drawn by
+- The welcome's outline (`src/components/fm1-wireframe.tsx`, drawn by
   `src/lib/fm1-wireframe-canvas.ts`, which the firmware page's showcase runs too, with geometry and
   camera in `src/lib/fm1-wireframe.ts`) is decoration, not content: its canvas is `aria-hidden`, takes no
-  focus, and adds no text or name to the dialog, so the arrow keys are heard from anywhere in the
-  dialog rather than on the canvas. It listens on the document, after React's handlers, and skips a
-  key a control already used (`defaultPrevented`), so the guide's tabs do not also turn it. It is traced from the stock photo into the table in `src/lib/fm1-outline.ts`
+  focus, and adds no text or name to the dialog, so the arrow keys are heard on the dialog rather
+  than the canvas. It is traced from the stock photo into the table in `src/lib/fm1-outline.ts`
   (how is in that file's comment; `docs/fm1-outline-check.png` shows the trace on the photo); only
   the heights and the case's thickness are estimates, and the jacks on the back edge are left out
   because no photo shows them. Change a control's place there, never by eye in the renderer. It
