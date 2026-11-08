@@ -810,6 +810,10 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   that reaches the page with no stack frame, such as Safari's
   `Invalid call to runtime.sendMessage(). Tab not found.`, is matched by its exact message and the
   absence of any frame, since the app calls no extension API.
+- The page's CSP refuses inline scripts, so an error whose every frame is at the page's own address
+  (the event's `request.url` without its query or fragment), apart from `<anonymous>` and
+  `[native code]`, is code a host or extension evaluated in the page, and `beforeSend` drops it
+  (FM1-EDITOR-Z). One frame in an `/assets/` chunk keeps the event, as does an event naming no page.
 - Keep `public/_headers`, the origins used by browser code, and `scripts/check-security-headers.mjs`
   aligned. Any new remote resource or endpoint needs an explicit privacy and CSP review.
   The same script holds every built page in `dist` to the policy (`scripts/check-html-policy.mjs`): an

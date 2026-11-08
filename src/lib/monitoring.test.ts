@@ -354,6 +354,94 @@ describe('Sentry monitoring', () => {
     expect(options.beforeSend?.(fromApp, {})).toBe(fromApp)
   })
 
+  it('drops an error whose every frame is code evaluated at the page address itself', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const injected = {
+      exception: {
+        values: [
+          {
+            type: 'RangeError',
+            value: 'Maximum call stack size exceeded.',
+            stacktrace: {
+              frames: [
+                { filename: 'https://fm1-editor.com/' },
+                { filename: '[native code]' },
+                { filename: 'https://fm1-editor.com/' },
+              ],
+            },
+          },
+        ],
+      },
+      request: { url: 'https://fm1-editor.com/#p=abc' },
+    }
+
+    expect(options.beforeSend?.(injected, {})).toBeNull()
+  })
+
+  it('keeps an error at the page address when a frame is in the app’s own chunk', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const fromApp = {
+      exception: {
+        values: [
+          {
+            type: 'RangeError',
+            value: 'Maximum call stack size exceeded.',
+            stacktrace: {
+              frames: [
+                { filename: 'https://fm1-editor.com/assets/index.js' },
+                { filename: 'https://fm1-editor.com/' },
+              ],
+            },
+          },
+        ],
+      },
+      request: { url: 'https://fm1-editor.com/' },
+    }
+
+    expect(options.beforeSend?.(fromApp, {})).toBe(fromApp)
+  })
+
+  it('keeps an error with frames at the page address when the event names no page', async () => {
+    const { sdk } = createSdk()
+    const initialize = createMonitoringInitializer({
+      dsn: 'https://public@example.invalid/123',
+      environment: 'production',
+      loadSdk: async () => sdk,
+    })
+
+    await initialize()
+    const options = sdk.init.mock.calls[0][0]
+    const event = {
+      exception: {
+        values: [
+          {
+            type: 'RangeError',
+            value: 'Maximum call stack size exceeded.',
+            stacktrace: { frames: [{ filename: 'https://fm1-editor.com/' }] },
+          },
+        ],
+      },
+    }
+
+    expect(options.beforeSend?.(event, {})).toBe(event)
+  })
+
   it('drops an unhandledrejection event another script dispatched with no rejection in it', async () => {
     const { sdk } = createSdk()
     const initialize = createMonitoringInitializer({

@@ -129,6 +129,33 @@ function isWebkitMessageHandlersError(event: {
   )
 }
 
+// The page's CSP refuses inline scripts, so the app never runs code whose source is the page
+// itself. A frame reported at the page's own address belongs to code something else evaluated in
+// it, such as an in-app browser, a translator, or an extension, whose stack overflowed in WebKit
+// (FM1-EDITOR-Z). The app's own code always reports its chunk's address under `/assets/`.
+function isInjectedPageScriptError(event: {
+  exception?: {
+    values?: { stacktrace?: { frames?: { filename?: string }[] } }[]
+  }
+  request?: { url?: string }
+}) {
+  const pageUrl = event.request?.url
+  if (!pageUrl) return false
+  const page = removeUrlDetails(pageUrl)
+  const filenames =
+    event.exception?.values?.flatMap(
+      (exception) => exception.stacktrace?.frames?.flatMap((frame) => frame.filename ?? []) ?? [],
+    ) ?? []
+  const attributableFilenames = filenames.filter(
+    (filename) => filename !== '<anonymous>' && filename !== '[native code]',
+  )
+
+  return (
+    attributableFilenames.length > 0 &&
+    attributableFilenames.every((filename) => removeUrlDetails(filename) === page)
+  )
+}
+
 // The browser's own rejection event always carries `reason`, so Sentry reports the event object
 // itself only when another script, such as an extension or a Bluebird-style promise library,
 // dispatches an `unhandledrejection` event of its own with nothing in it the app rejected.
@@ -178,6 +205,7 @@ export function startMonitoring(
         isIosWebMidiShimCallbackError(event) ||
         isSafariExtensionMessageError(event) ||
         isWebkitMessageHandlersError(event) ||
+        isInjectedPageScriptError(event) ||
         isSyntheticUnhandledRejection(hint.originalException)
       ) {
         return null
