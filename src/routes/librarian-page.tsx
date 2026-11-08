@@ -396,8 +396,12 @@ export function LibrarianPage({
   const [receiveRequest, setReceiveRequest] = useState<ReceiveRequest | null>(null)
   // The Virtual Analog patch a slot menu asked to change to FM, while its dialog is open.
   const [changeToFmTarget, setChangeToFmTarget] = useState<Patch | null>(null)
-  // The FM patch a slot menu asked to write over the SMK-37's selected preset, while its dialog is open.
-  const [smk37WriteTarget, setSmk37WriteTarget] = useState<Patch | null>(null)
+  // The FM patch a slot menu asked to write over the SMK-37's selected preset, with its voice as the
+  // menu found it, while its dialog is open.
+  const [smk37WriteTarget, setSmk37WriteTarget] = useState<{
+    patch: Patch
+    voice: Dx7Voice
+  } | null>(null)
   const [isImporting, setIsImporting] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [transferError, setTransferError] = useState('')
@@ -523,8 +527,9 @@ export function LibrarianPage({
     setChangeToFmTarget(patch)
   }
   const requestSmk37Write = (patch: Patch) => {
+    const voice = library.voices[patch.id]
     setDialogLoadError('')
-    setSmk37WriteTarget(patch)
+    if (voice) setSmk37WriteTarget({ patch, voice })
   }
   // The single-voice file format loads with the first download rather than with the page.
   const downloadPatch = async (patch: Patch) => {
@@ -1891,9 +1896,9 @@ export function LibrarianPage({
           />
         </LazyDialogBoundary>
       ) : null}
-      {smk37WriteTarget && library.voices[smk37WriteTarget.id] ? (
+      {smk37WriteTarget ? (
         <LazyDialogBoundary
-          key={smk37WriteTarget.id}
+          key={smk37WriteTarget.patch.id}
           onError={() => {
             setSmk37WriteTarget(null)
             setDialogLoadError(t('smk37Write.openFailed'))
@@ -1902,8 +1907,7 @@ export function LibrarianPage({
           <WriteSmk37PatchDialog
             midi={midi}
             onClose={() => setSmk37WriteTarget(null)}
-            patch={smk37WriteTarget}
-            voice={library.voices[smk37WriteTarget.id]}
+            {...smk37WriteTarget}
           />
         </LazyDialogBoundary>
       ) : null}

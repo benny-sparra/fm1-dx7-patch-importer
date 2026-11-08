@@ -1490,7 +1490,9 @@ npm run test:cls
 For a security, React, accessibility, or web vitals sweep or audit, follow
 `docs/quality-sweep.md`, and record the run in a dated `docs/quality-sweep-<date>.md`.
 
-Run `npm run build` before `npm run bundle:check`. Use `npm run test:cls` for changes affecting the
+Run `npm run build` before `npm run bundle:check`. CI builds with `GITHUB_SHA` set, which puts
+the release name in the entry, about 34 B gzip that a local build leaves out; when the headroom is
+small, build with `GITHUB_SHA=$(git rev-parse HEAD)` to measure what CI will. Use `npm run test:cls` for changes affecting the
 initial render, fonts, images, loading states, or layout. The CLS check starts a local server and may
 need permission in a restricted environment. It drives the production page directly and is not part
 of `npm run check`, so a change to anything it reads, such as a dialog that now mounts on demand,

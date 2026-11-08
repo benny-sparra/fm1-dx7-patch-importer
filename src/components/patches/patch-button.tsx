@@ -91,13 +91,14 @@ export function PatchButton({
   // bytes are not a DX7 voice, so it downloads as a presets file.
   const isVirtualAnalog = patch.family === virtualAnalogFamily
   const isEightBit = patch.family === eightBitFamily
-  const canReorder = reorderable && (patch.family === 'DX7' || isVirtualAnalog || isEightBit)
+  const isFm = patch.family === 'DX7'
+  const canReorder = reorderable && (isFm || isVirtualAnalog || isEightBit)
   const editSlot = onEdit
   const engineKind: PatchEngine | null = isVirtualAnalog
     ? 'virtual-analog'
     : isEightBit
       ? 'eight-bit'
-      : tagsEngine && patch.family === 'DX7'
+      : tagsEngine && isFm
         ? 'fm'
         : null
   const engine = engineKind ? { kind: engineKind, label: engineName(t, engineKind) } : null
@@ -257,7 +258,7 @@ export function PatchButton({
       {/* The heart and menu share one gap, so a full ten-character name fits beside them. */}
       {!disabled && (onToggleFavourite || onEdit || onCopy) ? (
         <span className="flex shrink-0 items-center">
-          {onToggleFavourite && patch.family === 'DX7' ? (
+          {onToggleFavourite && isFm ? (
             <FavouriteButton
               isFavourite={isFavourite}
               name={patch.name}
@@ -276,9 +277,7 @@ export function PatchButton({
               onEdit={editSlot && (() => editSlot(patch))}
               onReplace={onReplace && (() => onReplace(patch))}
               onShare={onShare && (() => onShare(patch))}
-              onWriteToSmk37={
-                onWriteToSmk37 && patch.family === 'DX7' ? () => onWriteToSmk37(patch) : undefined
-              }
+              onWriteToSmk37={onWriteToSmk37 && isFm ? () => onWriteToSmk37(patch) : undefined}
               slot={patchSlotCode(patch)}
             />
           ) : null}
