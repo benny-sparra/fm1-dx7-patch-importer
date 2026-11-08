@@ -568,6 +568,8 @@ export default {
     envelopeRate: '{{title}}, Rate {{point}}',
     envelopeLevel: '{{title}}, Level {{point}}',
     chooseAlgorithm: 'Algorithmus {{number}}. Algorithmus wählen',
+    algorithmWireframe: '3D-Drahtmodell',
+    algorithmWireframeView: 'Algorithmus {{number}} als Drahtmodell. Mit den Pfeiltasten drehen.',
     algorithmNumber: 'Algorithmus {{number}}',
     operatorSummary: 'Operator {{number}}, {{role}}',
     operatorSummaryWithAudition: 'Operator {{number}}, {{role}}, {{audition}}',

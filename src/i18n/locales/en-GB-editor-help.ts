@@ -586,6 +586,8 @@ export default {
     envelopeRate: '{{title}} rate {{point}}',
     envelopeLevel: '{{title}} level {{point}}',
     chooseAlgorithm: 'Algorithm {{number}}. Choose algorithm',
+    algorithmWireframe: '3D wireframe view',
+    algorithmWireframeView: 'Algorithm {{number}} as a wireframe. Use the arrow keys to turn it.',
     algorithmNumber: 'Algorithm {{number}}',
     operatorSummary: 'Operator {{number}}, {{role}}',
     operatorSummaryWithAudition: 'Operator {{number}}, {{role}}, {{audition}}',

@@ -560,6 +560,9 @@ export default {
     envelopeRate: '{{title}}, velocidad {{point}}',
     envelopeLevel: '{{title}}, nivel {{point}}',
     chooseAlgorithm: 'Algoritmo {{number}}. Elegir algoritmo',
+    algorithmWireframe: 'Vista alámbrica en 3D',
+    algorithmWireframeView:
+      'Algoritmo {{number}} como estructura alámbrica. Gírala con las teclas de flecha.',
     algorithmNumber: 'Algoritmo {{number}}',
     operatorSummary: 'Operador {{number}}, {{role}}',
     operatorSummaryWithAudition: 'Operador {{number}}, {{role}}, {{audition}}',
