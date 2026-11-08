@@ -41,7 +41,12 @@ npm run check
 is fixed in the sweep by moving only that package in the lockfile. A high or critical advisory
 outside the allowlist is a blocking finding.
 
-Done when: all four have run and each failure is either fixed or recorded as a finding.
+Then run `npm run screenshots:readme` and compare the two images in `docs/images/` with the
+committed ones (`git diff --stat docs/images`, then look at both). A view that has changed since
+they were taken is fixed in the sweep by committing the new images.
+
+Done when: all four have run and each failure is either fixed or recorded as a finding, and the
+README screenshots show the app as it is.
 
 ## 3. Manual review
 

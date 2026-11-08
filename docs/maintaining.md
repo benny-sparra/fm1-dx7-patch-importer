@@ -47,6 +47,16 @@ not byte-compare newly encoded images because native WebP output can vary by pla
 post-build check also requires a hashed production asset for every candidate. Do not edit files in
 `src/assets/generated/` manually.
 
+## README screenshots
+
+`docs/images/patch-banks.webp` and `docs/images/voice-editor.webp` are the README's pictures of the
+app. Do not retake them by hand: `npm run screenshots:readme` builds the app, opens it in
+Playwright's Chromium with the fake FM-1 from `e2e/fake-midi.ts` on M-VAVE's V16, and captures
+both views from the factory banks in the Black finish, British English, and reduced motion, at
+1360 × 860 and twice the pixel density. Run it after any change that alters either view at that
+width, look at both images, and commit them with the change. The quality sweep checks they still
+match the app.
+
 ## Installed-app icons
 
 `public/manifest.webmanifest` describes the app for browsers that offer installation, giving the

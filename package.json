@@ -37,6 +37,7 @@
     "lockfile:refresh": "npx --yes npm@11.16.0 install --package-lock-only --ignore-scripts --no-audit --no-fund",
     "preview": "vite preview",
     "preview:https": "vite preview --mode https",
+    "screenshots:readme": "npm run build && node scripts/capture-readme-screenshots.mjs",
     "security:check": "node scripts/check-security-headers.mjs",
     "sourcemaps:check": "node scripts/check-source-maps.mjs",
     "test": "vitest run",

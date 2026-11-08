@@ -18,6 +18,10 @@ The app runs entirely in the browser. Build and organise your own patch banks, e
 
 See the [full feature list](docs/features.md).
 
+![The patch banks: the FM1's four factory banks, with bank A's 32 patches](docs/images/patch-banks.webp)
+
+![The voice editor open on PIANO 1, showing operator 1's envelope, oscillator, and scaling](docs/images/voice-editor.webp)
+
 ## Requirements
 
 - An M-VAVE FM1, connected to your computer by MIDI
