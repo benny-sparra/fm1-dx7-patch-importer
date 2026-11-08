@@ -10,6 +10,12 @@ import {
   scrambleLeadMs,
   scrambleLetterMs,
   scramblePatchName,
+  stepOutToast,
+  tickWatchCursor,
+  toastStepOutMs,
+  wakePhotoScreen,
+  photoWakeMs,
+  watchTickMs,
 } from './retro-motion'
 
 /** Answers the reduced-motion query, which jsdom cannot evaluate. */
@@ -222,5 +228,157 @@ describe('installRetroMotion', () => {
     await observed()
 
     expect(slot.querySelector<HTMLElement>('.patch-name')?.dataset.scramble).toBeUndefined()
+  })
+})
+
+describe('tickWatchCursor', () => {
+  function sendButton() {
+    const button = document.createElement('button')
+    button.className = 'barber-pole'
+    document.body.append(button)
+    return button
+  }
+  const over = (button: Element) => {
+    const event = new MouseEvent('pointerover')
+    Object.defineProperty(event, 'target', { value: button })
+    tickWatchCursor(event)
+  }
+
+  it('turns the watch’s second hand a quarter at a time while the pointer rests on a waiting button', () => {
+    vi.useFakeTimers()
+    const button = sendButton()
+    vi.spyOn(button, 'matches').mockReturnValue(true)
+
+    over(button)
+    vi.advanceTimersByTime(watchTickMs)
+    expect(button.dataset.watch).toBe('1')
+    vi.advanceTimersByTime(watchTickMs * 3)
+    expect(button.dataset.watch).toBe('0')
+    vi.useRealTimers()
+  })
+
+  it('stops and goes back to the first frame when the pointer leaves', () => {
+    vi.useFakeTimers()
+    const button = sendButton()
+    const hover = vi.spyOn(button, 'matches').mockReturnValue(true)
+    over(button)
+    vi.advanceTimersByTime(watchTickMs)
+
+    hover.mockReturnValue(false)
+    vi.advanceTimersByTime(watchTickMs)
+
+    expect(button.dataset.watch).toBeUndefined()
+    expect(vi.getTimerCount()).toBe(0)
+    vi.useRealTimers()
+  })
+
+  it('leaves the first frame still when reduced motion is requested', () => {
+    vi.useFakeTimers()
+    requestReducedMotion(true)
+    const button = sendButton()
+
+    over(button)
+
+    expect(vi.getTimerCount()).toBe(0)
+    vi.useRealTimers()
+  })
+})
+
+describe('stepOutToast', () => {
+  function toastIn(parent: HTMLElement) {
+    const toast = document.createElement('div')
+    toast.className = 'toast-surface'
+    toast.setAttribute('role', 'status')
+    toast.innerHTML = '<button>Dismiss</button>'
+    parent.append(toast)
+    return toast
+  }
+
+  it('leaves a removed notification stepping out, silent and unreachable, then clears it', () => {
+    vi.useFakeTimers()
+    const region = document.createElement('div')
+    document.body.append(region)
+    const toast = toastIn(region)
+    toast.remove()
+
+    stepOutToast(toast, region, null)
+
+    expect(region.contains(toast)).toBe(true)
+    expect(toast.classList.contains('toast-step-out')).toBe(true)
+    expect(toast.getAttribute('aria-hidden')).toBe('true')
+    expect(toast.hasAttribute('role')).toBe(false)
+    expect(toast.inert).toBe(true)
+    vi.advanceTimersByTime(toastStepOutMs)
+    expect(region.contains(toast)).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('does nothing when reduced motion is requested', () => {
+    requestReducedMotion(true)
+    const region = document.createElement('div')
+    document.body.append(region)
+    const toast = toastIn(region)
+    toast.remove()
+
+    stepOutToast(toast, region, null)
+
+    expect(region.contains(toast)).toBe(false)
+  })
+
+  it('is started by a notification leaving the page', async () => {
+    const region = document.createElement('div')
+    document.body.append(region)
+    const toast = toastIn(region)
+    const stop = installRetroMotion()
+
+    toast.remove()
+    await new Promise((resolve) => setTimeout(resolve))
+    stop()
+
+    expect(region.querySelector('.toast-step-out')).not.toBeNull()
+  })
+})
+
+describe('wakePhotoScreen', () => {
+  function photo() {
+    const frame = document.createElement('span')
+    const overlay = document.createElement('span')
+    overlay.className = 'fm1-photo-screen'
+    frame.append(overlay)
+    document.body.append(frame)
+    return { frame, overlay }
+  }
+
+  it('lays a see-through wake over the lit screen for a moment', () => {
+    vi.useFakeTimers()
+    const { frame, overlay } = photo()
+    overlay.remove()
+
+    wakePhotoScreen(overlay, frame)
+
+    const wake = frame.querySelector('.fm1-photo-wake')
+    expect(wake?.getAttribute('aria-hidden')).toBe('true')
+    vi.advanceTimersByTime(photoWakeMs)
+    expect(frame.querySelector('.fm1-photo-wake')).toBeNull()
+    vi.useRealTimers()
+  })
+
+  it('skips the wake when reduced motion is requested', () => {
+    requestReducedMotion(true)
+    const { frame, overlay } = photo()
+    overlay.remove()
+
+    wakePhotoScreen(overlay, frame)
+
+    expect(frame.querySelector('.fm1-photo-wake')).toBeNull()
+  })
+
+  it('ignores any other element leaving', () => {
+    const { frame } = photo()
+    const other = document.createElement('span')
+
+    wakePhotoScreen(other, frame)
+
+    expect(frame.querySelector('.fm1-photo-wake')).toBeNull()
   })
 })

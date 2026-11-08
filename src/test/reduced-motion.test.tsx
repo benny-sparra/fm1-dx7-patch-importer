@@ -415,3 +415,37 @@ describe('reduced motion', () => {
     Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
   })
 })
+
+describe('reduced motion for the retro decoration', () => {
+  async function reducedBlocks() {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    return css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+      .join('\n')
+  }
+
+  it('shows notifications at once, with no step in or out', async () => {
+    const blocks = await reducedBlocks()
+
+    expect(blocks).toMatch(/\.toast-surface,[^{]*\{\s*animation:\s*none;/)
+    expect(blocks).toMatch(/\.toast-step-out,[^{]*\{\s*display:\s*none;/)
+  })
+
+  it('shows the firmware badge whole, with no typing or cursor', async () => {
+    const blocks = await reducedBlocks()
+
+    expect(blocks).toMatch(
+      /span\[title\]:has\(> \.sr-only\),\s*span\[title\]:has\(> \.sr-only\)::after\s*\{\s*animation:\s*none;/,
+    )
+    expect(blocks).toMatch(/span\[title\]:has\(> \.sr-only\)::after,[^{]*\{\s*display:\s*none;/)
+  })
+
+  it('skips the photo screen wake and shows only the receive wizard’s text line', async () => {
+    const blocks = await reducedBlocks()
+
+    expect(blocks).toMatch(/\.fm1-photo-wake,[^{]*\{\s*display:\s*none;/)
+    expect(blocks).toMatch(/\.receive-ladder\s*\{\s*display:\s*none;/)
+  })
+})

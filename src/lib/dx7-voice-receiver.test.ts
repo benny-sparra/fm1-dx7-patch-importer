@@ -204,4 +204,25 @@ describe('Dx7VoiceReceiver', () => {
 
     expect(problemOf(new Dx7VoiceReceiver().receive(bytes))).toBe('high-bit-data')
   })
+
+  it('reports how much of a bank has arrived as its parts come in', () => {
+    const receiver = new Dx7VoiceReceiver()
+    const bank = stockV16BankExport()
+    expect(receiver.progress).toBe(0)
+
+    receiver.receive(bank.subarray(0, 1026))
+    expect(receiver.progress).toBeCloseTo(1026 / 4104, 2)
+    receiver.receive(bank.subarray(1026, 3078))
+    expect(receiver.progress).toBeCloseTo(3078 / 4104, 2)
+    expect(receiver.receive(bank.subarray(3078))?.kind).toBe('bank')
+    expect(receiver.progress).toBe(0)
+  })
+
+  it('reports no progress for a parameter change, which is not a dump', () => {
+    const receiver = new Dx7VoiceReceiver()
+
+    receiver.receive([0xf0, 0x43, 0x10, 0x01, 0x02])
+
+    expect(receiver.progress).toBe(0)
+  })
 })

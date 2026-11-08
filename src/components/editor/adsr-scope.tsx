@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type PointerEvent } from 'react'
 
+import { traceDotProps, usePhosphorTrace } from '@/components/editor/phosphor-trace'
 import { cn } from '@/lib/utils'
 
 const width = 600
@@ -130,6 +131,7 @@ export function AdsrScope({
   const line = `M ${left} ${bottom} ${points.map(({ x, y }) => `L ${x} ${y}`).join(' ')}`
   const color = 'var(--crt-acc)'
   const draggable = enabled && Boolean(onChange)
+  const trace = usePhosphorTrace(line)
 
   const moveTo = (event: PointerEvent<SVGElement>, point: number) => {
     const box = svgRef.current?.getBoundingClientRect()
@@ -144,6 +146,7 @@ export function AdsrScope({
   const finish = (event: PointerEvent<SVGElement>) => {
     if (dragged.current === null) return
     dragged.current = null
+    trace.hold(false)
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
@@ -159,6 +162,7 @@ export function AdsrScope({
             event.preventDefault()
             event.currentTarget.setPointerCapture?.(event.pointerId)
             dragged.current = point
+            trace.hold(true)
             onGestureStart?.()
             moveTo(event, point)
           },
@@ -176,6 +180,7 @@ export function AdsrScope({
       aria-hidden="true"
       className="crt-well relative min-h-40 flex-1"
       data-testid="adsr-scope"
+      data-trace-owner=""
       ref={boxRef}
     >
       <svg
@@ -211,7 +216,16 @@ export function AdsrScope({
         ))}
         <g opacity={enabled ? 1 : 0.4}>
           <path d={`${line} Z`} fill={`url(#${fillId})`} />
-          <path d={line} fill="none" stroke={color} strokeLinejoin="round" strokeWidth="2.4" />
+          <path
+            d={line}
+            fill="none"
+            pathLength={1}
+            ref={trace.pathRef}
+            stroke={color}
+            strokeLinejoin="round"
+            strokeWidth="2.4"
+          />
+          <circle ref={trace.dotRef} {...traceDotProps} />
           {stageLabels(points).map(({ letter, x }) => (
             <text
               className="font-vt323"

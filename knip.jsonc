@@ -6,6 +6,7 @@
     "scripts/**/*.test.mjs",
     "vite.config.ts",
     "scripts/check-layout-shift.mjs",
+    "scripts/capture-readme-screenshots.mjs",
   ],
   "project": ["src/**/*.{ts,tsx}", "vite.config.ts", "scripts/**/*.mjs"],
   "ignoreDependencies": [

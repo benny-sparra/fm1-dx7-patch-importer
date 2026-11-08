@@ -834,6 +834,13 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
 - A photo committed with research notes, such as one in `docs/hardware-runs/`, goes in without its
   metadata: a phone's photo records where it was taken. Re-encode it without EXIF (on macOS,
   `sips` to BMP and back to JPEG) and check that no GPS or camera fields remain.
+- The README's screenshots, `docs/images/patch-banks.webp` and `docs/images/voice-editor.webp`,
+  come only from `npm run screenshots:readme` (`scripts/capture-readme-screenshots.mjs`), never by
+  hand, so they always show the same state: factory banks, the fake FM-1 on V16, Black, `en-GB`.
+  A change that alters the patch banks or the voice editor at desktop width reruns it, looks at
+  both images, and commits them in the same change; the quality sweep reruns it too, so they never
+  drift. A change to what the script needs, such as the MIDI switch's label or the editor's back
+  button, updates the script in the same change.
 - `public/icon-*.png` are rendered from `public/favicon.svg`. Do not hand-edit them; run
   `npm run icons:generate` after changing the favicon or the manifest icon list.
 - `public/favicon-<colourway>.svg` are hand-authored, one per finish. Keep them in step with the

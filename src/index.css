@@ -575,6 +575,7 @@
   }
 
   .toast-surface {
+    animation: toast-step-in 350ms steps(5, end) backwards;
     box-shadow: var(--shadow-toast);
   }
 
@@ -1765,6 +1766,178 @@
 
     .patch-name[data-scramble]::after {
       content: none;
+    }
+  }
+
+  /*
+   * A Send button whose bank is on its way shows a wristwatch where the pointer is, as the classic
+   * Mac did, its second hand ticking in four steps (`tickWatchCursor`). The cursor is part of the
+   * pointer, not content, and !important is what puts it above the button's own pointer.
+   */
+  .barber-pole {
+    cursor:
+      url('/cursors/watch-0.svg') 12 12,
+      wait !important;
+  }
+
+  .barber-pole[data-watch='1'] {
+    cursor:
+      url('/cursors/watch-1.svg') 12 12,
+      wait !important;
+  }
+
+  .barber-pole[data-watch='2'] {
+    cursor:
+      url('/cursors/watch-2.svg') 12 12,
+      wait !important;
+  }
+
+  .barber-pole[data-watch='3'] {
+    cursor:
+      url('/cursors/watch-3.svg') 12 12,
+      wait !important;
+  }
+
+  /*
+   * A notification steps in from the right and steps out again, as a classic Mac's windows did,
+   * in five frames. The one leaving is a copy of it left behind for a moment (`stepOutToast`).
+   */
+  .toast-step-out {
+    animation: toast-step-out 350ms steps(5, end) forwards;
+    pointer-events: none;
+  }
+
+  @keyframes toast-step-in {
+    from {
+      transform: translateX(120%);
+    }
+  }
+
+  @keyframes toast-step-out {
+    to {
+      transform: translateX(120%);
+    }
+  }
+
+  /*
+   * The firmware badge types itself out when the FM1 is identified, a block cursor leading the
+   * text. The text is all there from the first frame, only clipped, so its name never changes
+   * and the badge's reserved place never grows.
+   */
+  span[title]:has(> .sr-only) {
+    position: relative;
+    animation: badge-type 700ms steps(18, end) backwards;
+  }
+
+  span[title]:has(> .sr-only)::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    bottom: 15%;
+    left: 0;
+    width: 0.55em;
+    background-color: var(--crt-led);
+    animation:
+      badge-cursor 700ms steps(18, end) forwards,
+      badge-cursor-off 1ms linear 950ms forwards;
+  }
+
+  @keyframes badge-type {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+  }
+
+  @keyframes badge-cursor {
+    to {
+      left: calc(100% - 0.55em);
+    }
+  }
+
+  @keyframes badge-cursor-off {
+    to {
+      opacity: 0;
+    }
+  }
+
+  /*
+   * The FM1 photo's screen wakes when MIDI comes back (`wakePhotoScreen`): a bright scan line
+   * wipes down it while the glass flares and settles. It is laid over the screen's place and
+   * takes no room, so nothing moves.
+   */
+  .fm1-photo-screen.fm1-photo-wake {
+    background-color: transparent;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    animation: photo-wake-flare 700ms ease-out forwards;
+  }
+
+  .fm1-photo-wake::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    left: 0;
+    height: 24%;
+    background: linear-gradient(transparent, var(--crt-acc-br), transparent);
+    animation: photo-wake-wipe 700ms linear forwards;
+  }
+
+  @keyframes photo-wake-flare {
+    from {
+      background-color: color-mix(in srgb, var(--crt-acc) 55%, transparent);
+    }
+
+    to {
+      background-color: transparent;
+    }
+  }
+
+  @keyframes photo-wake-wipe {
+    from {
+      top: -24%;
+    }
+
+    to {
+      top: 100%;
+    }
+  }
+
+  /*
+   * The data ladder on the receive wizard's listening screen: eight LCD cells that light left
+   * to right as a dump arrives, each a beat after the one before when many arrive at once.
+   */
+  .receive-ladder-cell {
+    width: 1rem;
+    height: 1.25rem;
+    border: 1px solid var(--crt-line);
+    background-color: var(--crt-bg-well);
+  }
+
+  .receive-ladder-cell[data-lit] {
+    border-color: var(--crt-led);
+    background-color: var(--crt-led);
+    box-shadow: 0 0 6px var(--crt-led-glow);
+    transition:
+      background-color 0s linear calc(var(--cell) * 45ms),
+      box-shadow 0s linear calc(var(--cell) * 45ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toast-surface,
+    span[title]:has(> .sr-only),
+    span[title]:has(> .sr-only)::after {
+      animation: none;
+    }
+
+    span[title]:has(> .sr-only)::after,
+    .toast-step-out,
+    .fm1-photo-wake,
+    .receive-ladder {
+      display: none;
+    }
+
+    .receive-ladder-cell[data-lit] {
+      transition: none;
     }
   }
 
