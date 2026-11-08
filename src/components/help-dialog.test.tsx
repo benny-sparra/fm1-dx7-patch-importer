@@ -1,15 +1,27 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi, type MockInstance } from 'vitest'
 
 import '@/i18n'
 import { HelpDialog } from '@/components/help-dialog'
 import type { Fm1Firmware } from '@/lib/fm1-firmware'
 import { translatePageText } from '@/test/page-translator'
 
+let getContext: MockInstance<HTMLCanvasElement['getContext']>
+
 beforeAll(() => {
+  // jsdom draws nothing; the welcome's outline of the FM1 gets a context that accepts every call.
+  getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+    new Proxy(
+      { measureText: () => ({ width: 1 }) },
+      {
+        get: (target, key) => (key in target ? target[key as keyof typeof target] : () => {}),
+        set: () => true,
+      },
+    ) as unknown as CanvasRenderingContext2D,
+  )
   HTMLDialogElement.prototype.showModal = function showModal() {
     this.open = true
   }
@@ -74,6 +86,42 @@ describe('HelpDialog welcome', () => {
       '3Send to FM1 puts a whole bank on the synth.',
     ])
     expect(within(dialog).queryByRole('tablist')).toBeNull()
+  })
+
+  it('turns the FM1 as a hidden outline beside the sentence, adding no text or name', async () => {
+    useBrowserWithWebMidi()
+    await openHelp({ firstVisit: true })
+
+    const dialog = screen.getByRole('dialog', { name: 'Welcome to the FM1 editor & librarian' })
+    await waitFor(() => expect(dialog.querySelector('canvas')).not.toBeNull())
+    const canvas = dialog.querySelector('canvas')
+    expect(canvas?.getAttribute('aria-hidden')).toBe('true')
+    expect(within(dialog).queryAllByRole('img')).toHaveLength(0)
+    expect(dialog.querySelector('img')).toBeNull()
+    expect(dialog.textContent).toBe(
+      [
+        'Welcome to the FM1 editor & librarian',
+        '[╳]',
+        'Edit and organise patches for your M-VAVE FM1, in the browser.',
+        '1Plug in the FM1 and switch MIDI online.',
+        '2Click a patch to hear it, double-click to edit.',
+        '3Send to FM1 puts a whole bank on the synth.',
+        'Your banks are saved in this browser. Back them up from Library actions.',
+        'Full guide',
+        'Start editing',
+      ].join(''),
+    )
+  })
+
+  it('shows the FM1 photo instead when the browser cannot draw the outline', async () => {
+    getContext.mockReturnValueOnce(null)
+    useBrowserWithWebMidi()
+    await openHelp({ firstVisit: true })
+
+    const dialog = screen.getByRole('dialog', { name: 'Welcome to the FM1 editor & librarian' })
+    await waitFor(() => expect(dialog.querySelector('img')).not.toBeNull())
+    expect(dialog.querySelector('canvas')).toBeNull()
+    expect(dialog.querySelector('img')?.getAttribute('alt')).toBe('')
   })
 
   it('notes that the banks are saved in this browser', async () => {

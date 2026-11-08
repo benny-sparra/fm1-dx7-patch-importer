@@ -3,12 +3,13 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
+import { Fm1Wireframe } from '@/components/fm1-wireframe'
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
 import { LfoWaveControl, PicturePickerControl } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
@@ -413,6 +414,54 @@ describe('reduced motion', () => {
     )
     vi.unstubAllGlobals()
     Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
+  })
+  it('holds the welcome’s FM1 outline still: no sway, no orbit, no twinkle, no animation loop', () => {
+    const strokes: string[] = []
+    let stroke: string[] = []
+    const context = {
+      beginPath: () => (stroke = []),
+      fillRect: () => {},
+      fillStyle: '',
+      font: '',
+      lineTo: (x: number, y: number) => stroke.push(`${x},${y}`),
+      lineWidth: 1,
+      measureText: () => ({ width: 40 }),
+      moveTo: (x: number, y: number) => stroke.push(`${x},${y}`),
+      stroke: () => strokes.push(stroke.join(';')),
+      strokeStyle: '',
+      strokeText: () => {},
+    }
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      context as unknown as CanvasRenderingContext2D,
+    )
+    const requestFrame = vi.fn()
+    vi.stubGlobal('requestAnimationFrame', requestFrame)
+    vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+
+    const { container } = render(<Fm1Wireframe colorway="black" fallback={null} />)
+    act(() => {
+      vi.advanceTimersByTime(5000)
+    })
+    const resting = strokes.join('|')
+
+    expect(requestFrame).not.toHaveBeenCalled()
+    // Drawn once and left; a second look at the same view is the same picture.
+    const canvas = container.querySelector('canvas')!
+    fireEvent.pointerDown(canvas, { clientX: 0, clientY: 0, pointerId: 1 })
+    fireEvent.pointerMove(canvas, { clientX: 0, clientY: 0, pointerId: 1 })
+    expect(strokes.slice(strokes.length / 2).join('|')).toBe(
+      strokes.slice(0, strokes.length / 2).join('|'),
+    )
+    expect(resting.length).toBeGreaterThan(0)
+
+    // Turning it by hand still works, since the viewer asked for that motion.
+    fireEvent.pointerMove(canvas, { clientX: 60, clientY: 0, pointerId: 1 })
+    expect(strokes.join('|')).not.toBe(`${resting}|${resting}`)
+
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 })
 

@@ -916,13 +916,27 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   connected, not already open, and has `showModal` before calling it. Crawlers and extensions can
   take the page out of the document, where `showModal()` throws, and Safari before 15.4 and some
   embedded WebKit views have no `showModal` at all; either way the guide would report a failed load.
-- The guide opens itself on a first visit as the welcome: one line on what the app does, the FM1
-  photo in the page's finish, three one-line steps, and a footnote that the banks live in this
+- The guide opens itself on a first visit as the welcome: one line on what the app does, a slowly
+  turning outline of the FM1, three one-line steps, and a footnote that the banks live in this
   browser. Keep it that short; reference belongs in the full guide, which **Full guide** and the
   **?** button open. Something only some visitors need appears only for them: the browser
   warning only where `isUnsupportedBrowser` holds, where it replaces the steps, and the Baud Girl
   note only once the FM1 is identified as running FM-1+VA. The guide's strings, apart from the
   button's name, load with its chunk from `src/i18n/locales/en-GB-help.ts`.
+- The welcome's outline (`src/components/fm1-wireframe.tsx`, geometry and camera in
+  `src/lib/fm1-wireframe.ts`) is decoration, not content: its canvas is `aria-hidden`, takes no
+  focus, and adds no text or name to the dialog, so the arrow keys are heard on the dialog rather
+  than the canvas. It is traced from the stock photo into the table in `src/lib/fm1-outline.ts`
+  (how is in that file's comment; `docs/fm1-outline-check.png` shows the trace on the photo); only
+  the heights and the case's thickness are estimates, and the jacks on the back edge are left out
+  because no photo shows them. Change a control's place there, never by eye in the renderer. It
+  takes its colours from the `--crt-*` tokens, so every finish works, draws about 12 frames a
+  second, and stops while the tab is hidden, the canvas is off screen, or the dialog is closed.
+  With reduced motion it holds one still frame, with no sway, orbit, or twinkle, and still turns
+  when dragged. It shares the guide's chunk: as a chunk of its own, with no Lucide icon, it made
+  Rolldown split the JSX runtime out of the entry's shared chunk, 220 B. It reads reduced motion
+  itself, since importing `src/lib/reduced-motion.ts` split that out too. The photo is what shows
+  when the browser has no 2D canvas.
 - While a dialog's action is in progress, keep the dialog open: block Escape with `onCancel` and
   backdrop clicks, as the add-bank, import, and unsaved-changes dialogs do.
 - A button whose action is under way, or that cannot act yet, does not take `disabled` when the
