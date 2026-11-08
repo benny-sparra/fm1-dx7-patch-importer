@@ -42,7 +42,7 @@
     <script defer src="/firmware-filter.js"></script>
     <script defer src="/firmware-menus.js"></script>
     <script defer src="/firmware-photos.js"></script>
-    <script defer src="/firmware-showcase.js"></script>
+    <script type="module" src="/src/firmware-wireframe.ts"></script>
   </head>
   <body>
     <!-- Lucide's star, which the editor's icons come from, drawn beside each GitHub star count. -->
@@ -233,8 +233,8 @@
 
       <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-5 lg:px-8">
         <!--
-          The Latest strip and the controls, with an FM1 beside them from 64rem that fades through
-          its finishes (public/firmware-showcase.js), starting on the one chosen in the editor.
+          The Latest strip and the controls, with the editor's turning FM1 outline beside them from
+          64rem (src/firmware-wireframe.ts), in the finish chosen in the editor.
         -->
         <div class="firmware-top">
           <div class="firmware-top-main">
@@ -495,108 +495,7 @@
             </div>
           </div>
           <figure class="firmware-showcase" aria-hidden="true">
-            <img
-              class="firmware-showcase-photo"
-              alt=""
-              data-colorway="black"
-              decoding="async"
-              height="554"
-              loading="lazy"
-              sizes="18rem"
-              src="/src/assets/fm1-black.webp"
-              srcset="
-                /src/assets/generated/fm1-black-460.webp 460w,
-                /src/assets/fm1-black.webp               923w
-              "
-              width="923"
-            />
-            <img
-              class="firmware-showcase-photo"
-              alt=""
-              data-colorway="purple"
-              decoding="async"
-              height="554"
-              loading="lazy"
-              sizes="18rem"
-              src="/src/assets/fm1-purple.webp"
-              srcset="
-                /src/assets/generated/fm1-purple-460.webp 460w,
-                /src/assets/fm1-purple.webp               923w
-              "
-              width="923"
-            />
-            <img
-              class="firmware-showcase-photo"
-              alt=""
-              data-colorway="orange"
-              decoding="async"
-              height="554"
-              loading="lazy"
-              sizes="18rem"
-              src="/src/assets/fm1-orange.webp"
-              srcset="
-                /src/assets/generated/fm1-orange-460.webp 460w,
-                /src/assets/fm1-orange.webp               923w
-              "
-              width="923"
-            />
-            <img
-              class="firmware-showcase-photo"
-              alt=""
-              data-colorway="black-green"
-              decoding="async"
-              height="554"
-              loading="lazy"
-              sizes="18rem"
-              src="/src/assets/fm1-black-green.webp"
-              srcset="
-                /src/assets/generated/fm1-black-green-460.webp 460w,
-                /src/assets/fm1-black-green.webp               923w
-              "
-              width="923"
-            />
-            <img
-              class="firmware-showcase-photo"
-              alt=""
-              data-colorway="cool-gray"
-              decoding="async"
-              height="554"
-              loading="lazy"
-              sizes="18rem"
-              src="/src/assets/fm1-cool-gray.webp"
-              srcset="
-                /src/assets/generated/fm1-cool-gray-460.webp 460w,
-                /src/assets/fm1-cool-gray.webp               923w
-              "
-              width="923"
-            />
-            <img
-              class="firmware-showcase-photo"
-              alt=""
-              data-colorway="white-blue"
-              decoding="async"
-              height="554"
-              loading="lazy"
-              sizes="18rem"
-              src="/src/assets/fm1-white-blue.webp"
-              srcset="
-                /src/assets/generated/fm1-white-blue-460.webp 460w,
-                /src/assets/fm1-white-blue.webp               923w
-              "
-              width="923"
-            />
-            <img
-              class="firmware-showcase-photo"
-              alt=""
-              data-colorway="pink"
-              decoding="async"
-              height="554"
-              loading="lazy"
-              sizes="18rem"
-              src="/src/assets/fm1-pink.webp"
-              srcset="/src/assets/generated/fm1-pink-460.webp 460w, /src/assets/fm1-pink.webp 923w"
-              width="923"
-            />
+            <canvas class="firmware-showcase-canvas crt-inset" height="200" width="280"></canvas>
           </figure>
         </div>
 

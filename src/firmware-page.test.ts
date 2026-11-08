@@ -6,8 +6,6 @@ import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { fm1Colorways } from '@/lib/fm1-colorway'
-
 const html = readFileSync(path.resolve(__dirname, '../firmware/index.html'), 'utf8')
 const sortScriptPath = path.resolve(__dirname, '../public/firmware-sort.js')
 const filterScriptPath = path.resolve(__dirname, '../public/firmware-filter.js')
@@ -615,74 +613,15 @@ describe('firmware page photos', () => {
 })
 
 describe('firmware page FM1 showcase', () => {
-  const showcaseScriptPath = path.resolve(__dirname, '../public/firmware-showcase.js')
-
-  afterEach(() => {
-    vi.useRealTimers()
-    vi.unstubAllGlobals()
-    delete document.documentElement.dataset.fm1Colorway
-  })
-
-  async function renderPage({ colorway = 'black', reduced = false } = {}) {
-    document.body.innerHTML = page.body.innerHTML
-    document.documentElement.dataset.fm1Colorway = colorway
-    vi.stubGlobal('matchMedia', (query: string) => ({
-      matches: reduced && query.includes('reduce'),
-      addEventListener: () => undefined,
-    }))
-    vi.useFakeTimers()
-    vi.resetModules()
-    await import(/* @vite-ignore */ `${showcaseScriptPath}?${Math.random()}`)
-  }
-  // jsdom never loads an image, so a test says when one has.
-  const load = (colorway: string) =>
-    document.querySelector(`[data-colorway="${colorway}"]`)?.dispatchEvent(new Event('load'))
-  const shown = () =>
-    [...document.querySelectorAll<HTMLElement>('.firmware-showcase-photo.is-shown')].map(
-      (photo) => photo.dataset.colorway,
-    )
-
-  it('has one photo per FM1 finish, hidden from assistive technology', () => {
+  it('turns the editor’s FM1 outline on a canvas drawn at its own size, hidden from assistive technology', () => {
     const showcase = page.querySelector('.firmware-showcase')
     expect(showcase?.getAttribute('aria-hidden')).toBe('true')
-    const photos = [...(showcase?.querySelectorAll('img') ?? [])]
-    expect(photos.map((photo) => photo.getAttribute('data-colorway'))).toEqual(
-      fm1Colorways.map(({ value }) => value),
-    )
-    for (const photo of photos) expect(photo.getAttribute('alt')).toBe('')
-  })
-
-  it('starts on the finish chosen in the editor, then fades to the next once it loads', async () => {
-    await renderPage({ colorway: 'orange' })
-    expect(shown()).toEqual(['orange'])
-    await vi.advanceTimersByTimeAsync(4000)
-    expect(shown()).toEqual(['orange'])
-    load('black-green')
-    await vi.advanceTimersByTimeAsync(0)
-    expect(shown()).toEqual(['black-green'])
-  })
-
-  it('readies only the photo shown and the next, not all six', async () => {
-    await renderPage({ colorway: 'purple' })
-    const ready = () =>
-      [...document.querySelectorAll<HTMLElement>('.firmware-showcase-photo.is-ready')].map(
-        (photo) => photo.dataset.colorway,
-      )
-    // The next waits for the photo shown to load.
-    expect(ready()).toEqual(['purple'])
-    load('purple')
-    await vi.advanceTimersByTimeAsync(0)
-    expect(ready()).toEqual(['purple', 'orange'])
-    await vi.advanceTimersByTimeAsync(4000)
-    load('orange')
-    await vi.advanceTimersByTimeAsync(0)
-    expect(ready()).toEqual(['purple', 'orange', 'black-green'])
-  })
-
-  it('stays on one finish with reduced motion', async () => {
-    await renderPage({ reduced: true })
-    await vi.advanceTimersByTimeAsync(12000)
-    expect(shown()).toEqual(['black'])
-    expect(document.querySelectorAll('.firmware-showcase-photo.is-ready')).toHaveLength(1)
+    const canvas = showcase?.querySelector('canvas.firmware-showcase-canvas')
+    expect(canvas?.getAttribute('width')).toBe('280')
+    expect(canvas?.getAttribute('height')).toBe('200')
+    expect(showcase?.querySelector('img')).toBeNull()
+    expect(
+      page.querySelector('script[type="module"][src="/src/firmware-wireframe.ts"]'),
+    ).not.toBeNull()
   })
 })

@@ -111,6 +111,10 @@ export default defineConfig(({ command, mode }) => {
       // on every build.
       chunkSizeWarningLimit: 600,
       manifest: true,
+      // Every browser with Web MIDI supports modulepreload; without it, Safari before 17 only fetches
+      // a lazy chunk's imports a little later. With it, the firmware page's module made Rolldown
+      // split the polyfill into a chunk the entry shared, 131 B over the budget.
+      modulePreload: { polyfill: false },
       // The firmware list is a second, static page beside the app, served at /firmware/.
       rolldownOptions: {
         input: {
