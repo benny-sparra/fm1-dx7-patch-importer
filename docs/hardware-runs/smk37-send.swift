@@ -1,11 +1,15 @@
 import CoreMIDI
 import Foundation
 
-// Run-sheet sender for the SMK-37: sends to "SMK-37 Pro-Private" only, and only standard channel
-// messages or Yamaha (F0 43) SysEx. Prints every sent message and everything the SMK sends back.
+// Run-sheet sender for the SMK-37: sends to "SMK-37 Pro-Private" (or the port named by SMK_PORT)
+// only, and only standard channel messages, Yamaha (F0 43) SysEx, or two fixed read-only requests.
+// Prints every sent message and everything the SMK sends back.
 //   note <ch 1-16> <note> [ms]   pc <ch> <program 0-127>   cc <ch> <cc> <value>
 //   sysex <hex bytes F0 43 … F7>  syxfile <path>          listen <seconds>
 //   sweep <note> <ms>  (one note on each channel 1–16, ms apart)
+//   identity   the editor's fm1IdentityQuery, exactly
+//   oo-info    Official Open's command 0, info, token 1 (makeOfficialOpenInfoRequest(1)), exactly
+//   ports      list the MIDI sources and destinations, send nothing
 func name(_ e: MIDIEndpointRef) -> String {
   var v: Unmanaged<CFString>?
   MIDIObjectGetStringProperty(e, kMIDIPropertyDisplayName, &v)
@@ -26,8 +30,14 @@ MIDIOutputPortCreate(client, "out" as CFString, &outPort)
 for i in 0..<MIDIGetNumberOfSources() where name(MIDIGetSource(i)).contains("SMK") {
   MIDIPortConnectSource(inPort, MIDIGetSource(i), nil)
 }
+if CommandLine.arguments.dropFirst().first == "ports" {
+  for i in 0..<MIDIGetNumberOfSources() { print("source:", name(MIDIGetSource(i))) }
+  for i in 0..<MIDIGetNumberOfDestinations() { print("destination:", name(MIDIGetDestination(i))) }
+  exit(0)
+}
+let portName = ProcessInfo.processInfo.environment["SMK_PORT"] ?? "SMK-37 Pro-Private"
 guard let dest = (0..<MIDIGetNumberOfDestinations()).map(MIDIGetDestination)
-  .first(where: { name($0) == "SMK-37 Pro-Private" }) else { fatalError("No SMK-37 Pro-Private") }
+  .first(where: { name($0) == portName }) else { fatalError("No \(portName)") }
 
 func send(_ b: [UInt8]) {
   let size = b.count + 64
@@ -63,6 +73,8 @@ case "sysex":
   let b = a.dropFirst().map { UInt8($0, radix: 16)! }; checkYamaha(b); send(b)
 case "syxfile":
   let b = [UInt8](try! Data(contentsOf: URL(fileURLWithPath: a[1]))); checkYamaha(b); send(b)
+case "identity": send([0xF0, 0x00, 0x32, 0x45, 0x00, 0x00, 0x00, 0x40, 0x7F, 0xF7])
+case "oo-info": send([0xF0, 0x7D, 0x46, 0x4D, 0x02, 0x00, 0x01, 0x00, 0x6D, 0xF7])
 case "listen": break
 default: fatalError("unknown command")
 }
