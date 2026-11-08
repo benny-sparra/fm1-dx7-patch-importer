@@ -12,6 +12,15 @@ const scrambleTickMs = 30
 /** What a scrambling letter shows, from the characters a DX7 name can hold. */
 const scrambleGlyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#*+-=/<>?'
 
+/** How long a notification takes to step out, as `toast-step-out` in `src/index.css`. */
+export const toastStepOutMs = 350
+
+/** How long the photo screen's wake runs, as `photo-wake-flare` in `src/index.css`. */
+export const photoWakeMs = 700
+
+/** How long the wristwatch's second hand rests on each of its four positions. */
+export const watchTickMs = 250
+
 const menuSurfaces = '.menu-surface, .editor-menu-surface'
 
 /**
@@ -128,17 +137,86 @@ export function scramblePatchName(nameElement: HTMLElement) {
   step()
 }
 
+const watches = new WeakMap<HTMLElement, number>()
+
 /**
- * Starts the page's idle decoration: the chosen menu item's flash, and the scramble of a patch
- * name whose sound has just changed, which the slot's `patch-cell-changed` glow marks. It watches
+ * Ticks the wristwatch under the pointer while it is over a Send button that is waiting
+ * (`.barber-pole`): the cursor's second hand moves one quarter turn each `watchTickMs`, by way of
+ * `data-watch`, which `src/index.css` draws a frame of the watch for. A browser cannot animate a
+ * cursor itself. It runs only while the pointer is over such a button, and stops, leaving the
+ * first frame, when the pointer leaves or the wait ends. Reduced motion leaves the first frame.
+ */
+export function tickWatchCursor(event: Event) {
+  const button =
+    event.target instanceof Element ? event.target.closest<HTMLElement>('.barber-pole') : null
+  if (!button || watches.has(button) || !motionAllowed()) return
+  let frame = 0
+  const timer = window.setInterval(() => {
+    if (!button.isConnected || !button.matches('.barber-pole:hover')) {
+      window.clearInterval(timer)
+      watches.delete(button)
+      delete button.dataset.watch
+      return
+    }
+    frame = (frame + 1) % 4
+    button.dataset.watch = String(frame)
+  }, watchTickMs)
+  watches.set(button, timer)
+}
+
+/**
+ * Leaves a notification that has just gone on the page for `toastStepOutMs` to step out, as it
+ * stepped in. React has already removed it, so what steps out is the removed element itself,
+ * put back where it was with its alert role taken off, hidden from assistive technology and inert,
+ * so the notification is announced once and its buttons cannot be reached while it leaves.
+ */
+export function stepOutToast(removed: HTMLElement, parent: Node, before: Node | null) {
+  if (!motionAllowed() || !parent.isConnected || !removed.classList.contains('toast-surface')) {
+    return
+  }
+  removed.removeAttribute('role')
+  removed.setAttribute('aria-hidden', 'true')
+  removed.inert = true
+  removed.classList.add('toast-step-out')
+  parent.insertBefore(removed, before?.parentNode === parent ? before : null)
+  window.setTimeout(() => removed.remove(), toastStepOutMs)
+}
+
+/**
+ * Wakes the header photo's screen when it lights again: a bright scan line wipes down it and the
+ * glass flares and settles. The photo's dark overlay has just gone, so a see-through copy of its
+ * place is laid back over the lit screen for `photoWakeMs`. Decoration only, and it takes no room.
+ */
+export function wakePhotoScreen(overlay: HTMLElement, parent: Node) {
+  if (!motionAllowed() || !parent.isConnected || !overlay.classList.contains('fm1-photo-screen')) {
+    return
+  }
+  const wake = overlay.ownerDocument.createElement('span')
+  wake.className = 'fm1-photo-screen fm1-photo-wake'
+  wake.setAttribute('aria-hidden', 'true')
+  parent.appendChild(wake)
+  window.setTimeout(() => wake.remove(), photoWakeMs)
+}
+
+/**
+ * Starts the page's idle decoration: the chosen menu item's flash, the scramble of a patch name
+ * whose sound has just changed, which the slot's `patch-cell-changed` glow marks, the busy
+ * wristwatch, the notifications' step out, and the header photo's wake. It watches
  * the page rather than living in its components, so none of it costs the initial JavaScript.
  * Returns what stops it.
  */
 export function installRetroMotion(root: HTMLElement = document.body) {
   root.ownerDocument.addEventListener('click', flashChosenMenuItem, { capture: true })
 
+  root.ownerDocument.addEventListener('pointerover', tickWatchCursor, { capture: true })
+
   const observer = new MutationObserver((records) => {
     for (const record of records) {
+      for (const node of record.removedNodes) {
+        if (!(node instanceof HTMLElement)) continue
+        stepOutToast(node, record.target, record.nextSibling)
+        wakePhotoScreen(node, record.target)
+      }
       for (const node of record.addedNodes) {
         if (!(node instanceof HTMLElement) || !node.classList.contains('patch-cell-changed'))
           continue
@@ -151,6 +229,7 @@ export function installRetroMotion(root: HTMLElement = document.body) {
 
   return () => {
     root.ownerDocument.removeEventListener('click', flashChosenMenuItem, { capture: true })
+    root.ownerDocument.removeEventListener('pointerover', tickWatchCursor, { capture: true })
     observer.disconnect()
   }
 }

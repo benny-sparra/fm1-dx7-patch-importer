@@ -143,6 +143,7 @@ export default {
     },
     startFm1: 'Now open GLOBE on the FM1, choose Export, and pick a bank.',
     startPatch: 'Now send the patch as a DX7 single-voice dump.',
+    receiving: 'Receiving…',
     listening: 'Listening on “{{input}}”. The editor sends nothing.',
     noMidi: 'MIDI is offline. Switch it online to listen.',
     noInput: 'Choose the device sending the patches as the input monitor.',

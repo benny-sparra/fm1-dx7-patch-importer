@@ -4,6 +4,7 @@ import { memo, type ReactNode, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
+import { pulseLinks, useChangePulse } from '@/components/editor/phosphor-trace'
 import { rangeInputGestureHandlers } from '@/components/editor/parameter-controls'
 import { HelpPopover } from '@/components/ui/help-popover'
 import { PortalMenu } from '@/components/ui/portal-menu'
@@ -186,6 +187,9 @@ const AlgorithmDiagram = memo(function AlgorithmDiagram({
 }) {
   const featured = frequencies !== undefined
   const grid = featured ? featuredGrid : thumbnailGrid
+  const pulseRef = useRef<SVGGElement>(null)
+  // One pulse along the links when another algorithm is chosen; the thumbnails have no copies.
+  useChangePulse(operators, () => pulseLinks(pulseRef.current))
 
   return (
     <svg
@@ -210,6 +214,20 @@ const AlgorithmDiagram = memo(function AlgorithmDiagram({
           ) : null
         })}
       </g>
+      {featured ? (
+        <g
+          aria-hidden="true"
+          fill="none"
+          ref={pulseRef}
+          stroke="var(--crt-acc-br)"
+          strokeLinecap="round"
+          strokeWidth="2.2"
+        >
+          {operators.map((operator) => (
+            <path d={linkPath(grid, operator)} key={operator.id} opacity="0" pathLength={1} />
+          ))}
+        </g>
+      ) : null}
       {operators.map((operator) => {
         /*
           Carriers read in the LED amber and modulators in the phosphor

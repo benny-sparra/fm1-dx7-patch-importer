@@ -663,6 +663,7 @@ export default {
     },
     startFm1: 'Ahora abre GLOBE en el FM1, elige Export y luego un banco.',
     startPatch: 'Ahora envía el sonido como volcado DX7 de una sola voz.',
+    receiving: 'Recibiendo…',
     listening: 'Escuchando «{{input}}». El editor no envía nada.',
     noMidi: 'MIDI está sin conexión. Actívalo en línea para escuchar.',
     noInput: 'Elige como entrada de monitorización el dispositivo que envía los sonidos.',

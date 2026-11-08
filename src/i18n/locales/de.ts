@@ -671,6 +671,7 @@ export default {
     },
     startFm1: 'Öffne jetzt GLOBE auf dem FM1, wähle Export und dann eine Bank.',
     startPatch: 'Sende jetzt den Sound als DX7-Single-Voice-Dump.',
+    receiving: 'Empfang läuft …',
     listening: 'Abgehört wird „{{input}}“. Der Editor sendet nichts.',
     noMidi: 'MIDI ist offline. Schalte es online, um zuzuhören.',
     noInput: 'Wähle das Gerät, das die Sounds sendet, als Monitoring-Eingang.',

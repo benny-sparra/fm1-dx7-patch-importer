@@ -594,6 +594,7 @@ export default {
     },
     startFm1: '现在在 FM1 上打开 GLOBE，选择 Export，然后选择一个音色库。',
     startPatch: '现在以 DX7 单音色转储发送该音色。',
+    receiving: '正在接收…',
     listening: '正在监听“{{input}}”。编辑器不会发送任何内容。',
     noMidi: 'MIDI 处于离线状态。请开启 MIDI 在线以便监听。',
     noInput: '请将发送音色的设备选为监听输入。',

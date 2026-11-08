@@ -1,6 +1,6 @@
 import type { TFunction } from 'i18next'
 import { Cable, Music, Upload, Usb } from 'lucide-react'
-import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
+import { type CSSProperties, type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { DeviceSelect } from '@/components/midi/device-select'
@@ -127,6 +127,37 @@ function receivedErrorMessage(
   }
 }
 
+const ladderCells = 8
+
+/**
+ * The listening screen's data ladder: eight LCD cells that light as the dump's bytes arrive, with
+ * RECEIVING on the panel's own display until it is complete, then OK. Decoration only: the status
+ * line beside it says the same in words, and with reduced motion only that line shows.
+ */
+function ReceiveLadder({ complete, progress }: { complete: boolean; progress: number }) {
+  const lit = complete ? ladderCells : Math.floor(progress * ladderCells)
+  return (
+    <div
+      aria-hidden="true"
+      className="receive-ladder crt-inset flex items-center gap-3 self-start px-2.5 py-1.5"
+    >
+      <span className="flex gap-1">
+        {Array.from({ length: ladderCells }, (_, index) => (
+          <span
+            className="receive-ladder-cell"
+            data-lit={index < lit || undefined}
+            key={index}
+            style={{ '--cell': index } as CSSProperties}
+          />
+        ))}
+      </span>
+      <span className="font-vt323 text-sm tracking-[0.1em] text-[var(--crt-led)]">
+        {complete ? 'OK' : 'RECEIVING'}
+      </span>
+    </div>
+  )
+}
+
 type ListeningScreenProps = {
   error: Dx7BankFileError | Dx7VoiceFileError | null
   midi: ReceiveMidi
@@ -141,7 +172,9 @@ type ListeningScreenProps = {
  */
 function ListeningScreen({ error, midi, onReceipt, received, source }: ListeningScreenProps) {
   const { t } = useTranslation()
-  const state = useDx7VoiceReceiver(midi, onReceipt)
+  const [progress, setProgress] = useState(0)
+  const state = useDx7VoiceReceiver(midi, onReceipt, setProgress)
+  const arriving = state === 'listening' && progress > 0 && progress < 1
   const input = midi.inputs.find((device) => device.id === midi.selectedInputId)
 
   return (
@@ -168,9 +201,14 @@ function ListeningScreen({ error, midi, onReceipt, received, source }: Listening
         </Button>
       )}
       <MidiConnectionError midi={midi} />
+      {state === 'listening' && progress > 0 ? (
+        <ReceiveLadder complete={progress === 1} progress={progress} />
+      ) : null}
       {/* Stays mounted, so a screen reader hears each change. */}
       <div className="text-sm" role="status">
-        {received?.kind === 'bank' ? (
+        {arriving ? (
+          <p>{t('receiveWizard.receiving')}</p>
+        ) : received?.kind === 'bank' ? (
           <p>{t('receiveWizard.receivedBank', { patch: received.voices[0].name.trim() })}</p>
         ) : received?.kind === 'voice' ? (
           <p>{t('receiveWizard.received', { patch: received.voice.name.trim() })}</p>
