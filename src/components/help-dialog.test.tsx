@@ -185,6 +185,16 @@ describe('HelpDialog sections', () => {
     expect(within(visiblePanel()).getByText('Keep a backup')).toBeTruthy()
   })
 
+  it('turns the same hidden FM1 outline beside its opening sentence', async () => {
+    useBrowserWithWebMidi()
+    await openHelp()
+
+    const dialog = screen.getByRole('dialog', { name: 'Guide' })
+    await waitFor(() => expect(dialog.querySelector('canvas')).not.toBeNull())
+    expect(dialog.querySelector('canvas')?.getAttribute('aria-hidden')).toBe('true')
+    expect(dialog.querySelector('img')).toBeNull()
+  })
+
   it('swaps the walkthrough for the shortcuts when that tab is chosen', async () => {
     const user = await openHelp()
 

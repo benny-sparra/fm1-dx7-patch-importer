@@ -206,6 +206,25 @@ describe('Fm1Wireframe', () => {
     expect(calls.strokes).toBe(afterArrow)
   })
 
+  it('leaves a key another control in the dialog used, such as a tab, unturned', () => {
+    const { calls } = installContext()
+    const { container } = render(
+      <dialog open>
+        <button onKeyDown={(event) => event.preventDefault()} type="button">
+          Tab
+        </button>
+        <Fm1Wireframe colorway="black" fallback={null} />
+      </dialog>,
+    )
+    act(() => {
+      vi.advanceTimersByTime(1)
+    })
+    const before = calls.strokes
+
+    fireEvent.keyDown(container.querySelector('button')!, { key: 'ArrowRight' })
+    expect(calls.strokes).toBe(before)
+  })
+
   it('draws nothing while the dialog around it is closed', () => {
     const { calls } = installContext()
     render(

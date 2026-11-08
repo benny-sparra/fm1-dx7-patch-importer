@@ -990,13 +990,13 @@ export default {
     },
     steps: {
       connectTitle: '连接 FM1',
-      connectBody: '连接 FM1 并开启“MIDI 在线”。首次连接时，浏览器会请求允许使用 MIDI。',
+      connectBody: '连接 FM1，开启“MIDI 在线”并允许 MIDI。',
       playTitle: '试听和编辑',
-      playBody: '单击音色即可在 FM1 上试听。双击打开音色编辑器，保存后即可保留修改。',
+      playBody: '单击音色试听，双击打开编辑器。',
       sendTitle: '发送到 FM1',
-      sendBody: '从音色库标题栏发送整个音色库，然后选择它在 FM1 上的位置。',
+      sendBody: '从标题栏发送整个音色库，再选择 FM1 上的位置。',
       backupTitle: '保留备份',
-      backupBody: 'FM1 无法传回其音色库，因此这里的音色库是唯一副本。请通过“音色库操作”下载备份。',
+      backupBody: '这里是唯一副本，请在“音色库操作”中下载备份。',
     },
     firmwareTitle: 'Baud Girl (FM-1+VA)',
     firmwareBody:

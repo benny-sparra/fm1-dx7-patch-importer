@@ -1122,17 +1122,13 @@ export default {
     },
     steps: {
       connectTitle: 'FM1 verbinden',
-      connectBody:
-        'Schließe den FM1 an und aktiviere MIDI online. Beim ersten Mal fragt der Browser, ob er MIDI erlauben soll.',
+      connectBody: 'Schließe den FM1 an, schalte MIDI online und erlaube MIDI.',
       playTitle: 'Anhören und bearbeiten',
-      playBody:
-        'Klicke auf einen Sound, um ihn auf dem FM1 zu hören. Ein Doppelklick öffnet den Voice-Editor; speichere, um deine Änderungen zu behalten.',
+      playBody: 'Klicke einen Sound zum Anhören. Doppelklick zum Bearbeiten.',
       sendTitle: 'An FM1 senden',
-      sendBody:
-        'Sende eine ganze Bank über ihre Kopfzeile und wähle dann, wo sie auf dem FM1 landet.',
+      sendBody: 'Sende eine Bank über ihre Kopfzeile und wähle ihr Ziel am FM1.',
       backupTitle: 'Sicherung anlegen',
-      backupBody:
-        'Der FM1 kann seine Bänke nicht zurücksenden, deshalb sind die Bänke hier die einzige Kopie. Lade über die Bibliotheksaktionen eine Sicherung herunter.',
+      backupBody: 'Nur hier liegen die Bänke. Sichere sie über Bibliotheksaktionen.',
     },
     firmwareTitle: 'Baud Girl (FM-1+VA)',
     firmwareBody:
