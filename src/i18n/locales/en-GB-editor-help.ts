@@ -566,6 +566,8 @@ export default {
     fixedFrequencyEntry: 'Frequency (Hz)',
     ratioEntryInvalid: 'Type the ratio as a number, such as 3.5.',
     fixedFrequencyEntryInvalid: 'Type the frequency in hertz, such as 440.',
+    ratioScopeHint: 'Drag sideways to change the ratio. Hold Shift to change Fine.',
+    frequencyScopeHint: 'Drag sideways to change the frequency. Hold Shift for smaller steps.',
     keyboardScaling: 'Scaling',
     breakpoint: 'Breakpoint',
     leftDepth: 'Left depth',

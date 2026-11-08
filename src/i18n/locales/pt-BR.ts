@@ -504,6 +504,9 @@ export default {
     fixedFrequencyEntry: 'Frequência (Hz)',
     ratioEntryInvalid: 'Digite a relação como um número, por exemplo 3,5.',
     fixedFrequencyEntryInvalid: 'Digite a frequência em hertz, por exemplo 440.',
+    ratioScopeHint: 'Arraste para os lados para mudar a relação. Segure Shift para mudar Fino.',
+    frequencyScopeHint:
+      'Arraste para os lados para mudar a frequência. Segure Shift para passos menores.',
     keyboardScaling: 'Escalonamento do teclado',
     breakpoint: 'Ponto de divisão',
     left: 'Esquerda',

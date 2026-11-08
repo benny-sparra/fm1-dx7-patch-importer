@@ -11,6 +11,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import '@/i18n'
 import { Fm1Wireframe } from '@/components/fm1-wireframe'
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
+import { OscillatorScope } from '@/components/editor/oscillator-scope'
 import { LfoWaveControl, PicturePickerControl } from '@/components/editor/parameter-controls'
 import { PatchEditorHeader } from '@/components/editor/patch-editor-header'
 import { LoadNamedBankDialog } from '@/components/patches/load-named-bank-dialog'
@@ -348,6 +349,27 @@ describe('reduced motion', () => {
       vi.unstubAllGlobals()
       vi.restoreAllMocks()
       vi.useRealTimers()
+    }
+  })
+
+  it('holds the oscillator scope still, with no frames requested, only when reduced motion is requested', () => {
+    const requestFrame = vi.spyOn(window, 'requestAnimationFrame').mockReturnValue(1)
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {})
+    const renderScope = () =>
+      render(<OscillatorScope coarse={2} detune={3} fine={0} mode="ratio" outputLevel={99} />)
+    try {
+      vi.stubGlobal('matchMedia', () => ({ matches: true }))
+      renderScope()
+      expect(requestFrame).not.toHaveBeenCalled()
+      cleanup()
+
+      vi.stubGlobal('matchMedia', () => ({ matches: false }))
+      renderScope()
+      expect(requestFrame).toHaveBeenCalled()
+    } finally {
+      cleanup()
+      vi.unstubAllGlobals()
+      vi.restoreAllMocks()
     }
   })
 

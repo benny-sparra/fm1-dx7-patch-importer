@@ -1199,6 +1199,25 @@ describe('PatchEditorPage typed frequency', () => {
     expect((screen.getByRole('textbox', { name: 'Ratio' }) as HTMLInputElement).value).toBe('0.50')
   }, 15_000)
 
+  it('sets Coarse by dragging the scope and undoes the drag as a single step', async () => {
+    const user = userEvent.setup()
+    const { midi } = await setupLive()
+    vi.mocked(midi.sendParameter).mockClear()
+    const scope = screen.getByTestId('oscillator-scope-drag')
+
+    fireEvent.pointerDown(scope, { clientX: 100, pointerId: 1 })
+    fireEvent.pointerMove(scope, { clientX: 112, pointerId: 1 })
+    fireEvent.pointerMove(scope, { clientX: 136, pointerId: 1 })
+    fireEvent.pointerUp(scope, { clientX: 136, pointerId: 1 })
+
+    expect(knob('Coarse')).toBe('3')
+    expect(midi.sendParameter).toHaveBeenCalledWith(coarseIndex, 3)
+
+    await user.keyboard('{Meta>}z{/Meta}')
+
+    expect(knob('Coarse')).toBe('0')
+  }, 15_000)
+
   it('takes hertz once the operator is in fixed mode', async () => {
     const user = userEvent.setup()
     await setupLive()

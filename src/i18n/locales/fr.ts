@@ -513,6 +513,10 @@ export default {
     fixedFrequencyEntry: 'Fréquence (Hz)',
     ratioEntryInvalid: 'Saisissez le rapport sous forme de nombre, par exemple 3,5.',
     fixedFrequencyEntryInvalid: 'Saisissez la fréquence en hertz, par exemple 440.',
+    ratioScopeHint:
+      'Faites glisser latéralement pour changer le rapport. Maintenez Maj pour changer Fin.',
+    frequencyScopeHint:
+      'Faites glisser latéralement pour changer la fréquence. Maintenez Maj pour des pas plus fins.',
     keyboardScaling: 'Suivi du clavier',
     breakpoint: 'Point de coupure',
     left: 'Gauche',

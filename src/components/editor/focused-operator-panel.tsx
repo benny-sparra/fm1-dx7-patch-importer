@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import '@/i18n/editor-help'
 import { EnvelopeEditor } from '@/components/editor/envelope-editor'
+import { OscillatorScope } from '@/components/editor/oscillator-scope'
 import {
   ParameterControl,
   RadioParameterControl,
@@ -185,28 +186,54 @@ export function FocusedOperatorPanel({
           id="operator-oscillator-heading"
           title={t('ui.oscillator')}
         />
-        <TypedValueControl
-          helpText={t(
-            mode === 'ratio' ? 'controlHelp.ratioEntry' : 'controlHelp.fixedFrequencyEntry',
-          )}
-          invalidMessage={t(
-            mode === 'ratio' ? 'ui.ratioEntryInvalid' : 'ui.fixedFrequencyEntryInvalid',
-          )}
-          // A new operator or mode starts from its own value, not a half-typed one.
-          key={`${selectedOperator}-frequency-${mode}`}
-          label={t(mode === 'ratio' ? 'ui.ratioEntry' : 'ui.fixedFrequencyEntry')}
-          onCommit={(text) => {
-            const edits = frequencyEntryEdits(parameters, selectedOperator, text)
-            if (!edits) return false
-            applyEdits(edits)
-            return true
-          }}
-          value={formatFrequencyEntry(
-            mode,
-            parameters[operatorIndex('operator.frequency.coarse')],
-            parameters[operatorIndex('operator.frequency.fine')],
-          )}
-        />
+        {/* The scope fills the room beside the readout, so the section grows no taller. */}
+        <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-end gap-3">
+          <TypedValueControl
+            helpText={t(
+              mode === 'ratio' ? 'controlHelp.ratioEntry' : 'controlHelp.fixedFrequencyEntry',
+            )}
+            invalidMessage={t(
+              mode === 'ratio' ? 'ui.ratioEntryInvalid' : 'ui.fixedFrequencyEntryInvalid',
+            )}
+            // A new operator or mode starts from its own value, not a half-typed one.
+            key={`${selectedOperator}-frequency-${mode}`}
+            label={t(mode === 'ratio' ? 'ui.ratioEntry' : 'ui.fixedFrequencyEntry')}
+            onCommit={(text) => {
+              const edits = frequencyEntryEdits(parameters, selectedOperator, text)
+              if (!edits) return false
+              applyEdits(edits)
+              return true
+            }}
+            value={formatFrequencyEntry(
+              mode,
+              parameters[operatorIndex('operator.frequency.coarse')],
+              parameters[operatorIndex('operator.frequency.fine')],
+            )}
+          />
+          <OscillatorScope
+            coarse={parameters[operatorIndex('operator.frequency.coarse')]}
+            detune={storedToDisplayValue(
+              detuneParameter,
+              parameters[operatorIndex('operator.detune')],
+            )}
+            fine={parameters[operatorIndex('operator.frequency.fine')]}
+            mode={mode}
+            onChange={(setting) =>
+              applyEdits([
+                [
+                  operatorIndex('operator.frequency.coarse'),
+                  setting.coarse,
+                  0,
+                  coarseParameter.max,
+                ],
+                [operatorIndex('operator.frequency.fine'), setting.fine, 0, fineParameter.max],
+              ])
+            }
+            onGestureEnd={endGesture}
+            onGestureStart={beginGesture}
+            outputLevel={parameters[operatorIndex('operator.outputLevel')]}
+          />
+        </div>
         <div className="grid grid-cols-3 gap-2">
           <RotaryParameterControl
             helpText={t('controlHelp.coarse')}

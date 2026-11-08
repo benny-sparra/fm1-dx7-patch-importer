@@ -449,6 +449,8 @@ export default {
     fixedFrequencyEntry: '频率 (Hz)',
     ratioEntryInvalid: '请以数字输入比率，例如 3.5。',
     fixedFrequencyEntryInvalid: '请以赫兹为单位输入频率，例如 440。',
+    ratioScopeHint: '左右拖动可更改比率。按住 Shift 可调整微调。',
+    frequencyScopeHint: '左右拖动可更改频率。按住 Shift 可按更小的步长调整。',
     keyboardScaling: '键盘缩放',
     breakpoint: '分界点',
     left: '左侧',

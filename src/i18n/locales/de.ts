@@ -518,6 +518,10 @@ export default {
     fixedFrequencyEntry: 'Frequenz (Hz)',
     ratioEntryInvalid: 'Gib das Verhältnis als Zahl ein, etwa 3,5.',
     fixedFrequencyEntryInvalid: 'Gib die Frequenz in Hertz ein, etwa 440.',
+    ratioScopeHint:
+      'Zur Seite ziehen, um das Verhältnis zu ändern. Halte Umschalt, um Fein zu ändern.',
+    frequencyScopeHint:
+      'Zur Seite ziehen, um die Frequenz zu ändern. Halte Umschalt für kleinere Schritte.',
     keyboardScaling: 'Tastaturskalierung',
     breakpoint: 'Trennpunkt',
     left: 'Links',

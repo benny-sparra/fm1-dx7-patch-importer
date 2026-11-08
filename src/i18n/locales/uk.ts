@@ -88,6 +88,9 @@ export default {
     fixedFrequencyEntry: 'Frequency (Hz)',
     ratioEntryInvalid: 'Введіть Ratio числом, наприклад 3.5.',
     fixedFrequencyEntryInvalid: 'Введіть частоту в герцах, наприклад 440.',
+    ratioScopeHint: 'Перетягніть убік, щоб змінити Ratio. Утримуйте Shift, щоб змінювати Fine.',
+    frequencyScopeHint:
+      'Перетягніть убік, щоб змінити частоту. Утримуйте Shift для дрібніших кроків.',
     keyboardScaling: 'Scaling',
     breakpoint: 'Breakpoint',
     left: 'Left',
