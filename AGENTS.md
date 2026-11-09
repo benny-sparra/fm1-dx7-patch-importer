@@ -672,13 +672,13 @@ open everything an earlier release could have saved.
 npm run build`, since `resolveSentryRelease` puts it in the entry. A local build without one
   read 25 B of headroom where CI's was 13 B over.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 169 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 171 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
   reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB,
   the sweep's accessibility fixes' raise from 165 KiB, and sending patches to Official Open's DX7
   tracks' raise from 166 KiB (approved 2026-10-16), the patch menu's headings' raise from
-  167 KiB (approved 2026-10-21), and the SMK-37's raise from 168 KiB (approved 2026-11-03: its
+  167 KiB (approved 2026-10-21), i18next 26.7's raise from 169 KiB (approved 2026-11-09, about 1.8 KiB), and the SMK-37's raise from 168 KiB (approved 2026-11-03: its
   family, badge, bank guard, port and input choice, and the device name in the title and on
   Send, about 400 B) had. That send costs about 380 B in the entry:
   its branch and state in `useMidi`, the track status's lazy mount in `RootLayout`, two profile
