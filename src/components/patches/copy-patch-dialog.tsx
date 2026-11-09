@@ -31,7 +31,7 @@ import { resolveGridKey } from '@/lib/patch-grid-navigation'
 import { cn } from '@/lib/utils'
 
 /** A sound from outside the workspace, such as a search result from a saved bank or the catalog. */
-export type ExternalCopySource = {
+type ExternalCopySource = {
   name: string
   /** The slot it holds where it comes from, which the dialog chooses first. */
   number: number
