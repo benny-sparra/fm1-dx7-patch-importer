@@ -35,7 +35,7 @@ import { patchSlotCode, voiceId } from '@/lib/patch-library'
 import { voiceFingerprint } from '@/lib/voice-fingerprint'
 
 /** What is sending: an FM1 on M-VAVE's V16 with Bank Export, or one patch from anything else. */
-export type ReceiveSource = 'fm1' | 'patch'
+type ReceiveSource = 'fm1' | 'patch'
 
 type ReceiveMidi = Parameters<typeof useDx7VoiceReceiver>[0] &
   Pick<
