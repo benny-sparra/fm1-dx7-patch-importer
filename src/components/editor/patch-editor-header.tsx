@@ -320,7 +320,7 @@ export function PatchEditorHeader({
                 role="menu"
               >
                 <button
-                  className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50"
                   disabled={!canSync || syncState === 'sending'}
                   onClick={onResend}
                   role="menuitem"
@@ -328,32 +328,22 @@ export function PatchEditorHeader({
                 >
                   <RefreshCw
                     className={cn(
-                      'mt-0.5 size-4 shrink-0',
+                      'size-4 shrink-0',
                       syncState === 'sending' && 'motion-safe:animate-spin',
                     )}
                   />
-                  <span>
-                    <span className="block text-sm font-bold">{t('editor.resend')}</span>
-                    <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">
-                      {t('editor.resendHelp')}
-                    </span>
-                  </span>
+                  <span className="text-sm font-bold">{t('editor.resend')}</span>
                 </button>
                 <button
-                  className="flex w-full items-start gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset disabled:pointer-events-none disabled:opacity-50"
                   disabled={!isDirty || syncState === 'sending'}
                   onClick={onRevert}
                   role="menuitem"
                   title={t('ui.revertTitle')}
                   type="button"
                 >
-                  <RotateCcw className="mt-0.5 size-4 shrink-0" />
-                  <span>
-                    <span className="block text-sm font-bold">{t('editor.revert')}</span>
-                    <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">
-                      {t('editor.revertHelp')}
-                    </span>
-                  </span>
+                  <RotateCcw className="size-4 shrink-0" />
+                  <span className="text-sm font-bold">{t('editor.revert')}</span>
                 </button>
               </div>
             </details>
