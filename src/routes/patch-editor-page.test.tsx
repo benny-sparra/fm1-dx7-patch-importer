@@ -916,7 +916,7 @@ describe('PatchEditorPage operator copy and paste', () => {
 
     await user.click(screen.getByRole('button', { name: 'Operator 1 actions' }))
     const paste = screen.getByRole('menuitem', {
-      name: 'Paste (copy an operator or its envelope first)',
+      name: 'Paste',
     }) as HTMLButtonElement
 
     expect(paste.disabled).toBe(true)

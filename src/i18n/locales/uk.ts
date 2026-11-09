@@ -150,7 +150,7 @@ export default {
     copyOperatorAction: 'Копіювати оператор {{number}}',
     pasteOperatorAction: 'Вставити оператор {{source}}',
     pasteOperatorFromPatchAction: 'Вставити оператор {{source}} з «{{patch}}»',
-    pasteOperatorEmpty: 'Вставити (спершу скопіюйте оператор або його обвідну)',
+    pasteOperatorEmpty: 'Вставити',
     copyEnvelopeAction: 'Копіювати обвідну оператора {{number}}',
     pasteEnvelopeAction: 'Вставити обвідну оператора {{source}}',
     pasteEnvelopeFromPatchAction: 'Вставити обвідну оператора {{source}} з «{{patch}}»',
