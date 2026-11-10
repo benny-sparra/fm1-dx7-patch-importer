@@ -214,6 +214,22 @@ describe('reduced motion', () => {
     ).toBe(true)
   })
 
+  it('holds the tape loader’s stripes and reels, and the empty banks’ horizon, still when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+
+    expect(
+      reducedMotionBlocks.some((block) =>
+        /\.tape-loader::before,\s*\.tape-loader::after,\s*\.synthwave-horizon::after\s*\{\s*animation:\s*none;/.test(
+          block,
+        ),
+      ),
+    ).toBe(true)
+  })
+
   it('stops the preset read LEDs flashing when reduced motion is requested', async () => {
     const css = await readFile(path.resolve('src/index.css'), 'utf8')
     const reducedMotionBlocks = css

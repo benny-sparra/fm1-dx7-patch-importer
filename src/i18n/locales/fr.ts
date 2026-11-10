@@ -953,8 +953,7 @@ export default {
     alreadyAdded: '« {{patch}} » est déjà dans les favoris.',
     addFailed: 'Le son n’a pas pu être ajouté aux favoris.',
     empty: 'Aucun favori pour l’instant',
-    emptyHelp:
-      'Sélectionnez le cœur d’un son, ou faites glisser un son sur Favoris, pour le garder ici. Les favoris peuvent être envoyés au FM1 comme une banque.',
+    emptyHelp: 'Sélectionnez le cœur d’un son pour l’ajouter.',
     sendTitle:
       'Envoyer les 32 premiers favoris comme banque et choisir la banque de destination sur le FM1',
     addFirst: 'Ajoutez un favori avant d’envoyer les favoris',

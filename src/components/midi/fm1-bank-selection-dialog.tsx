@@ -204,7 +204,7 @@ export function Fm1BankSelectionDialog({
           <Button
             aria-disabled={isSending || undefined}
             autoFocus
-            className={isSending ? 'barber-pole' : undefined}
+            className={isSending ? 'barber-pole tape-loader' : undefined}
             onClick={() => {
               if (!isSending) onSend()
             }}

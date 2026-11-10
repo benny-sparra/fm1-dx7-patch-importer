@@ -1247,8 +1247,8 @@ export function LibrarianPage({
                 aria-disabled={isSendBlocked || undefined}
                 className={cn(
                   librarySendButtonClassName,
-                  // A barber pole while the bank is on its way.
-                  isSending && 'barber-pole',
+                  // A tape loading, with the barber pole's watch cursor, while the bank is on its way.
+                  isSending && 'barber-pole tape-loader',
                 )}
                 onClick={() => {
                   if (!isSendBlocked) sendSelectedBank()
@@ -1457,7 +1457,7 @@ export function LibrarianPage({
           focusRequest={slotFocusRequest}
           emptyState={
             showsFavourites ? (
-              <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
+              <div className="synthwave-horizon grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
                 <div className="max-w-md">
                   <PixelHeartIcon
                     aria-hidden="true"

@@ -61,17 +61,17 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByRole('switch', { hidden: true })).toBeNull()
   })
 
-  it('runs a barber pole on its Send button while the bank is on the way', () => {
+  it('loads its Send button like a tape, with the watch cursor, while the bank is on the way', () => {
     const { rerender } = render(renderDialog(true, mvave, true))
-    expect(screen.getByRole('button', { hidden: true, name: 'Sending…' }).classList).toContain(
-      'barber-pole',
-    )
+    const sending = screen.getByRole('button', { hidden: true, name: 'Sending…' }).classList
+    expect(sending).toContain('barber-pole')
+    expect(sending).toContain('tape-loader')
 
     rerender(renderDialog(true, mvave, false))
 
     expect(
       screen.getByRole('button', { hidden: true, name: 'Send to FM1' }).classList,
-    ).not.toContain('barber-pole')
+    ).not.toContain('tape-loader')
   })
 
   // A disabled button drops focus, and a screen reader hears nothing of what replaced its name.

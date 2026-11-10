@@ -50,6 +50,13 @@
   --radius-sm: 0;
 }
 
+/* The tape loader's reels turn by this angle (see `.tape-loader::after`). */
+@property --tape-reel-turn {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -1391,6 +1398,223 @@
   }
 
   /*
+   * A bank on its way to the FM1 loads like a ZX Spectrum tape (idea 07 of the retro animation
+   * prototype): stripes race round the Send button's edge, the pilot tone's steady bands first,
+   * then the data's ragged ones, while a cassette reel turns in each side's padding. The middle
+   * stays plain, so Sending… reads as before, and nothing changes the button's size. It rides on
+   * `.barber-pole`, whose wristwatch cursor it keeps, and takes the place of the pole's stripes.
+   */
+  .barber-pole.tape-loader {
+    position: relative;
+    isolation: isolate;
+    background-image: none;
+    animation: none;
+  }
+
+  .tape-loader::before,
+  .tape-loader::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: '';
+  }
+
+  /* The loading stripes: a 3px frame cut from a band of stripes. */
+  .tape-loader::before {
+    padding: 3px;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      var(--crt-acc) 0 6px,
+      var(--crt-bg-well) 6px 12px
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation:
+      tape-pilot 160ms linear 6,
+      tape-data 480ms steps(1, end) 960ms infinite;
+  }
+
+  /* The reels: three spokes each, in the left and right padding. */
+  .tape-loader::after {
+    background:
+      repeating-conic-gradient(
+          from var(--tape-reel-turn),
+          var(--crt-acc-lt) 0 24deg,
+          transparent 24deg 120deg
+        )
+        2px 50% / 10px 10px no-repeat,
+      repeating-conic-gradient(
+          from var(--tape-reel-turn),
+          var(--crt-acc-lt) 0 24deg,
+          transparent 24deg 120deg
+        )
+        calc(100% - 2px) 50% / 10px 10px no-repeat;
+    -webkit-mask:
+      radial-gradient(circle at 7px 50%, #000 0 4.5px, transparent 5px),
+      radial-gradient(circle at calc(100% - 7px) 50%, #000 0 4.5px, transparent 5px);
+    mask:
+      radial-gradient(circle at 7px 50%, #000 0 4.5px, transparent 5px),
+      radial-gradient(circle at calc(100% - 7px) 50%, #000 0 4.5px, transparent 5px);
+    animation: tape-reels 900ms linear infinite;
+  }
+
+  @keyframes tape-pilot {
+    to {
+      background-position: 0 12px;
+    }
+  }
+
+  /* Each step jumps the ragged bands a different distance, so they flicker rather than scroll. */
+  @keyframes tape-data {
+    0%,
+    100% {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        var(--crt-led) 0 2px,
+        var(--crt-phosphor-blue) 2px 5px,
+        var(--crt-led) 5px 6px,
+        var(--crt-phosphor-blue) 6px 11px,
+        var(--crt-led) 11px 14px,
+        var(--crt-phosphor-blue) 14px 17px
+      );
+      background-position: 0 0;
+    }
+
+    25% {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        var(--crt-led) 0 2px,
+        var(--crt-phosphor-blue) 2px 5px,
+        var(--crt-led) 5px 6px,
+        var(--crt-phosphor-blue) 6px 11px,
+        var(--crt-led) 11px 14px,
+        var(--crt-phosphor-blue) 14px 17px
+      );
+      background-position: 0 7px;
+    }
+
+    50% {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        var(--crt-led) 0 2px,
+        var(--crt-phosphor-blue) 2px 5px,
+        var(--crt-led) 5px 6px,
+        var(--crt-phosphor-blue) 6px 11px,
+        var(--crt-led) 11px 14px,
+        var(--crt-phosphor-blue) 14px 17px
+      );
+      background-position: 0 3px;
+    }
+
+    75% {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        var(--crt-led) 0 2px,
+        var(--crt-phosphor-blue) 2px 5px,
+        var(--crt-led) 5px 6px,
+        var(--crt-phosphor-blue) 6px 11px,
+        var(--crt-led) 11px 14px,
+        var(--crt-phosphor-blue) 14px 17px
+      );
+      background-position: 0 12px;
+    }
+  }
+
+  @keyframes tape-reels {
+    to {
+      --tape-reel-turn: 120deg;
+    }
+  }
+
+  /*
+   * A synthwave horizon along the foot of an empty bank and of Favourites before anything is
+   * hearted (idea 06 of the retro animation prototype): a striped sun sinking behind a glowing
+   * grid floor that scrolls towards the viewer. It is generated content, so it costs the page's
+   * JavaScript only its class name and says nothing to assistive technology. The message and its
+   * buttons stay above it, and the box keeps room for it below them.
+   */
+  .synthwave-horizon {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .synthwave-horizon > * {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 176px;
+  }
+
+  /* The sun, resting on the horizon, its lower half cut into bands. */
+  .synthwave-horizon::before {
+    position: absolute;
+    bottom: 84px;
+    left: 50%;
+    width: 160px;
+    height: 80px;
+    translate: -50% 0;
+    border-radius: 80px 80px 0 0;
+    background: linear-gradient(to bottom, var(--crt-led), var(--crt-phosphor-red));
+    -webkit-mask: linear-gradient(
+      to bottom,
+      #000 0 48%,
+      transparent 48% 56%,
+      #000 56% 68%,
+      transparent 68% 76%,
+      #000 76% 84%,
+      transparent 84% 92%,
+      #000 92%
+    );
+    mask: linear-gradient(
+      to bottom,
+      #000 0 48%,
+      transparent 48% 56%,
+      #000 56% 68%,
+      transparent 68% 76%,
+      #000 76% 84%,
+      transparent 84% 92%,
+      #000 92%
+    );
+    pointer-events: none;
+    content: '';
+  }
+
+  /* The grid floor, tilted away to the horizon, its cross lines coming towards the viewer. */
+  .synthwave-horizon::after {
+    position: absolute;
+    right: -50%;
+    bottom: 0;
+    left: -50%;
+    height: 84px;
+    border-top: 1px solid var(--crt-acc);
+    background:
+      linear-gradient(to bottom, var(--crt-acc) 0 1px, transparent 1px) 0 0 / 100% 16px,
+      linear-gradient(to right, var(--crt-acc) 0 1px, transparent 1px) 50% 0 / 26px 100%;
+    opacity: 0.6;
+    filter: drop-shadow(0 0 2px var(--crt-acc));
+    transform: perspective(130px) rotateX(40deg);
+    transform-origin: 50% 0;
+    pointer-events: none;
+    content: '';
+    animation: synthwave-grid 900ms linear infinite;
+  }
+
+  @keyframes synthwave-grid {
+    to {
+      background-position:
+        0 16px,
+        50% 0;
+    }
+  }
+
+  /*
    * Reading Baud Girl's presets from the FM1 lights one LED per preset, in
    * bank order, each with a brief phosphor flash as it arrives. The LED for
    * the preset being read blinks.
@@ -1433,6 +1657,12 @@
 
     .barber-pole,
     .midi-switch[data-busy] .midi-switch-track {
+      animation: none;
+    }
+
+    .tape-loader::before,
+    .tape-loader::after,
+    .synthwave-horizon::after {
       animation: none;
     }
 

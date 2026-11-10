@@ -940,8 +940,7 @@ export default {
     alreadyAdded: '“{{patch}}” já está nos Favoritos.',
     addFailed: 'Não foi possível adicionar o som aos Favoritos.',
     empty: 'Nenhum favorito ainda',
-    emptyHelp:
-      'Selecione o coração de um som, ou arraste um som para Favoritos, para guardá-lo aqui. Os Favoritos podem ser enviados ao FM1 como um banco.',
+    emptyHelp: 'Selecione o coração de um som para adicioná-lo.',
     sendTitle: 'Enviar os primeiros 32 favoritos como banco e escolher o banco de destino no FM1',
     addFirst: 'Adicione um favorito antes de enviar os Favoritos',
     initNote:
