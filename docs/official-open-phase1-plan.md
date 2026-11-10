@@ -7,17 +7,17 @@ the hardware run is [its own run sheet](hardware-runs/official-open-phase1-run-s
 
 ## Where it stands
 
-| Piece                                               | State                                                                                                                                                                                                                                          |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Approval of commands 1 (kinds 1, 2, 4), 2, 6, 9, 22 | **Done** 2026-10-20, in `AGENTS.md`. Kinds 0 and 3 (projects) are not approved and Phase 1 does not need them.                                                                                                                                 |
-| Codec and reader, `src/lib/official-open-read.ts`   | **Done** (#317): builders for 1, 2, 6, 9, 22; `readOfficialOpenExport` (64-byte chunks, three tries a second apart, size check, command 6 at the end); `readOfficialOpenCapabilities`; `readOfficialOpenSlotName` (empty slot → null); CRC-32. |
-| Codec tests, `official-open-read.test.ts`           | **Done**: synthetic replies, refusals, retries, abort.                                                                                                                                                                                         |
-| Hardware run of every read                          | **Done on V14, orange FM1** (2026-10-20, `hardware-runs/official-open-v14-reads-2026-10-20.md`, capture JSON beside it). 808 and PLUCK sounds were not read, and nobody checked the screen stayed unchanged.                                   |
-| Command 0 and the DX7 track send                    | **Done**: `official-open-track-send.ts`, lazy from `useMidi`, one queue turn for read and dump.                                                                                                                                                |
-| Anything that calls the reader                      | **Missing.** No hook, UI, or production module imports `official-open-read.ts`; only its test and the run sheet's console snippet do.                                                                                                          |
-| Turning the bytes into library voices               | **Missing.** Kind 1's first 155 bytes are a DX7 edit buffer (`packDx7Voice` converts it); kind 4 is 32 packed voices with no SysEx frame, which `parseDx7Bank` will not take as it is.                                                         |
-| A profile capability for the reads                  | **Missing.** `official-open` lists only `bankDumps`, `singleVoiceDumps`, `trackEngineRead`.                                                                                                                                                    |
-| A run on the green FM1                              | **Missing.** The orange FM1 now runs stock V16; the green one runs Official Open since 2026-11-03, on a build not yet recorded.                                                                                                                |
+| Piece                                               | State                                                                                                                                                                                                                                                                                                |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Approval of commands 1 (kinds 1, 2, 4), 2, 6, 9, 22 | **Done** 2026-10-20, in `AGENTS.md`. Kinds 0 and 3 (projects) are not approved and Phase 1 does not need them.                                                                                                                                                                                       |
+| Codec and reader, `src/lib/official-open-read.ts`   | **Done** (#317): builders for 1, 2, 6, 9, 22; `readOfficialOpenExport` (64-byte chunks, three tries a second apart, size check, command 6 at the end); `readOfficialOpenCapabilities`; `readOfficialOpenSlotName` (empty slot → null); CRC-32.                                                       |
+| Codec tests, `official-open-read.test.ts`           | **Done**: synthetic replies, refusals, retries, abort.                                                                                                                                                                                                                                               |
+| Hardware run of every read                          | **Done on V14, orange FM1** (2026-10-20, `hardware-runs/official-open-v14-reads-2026-10-20.md`, capture JSON beside it). 808 and PLUCK sounds were not read, and nobody checked the screen stayed unchanged.                                                                                         |
+| Command 0 and the DX7 track send                    | **Done**: `official-open-track-send.ts`, lazy from `useMidi`, one queue turn for read and dump.                                                                                                                                                                                                      |
+| Anything that calls the reader                      | **Hook done** (2026-11-09): `src/hooks/use-official-open-reader.ts`, one queue turn per read, tested against the V14 capture. No UI calls it yet. Before that: **Missing.** No hook, UI, or production module imports `official-open-read.ts`; only its test and the run sheet's console snippet do. |
+| Turning the bytes into library voices               | **Done** (2026-11-09): `src/lib/official-open-library-read.ts`. Before that: **Missing.** Kind 1's first 155 bytes are a DX7 edit buffer (`packDx7Voice` converts it); kind 4 is 32 packed voices with no SysEx frame, which `parseDx7Bank` will not take as it is.                                  |
+| A profile capability for the reads                  | **Done** (2026-11-09): `trackVoiceRead` and `libraryBankRead`. Before that: **Missing.** `official-open` lists only `bankDumps`, `singleVoiceDumps`, `trackEngineRead`.                                                                                                                              |
+| A run on the green FM1                              | **Missing.** The orange FM1 now runs stock V16; the green one runs Official Open since 2026-11-03, on a build not yet recorded.                                                                                                                                                                      |
 
 Two smaller gaps: `official-open-track-send.ts` keeps its own copy of the request loop and error
 class (`readOfficialOpenInfo`), and its token counter lives in that module, so a read and a send
@@ -156,3 +156,20 @@ run should come before the UI is final.
 3. **All four library banks at once:** Ben had no preference, so it is offered, adding four new
    banks.
 4. **The hardware run** goes ahead before the UI is built.
+
+## Decisions (Ben, 2026-11-09)
+
+Asked again while looking at how to keep the library and the FM1 in step on every firmware.
+
+1. **Entry point:** unchanged, the Receive wizard. A separate four-bank compare dialog was
+   considered and set aside: the wizard's review screen already marks what differs, and a
+   side-by-side of four banks would suggest the library's A–D mirror the FM1's, which they do not
+   on Official Open.
+2. **All four library banks at once** changes from decision 3 above: rather than always adding
+   four new banks, the review screen shows each FM1 bank's count of patches that differ from a
+   destination bank Ben picks for it, as a single bank's does.
+3. **The hardware run** still comes before the wizard's screens. The profile capabilities, the
+   shared link and token counter (`src/lib/official-open-link.ts`), the conversion, and the reader
+   hook were written first, against the V14 capture, on `feature/official-open-library-read`.
+4. It is one-way, FM1 to library, and is not called a sync: a library bank write is a Flash write
+   and stays excluded.
