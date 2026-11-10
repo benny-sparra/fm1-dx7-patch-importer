@@ -47,8 +47,6 @@ export default {
     alreadyAdded: '“{{patch}}” is already in Favorites.',
     addFailed: 'The patch could not be added to Favorites.',
     empty: 'No favorites yet',
-    emptyHelp:
-      'Select the heart on any patch, or drag a patch onto Favorites, to keep it here. Favorites can be sent to the FM1 as a bank.',
     sendTitle: 'Send the first 32 favorites as a bank; choose the destination bank on the FM1',
     addFirst: 'Add a favorite before sending Favorites',
     initNote: 'A bank holds 32 patches, so sending Favorites fills the last slot with INIT VOICE.',

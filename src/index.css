@@ -1549,18 +1549,18 @@
   .synthwave-horizon > * {
     position: relative;
     z-index: 1;
-    margin-bottom: 84px;
+    margin-bottom: 156px;
   }
 
   /* The sun, resting on the horizon, its lower half cut into bands. */
   .synthwave-horizon::before {
     position: absolute;
-    bottom: 52px;
+    bottom: 84px;
     left: 50%;
-    width: 128px;
-    height: 40px;
+    width: 192px;
+    height: 60px;
     translate: -50% 0;
-    border-radius: 64px 64px 0 0;
+    border-radius: 96px 96px 0 0;
     background: linear-gradient(to bottom, var(--crt-led), var(--crt-phosphor-red));
     -webkit-mask: linear-gradient(
       to bottom,
@@ -1592,14 +1592,14 @@
     right: -50%;
     bottom: 0;
     left: -50%;
-    height: 52px;
+    height: 84px;
     border-top: 1px solid var(--crt-acc);
     background:
-      linear-gradient(to bottom, var(--crt-acc) 0 1px, transparent 1px) 0 0 / 100% 13px,
+      linear-gradient(to bottom, var(--crt-acc) 0 1px, transparent 1px) 0 0 / 100% 16px,
       linear-gradient(to right, var(--crt-acc) 0 1px, transparent 1px) 50% 0 / 26px 100%;
     opacity: 0.6;
     filter: drop-shadow(0 0 2px var(--crt-acc));
-    transform: perspective(80px) rotateX(40deg);
+    transform: perspective(130px) rotateX(40deg);
     transform-origin: 50% 0;
     pointer-events: none;
     content: '';
@@ -1609,7 +1609,7 @@
   @keyframes synthwave-grid {
     to {
       background-position:
-        0 13px,
+        0 16px,
         50% 0;
     }
   }

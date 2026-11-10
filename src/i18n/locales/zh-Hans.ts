@@ -849,8 +849,7 @@ export default {
     alreadyAdded: '“{{patch}}”已在收藏中。',
     addFailed: '无法将该音色加入收藏。',
     empty: '还没有收藏',
-    emptyHelp:
-      '点选任一音色上的爱心，或把音色拖到“收藏”上，即可保存在这里。收藏可以作为一个音色库发送到 FM1。',
+    emptyHelp: '点选任一音色上的爱心，即可保存在这里。',
     sendTitle: '将前 32 个收藏作为音色库发送，并在 FM1 上选择目标音色库',
     addFirst: '请先添加收藏，再发送收藏',
     initNote: '一个音色库可容纳 32 个音色，因此发送收藏时，最后 1 个位置会填入 INIT VOICE。',
