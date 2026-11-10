@@ -437,7 +437,7 @@ describe('reduced motion', () => {
     vi.unstubAllGlobals()
     Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
   })
-  it('holds the welcome’s FM1 outline still: no sway, no animation loop', () => {
+  it('holds the welcome’s FM1 outline still: no spin, no animation loop', () => {
     const strokes: string[] = []
     let stroke: string[] = []
     const context = {
@@ -449,6 +449,7 @@ describe('reduced motion', () => {
       lineWidth: 1,
       measureText: () => ({ width: 40 }),
       moveTo: (x: number, y: number) => stroke.push(`${x},${y}`),
+      setTransform: () => {},
       stroke: () => strokes.push(stroke.join(';')),
       strokeStyle: '',
       strokeText: () => {},

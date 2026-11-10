@@ -12,7 +12,8 @@ import {
   rotate,
   roundedRectPoints,
   sideFacesCamera,
-  swayYaw,
+  spinSpeed,
+  spinStep,
   type Vec2,
 } from './fm1-wireframe'
 
@@ -143,12 +144,60 @@ describe('the wireframe geometry', () => {
   })
 })
 
-describe('the sway', () => {
-  it('sways slowly about where the viewer left it, and begins there', () => {
-    expect(swayYaw(0)).toBe(0)
-    const swings = Array.from({ length: 400 }, (_, index) => swayYaw(index * 0.1))
-    expect(Math.max(...swings)).toBeLessThan(0.5)
-    expect(Math.min(...swings)).toBeGreaterThan(-0.5)
-    expect(Math.abs(swayYaw(0.1) - swayYaw(0))).toBeLessThan(0.05)
+describe('the turntable', () => {
+  it('keeps turning the same way at its resting speed, round a full circle', () => {
+    let state = { velocity: spinSpeed, yaw: 0 }
+    for (let step = 0; step < 1000; step += 1) state = spinStep(state.yaw, state.velocity, 0.05)
+    expect(state.velocity).toBeCloseTo(spinSpeed, 9)
+    expect(state.yaw).toBeCloseTo(spinSpeed * 50, 6)
+    expect(state.yaw).toBeGreaterThan(Math.PI * 2)
+  })
+
+  it('eases a flick back to the resting speed', () => {
+    let state = { velocity: 6, yaw: 0 }
+    state = spinStep(state.yaw, state.velocity, 0.05)
+    expect(state.velocity).toBeLessThan(6)
+    expect(state.velocity).toBeGreaterThan(spinSpeed)
+    for (let step = 0; step < 200; step += 1) state = spinStep(state.yaw, state.velocity, 0.05)
+    expect(state.velocity).toBeCloseTo(spinSpeed, 3)
+  })
+
+  it('stands still for a step of no time', () => {
+    expect(spinStep(1.2, spinSpeed, 0).yaw).toBe(1.2)
+  })
+})
+
+describe('the framing', () => {
+  it('keeps the whole case on the canvas at every turn, from flat to steep', () => {
+    const bounds = { bottom: -Infinity, left: Infinity, right: -Infinity, top: Infinity }
+    for (const pitch of [minPitch, restingView.pitch, degrees(70)]) {
+      for (let yaw = 0; yaw < Math.PI * 2; yaw += 0.1) {
+        for (const [x1, y1, x2, y2] of frameLines({ pitch, yaw }, camera)) {
+          bounds.left = Math.min(bounds.left, x1, x2)
+          bounds.right = Math.max(bounds.right, x1, x2)
+          bounds.top = Math.min(bounds.top, y1, y2)
+          bounds.bottom = Math.max(bounds.bottom, y1, y2)
+        }
+      }
+    }
+    expect(bounds.left).toBeGreaterThanOrEqual(0)
+    expect(bounds.right).toBeLessThanOrEqual(280)
+    expect(bounds.top).toBeGreaterThanOrEqual(0)
+    expect(bounds.bottom).toBeLessThanOrEqual(200)
+  })
+})
+
+describe('the caps', () => {
+  it('draws the MASTER knob mark as the one hot line', () => {
+    const hot = frameLines(restingView, camera).filter((line) => line[5])
+    expect(hot).toHaveLength(1)
+    expect(hot[0][4]).toBe(false)
+  })
+
+  it('draws each cap solid: its far foot and posts show dimly through it', () => {
+    const lines = frameLines(restingView, camera)
+    // The case alone has no dim posts; every cap adds some, so far more lines are dim than not.
+    const dim = lines.filter((line) => line[4]).length
+    expect(dim).toBeGreaterThan(200)
   })
 })

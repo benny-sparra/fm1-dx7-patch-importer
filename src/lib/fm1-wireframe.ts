@@ -1,6 +1,6 @@
 /*
-  The welcome's turning wireframe: the FM1 as outlines, drawn with single-pixel lines the way Elite
-  drew its ships. This file is the geometry and the camera, with no DOM, so tests can check
+  The welcome's turntable: the FM1 as glowing vector outlines, its keys, pads, buttons, and knobs
+  drawn as solid caps standing on the panel. This file is the geometry and the camera, with no DOM, so tests can check
   projection and hidden-edge culling; `fm1-wireframe.tsx` paints what it returns.
 
   Model space: x to the right, y up, z away from the viewer (the panel's top edge), all in the
@@ -36,12 +36,25 @@ export type WireframeView = {
   yaw: number
 }
 
-/** A straight line between two points on the canvas; `dim` lines are the hidden-side detail. */
-export type WireLine = readonly [x1: number, y1: number, x2: number, y2: number, dim: boolean]
+/**
+ * A straight line between two points on the canvas. `dim` lines are the hidden-side detail; a
+ * `hot` line is drawn brighter and thicker, as the MASTER knob's mark is.
+ */
+export type WireLine = readonly [
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  dim: boolean,
+  hot: boolean,
+]
 
 export const minPitch = (15 * Math.PI) / 180
 export const maxPitch = (80 * Math.PI) / 180
-export const restingView: WireframeView = { pitch: (45 * Math.PI) / 180, yaw: (18 * Math.PI) / 180 }
+export const restingView: WireframeView = { pitch: 0.85, yaw: 0.5 }
+
+/** How fast the turntable turns when nobody is turning it, in radians a second. */
+export const spinSpeed = 0.4
 
 export function clampPitch(pitch: number) {
   return Math.min(maxPitch, Math.max(minPitch, pitch))
@@ -50,10 +63,13 @@ export function clampPitch(pitch: number) {
 /** One outline, at a height, with an optional wall down to a base. `walls` are the sides' lines. */
 type Loop = {
   base: number
-  /** Whether the sides are drawn, with a vertical at each corner that is a silhouette. */
+  /**
+   * The case: its foot is dim and its far sides are left out. Every other part is a solid cap,
+   * whose far sides and posts show dimly through it.
+   */
   bright: boolean
   points: readonly Vec2[]
-  /** Indices of vertices that always get a post when their sides show (the case's corners). */
+  /** Indices of vertices that always get a post (the corners of the case or of a cap). */
   posts: readonly number[]
   top: number
   walls: boolean
@@ -92,12 +108,17 @@ function toModel(px: number, py: number): Vec2 {
   return [px - fm1PhotoCentre.x, fm1PhotoCentre.y - py]
 }
 
+/** The middle of each corner's arc, where a cap's posts stand. */
+function cornerPosts(segments: number) {
+  return [0, 1, 2, 3].map((corner) => Math.round(segments / 2) + corner * (segments + 1))
+}
+
 function rectLoop(rect: OutlineRect, top: number, base = top, segments = cornerSegments): Loop {
   return {
     base,
     bright: false,
     points: roundedRectPoints(rect, segments),
-    posts: [],
+    posts: base !== top ? cornerPosts(segments) : [],
     top,
     walls: base !== top,
   }
@@ -187,7 +208,7 @@ function buildLoops(): Loop[] {
       base: knob.base,
       bright: false,
       points: circlePoints(knobCircle),
-      posts: [],
+      posts: [0, 5, 10, 15],
       top: knob.top,
       walls: true,
     })
@@ -244,9 +265,12 @@ export type Camera = {
   width: number
 }
 
-/** A camera for a canvas: far enough for a gentle perspective, and the case framed. */
+/**
+ * A camera for a canvas: close enough for a strong perspective, with the case framed whichever way
+ * it faces, from looking nearly flat to steeply down.
+ */
 export function makeCamera(width: number, height: number): Camera {
-  return { distance: 2600, height, scale: width * 0.00063, width }
+  return { distance: 1900, height, scale: Math.min(width / 1440, height / 800), width }
 }
 
 /** A point in camera space to the canvas, with perspective shrinking what is further away. */
@@ -254,7 +278,8 @@ export function project([x, y, z]: Vec3, camera: Camera): Vec2 {
   const shrink = camera.distance / (camera.distance + z)
   return [
     camera.width / 2 + x * camera.scale * shrink,
-    camera.height * 0.4 - y * camera.scale * shrink,
+    // A little above the middle, since the near edge comes forward and down as it turns.
+    camera.height * 0.42 - y * camera.scale * shrink,
   ]
 }
 
@@ -294,7 +319,8 @@ export function sideFacesCamera(
 export function frameLines(view: WireframeView, camera: Camera): WireLine[] {
   const lines: WireLine[] = []
   const at = (x: number, y: number, z: number) => project(rotate([x, y - lift, z], view), camera)
-  const push = (a: Vec2, b: Vec2, dim: boolean) => lines.push([a[0], a[1], b[0], b[1], dim])
+  const push = (a: Vec2, b: Vec2, dim: boolean, hot = false) =>
+    lines.push([a[0], a[1], b[0], b[1], dim, hot])
 
   for (const loop of loops()) {
     const points = loop.points
@@ -323,22 +349,34 @@ export function frameLines(view: WireframeView, camera: Camera): WireLine[] {
     facing.forEach((visible, index) => {
       const next = (index + 1) % points.length
       const previous = (index + points.length - 1) % points.length
-      // The foot of a side that shows.
-      if (visible) push(base[index], base[next], true)
-      // A vertical edge where a side that shows meets one that does not (the outline's edge), and
-      // at the case's corners, whenever a side that shows meets it.
+      const shows = visible || facing[previous]
       const silhouette = visible !== facing[previous]
-      const post = loop.posts.includes(index) && (visible || facing[previous])
-      if (silhouette || post) push(top[index], base[index], !loop.bright)
+      const post = loop.posts.includes(index)
+      if (loop.bright) {
+        // The case: the dim foot of a side that shows, and a vertical edge where a side that shows
+        // meets one that does not, or at a corner a side that shows meets.
+        if (visible) push(base[index], base[next], true)
+        if (silhouette || (post && shows)) push(top[index], base[index], false)
+        return
+      }
+      // A cap: its whole foot and its corner posts, the far ones dim, so it reads as solid.
+      push(base[index], base[next], !visible)
+      if (silhouette || post) push(top[index], base[index], !silhouette && !shows)
     })
   }
 
   const [from, to] = masterMark()
-  push(at(from[0], from[1], from[2]), at(to[0], to[1], to[2]), false)
+  push(at(from[0], from[1], from[2]), at(to[0], to[1], to[2]), false, true)
   return lines
 }
 
-/** The sway of the resting view: a slow swing about where the viewer left it. */
-export function swayYaw(seconds: number) {
-  return Math.sin(seconds * 0.4) * 0.42
+/**
+ * One step of the turntable: it turns at the speed it was left with, which eases back to the
+ * resting spin, so a flick spins it faster for a moment and a drag that stopped picks up again.
+ */
+export function spinStep(yaw: number, velocity: number, seconds: number) {
+  return {
+    velocity: velocity + (spinSpeed - velocity) * Math.min(1, seconds * 1.5),
+    yaw: yaw + velocity * seconds,
+  }
 }

@@ -948,9 +948,15 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   (how is in that file's comment; `docs/fm1-outline-check.png` shows the trace on the photo); only
   the heights and the case's thickness are estimates, and the jacks on the back edge are left out
   because no photo shows them. Change a control's place there, never by eye in the renderer. It
-  takes its colours from the `--crt-*` tokens, so every finish works, draws about 12 frames a
-  second, and stops while the tab is hidden, the canvas is off screen, or the dialog is closed.
-  With reduced motion it holds one still frame, with no sway, and still turns
+  takes its colours from the `--crt-*` tokens, so every finish works: lines in `--crt-acc` with a
+  phosphor glow (blur, as a glow may have), the MASTER knob's mark lit in `--crt-acc-lt`, and each
+  key, pad, button, and knob a solid cap whose far foot and posts show dimly through it, as the
+  owner chose from the retro animation prototype on 2026-11-10. Its canvas takes the screen's
+  pixel density, so the lines stay sharp at 280 by 200. It spins a full circle on every
+  animation frame, a drag flings it and the spin eases back to its resting speed, and it stops
+  while the tab is hidden, the canvas is off screen, or the dialog is closed. Its camera frames
+  the case at every turn (`makeCamera`), so a change to the outline's sizes checks that it still
+  fits. With reduced motion it holds one still frame, with no spin, and still turns
   when dragged. It shares the guide's chunk: as a chunk of its own, with no Lucide icon, it made
   Rolldown split the JSX runtime out of the entry's shared chunk, 220 B. It reads reduced motion
   itself, since importing `src/lib/reduced-motion.ts` split that out too. The photo is what shows

@@ -19,6 +19,7 @@ function fakeContext() {
     lineWidth: 1,
     measureText: () => ({ width: 40 }),
     moveTo: vi.fn(),
+    setTransform: vi.fn(),
     stroke: vi.fn(() => {
       calls.strokes += 1
     }),
@@ -101,19 +102,19 @@ describe('Fm1Wireframe', () => {
     expect(container.querySelector('canvas')).toBeNull()
   })
 
-  it('redraws about twelve times a second rather than on every animation frame', () => {
-    const { calls } = installContext()
+  it('redraws on every animation frame while it is shown, turning as it goes', () => {
+    const { calls, context } = installContext()
+    const moves: number[] = []
+    context.moveTo.mockImplementation((x: number) => moves.push(x))
     mount()
-    const afterFirst = calls.strokes
 
     runFrames(1)
+    const first = moves.slice()
     const afterStart = calls.strokes
-    runFrames(20)
-    runFrames(40)
-    expect(calls.strokes).toBe(afterStart)
-    runFrames(100)
+    moves.length = 0
+    runFrames(17)
     expect(calls.strokes).toBeGreaterThan(afterStart)
-    expect(afterStart).toBeGreaterThanOrEqual(afterFirst)
+    expect(moves).not.toEqual(first)
   })
 
   it('stops drawing while the tab is hidden and carries on when it returns', () => {

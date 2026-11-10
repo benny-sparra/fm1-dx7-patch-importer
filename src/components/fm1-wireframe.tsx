@@ -11,7 +11,7 @@ type Fm1WireframeProps = {
 }
 
 /**
- * The FM1 as a slowly turning outline, traced from its photo. Decoration only: it is hidden from
+ * The FM1 as a glowing outline on a turntable, traced from its photo. Decoration only: it is hidden from
  * assistive technology and takes no focus, so the welcome reads the same without it. It turns when
  * dragged, and from the arrow keys while the welcome's dialog has the keyboard.
  */
@@ -35,7 +35,7 @@ export function Fm1Wireframe({ colorway, fallback }: Fm1WireframeProps) {
     <canvas
       aria-hidden="true"
       className={cn(
-        'crt-inset block h-auto w-[280px] max-w-full cursor-grab touch-pan-y [image-rendering:pixelated] active:cursor-grabbing',
+        'crt-inset block h-auto w-[280px] max-w-full cursor-grab touch-pan-y active:cursor-grabbing',
       )}
       height={wireframeHeight}
       ref={canvasRef}
