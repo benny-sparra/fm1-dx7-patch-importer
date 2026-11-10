@@ -1,6 +1,7 @@
 import './dynamic-import-recovery'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import i18n from 'i18next'
 import './fonts.css'
 import './index.css'
 import { i18nReady } from './i18n'
@@ -38,6 +39,6 @@ void i18nReady.then(() => {
       monitoringRootOptions = options
     })
     // Decoration only, so a chunk a deploy has renamed leaves the page as it was.
-    import('./lib/retro-motion-start.ts').catch(() => {})
+    import('./lib/retro-motion-start.ts').then((idle) => idle.default(i18n)).catch(() => {})
   })
 })

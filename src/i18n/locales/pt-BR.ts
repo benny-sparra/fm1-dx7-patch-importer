@@ -1042,6 +1042,7 @@ export default {
       'Projeto independente de código aberto. Não é afiliado nem endossado pela M-VAVE ou Yamaha.',
   },
   settings: {
+    screenSaver: 'Protetor de tela',
     description: 'Escolha o idioma da interface, as portas MIDI e os canais.',
     output: 'Saída',
     inputMonitor: 'Entrada de monitoração',
@@ -1613,5 +1614,9 @@ export default {
       'A faixa {{track}} usa {{engine}}, que não aceita um som, então nada foi enviado. Coloque a faixa {{track}} em DX7 no FM1 ou escolha o canal de notas de uma faixa que use DX7.',
     unread:
       'O FM1 não informou qual motor a faixa {{track}} usa, então o som não foi enviado. Verifique se o FM1 está conectado e tente de novo.',
+  },
+  attract: {
+    pressAnyKey: 'PRESSIONE QUALQUER TECLA',
+    switchOff: 'Desative o protetor de tela em Configurações ⋮',
   },
 } as const

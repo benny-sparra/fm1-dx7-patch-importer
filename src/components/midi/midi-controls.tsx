@@ -1,5 +1,6 @@
 import { Cpu, KeyboardMusic, Languages, MoreVertical, Radio, SlidersHorizontal } from 'lucide-react'
 import type { TFunction } from 'i18next'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { midiChannels, type MidiController } from '@/hooks/use-midi'
@@ -9,6 +10,7 @@ import { useDismissableDetails } from '@/hooks/use-dismissable-details'
 import { localeNames, supportedLocales, type SupportedLocale } from '@/i18n/locale'
 import { setLocale } from '@/i18n'
 import { Switch } from '@/components/ui/switch'
+import { readAttractModeEnabled, rememberAttractModeEnabled } from '@/lib/attract-setting'
 
 import { DeviceSelect, SettingsSelect } from './device-select'
 
@@ -228,6 +230,25 @@ function FirmwareStatus({ midi }: { midi: Pick<MidiController, 'firmware' | 'sel
   )
 }
 
+/** Whether the screen saver (attract mode) may come on once the page sits idle; on by default. */
+function ScreenSaverSetting() {
+  const { t } = useTranslation()
+  const [enabled, setEnabled] = useState(readAttractModeEnabled)
+  return (
+    <div className="settings-option flex min-h-16 items-center rounded-lg border px-3 py-3 sm:col-span-2">
+      <Switch
+        checked={enabled}
+        onChange={(on) => {
+          setEnabled(on)
+          rememberAttractModeEnabled(on)
+        }}
+      >
+        <span>{t('settings.screenSaver')}</span>
+      </Switch>
+    </div>
+  )
+}
+
 export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
   const menuRef = useDismissableDetails()
   const { i18n, t } = useTranslation()
@@ -312,6 +333,7 @@ export function MidiSettingsMenu({ midi }: MidiSettingsMenuProps) {
           </SettingsSelect>
           <span className="text-[11px] text-muted-foreground">{t('settings.defaultChannel')}</span>
         </label>
+        <ScreenSaverSetting />
       </div>
     </details>
   )

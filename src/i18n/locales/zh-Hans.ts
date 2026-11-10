@@ -942,6 +942,7 @@ export default {
     disclaimer: '独立开源项目，与 M-VAVE 或 Yamaha 无隶属关系，也未获其认可。',
   },
   settings: {
+    screenSaver: '屏幕保护程序',
     description: '选择界面语言、MIDI 端口和通道。',
     output: '输出',
     inputMonitor: '监听输入',
@@ -1469,5 +1470,9 @@ export default {
       '音轨 {{track}} 使用的是 {{engine}}，无法接收音色，因此没有发送任何内容。请在 FM1 上把音轨 {{track}} 设为 DX7，或选择使用 DX7 的音轨所在的音符通道。',
     unread:
       'FM1 没有告知音轨 {{track}} 使用哪种引擎，因此没有发送音色。请检查 FM1 是否已连接，然后重试。',
+  },
+  attract: {
+    pressAnyKey: '按任意键',
+    switchOff: '可在设置 ⋮ 中关闭屏幕保护程序',
   },
 } as const

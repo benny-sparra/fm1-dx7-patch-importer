@@ -1074,6 +1074,7 @@ export default {
       'Unabhängiges Open-Source-Projekt. Nicht mit M-VAVE oder Yamaha verbunden oder von ihnen unterstützt.',
   },
   settings: {
+    screenSaver: 'Bildschirmschoner',
     description: 'Wähle Oberflächensprache, MIDI-Ports und Kanäle.',
     output: 'Ausgang',
     inputMonitor: 'Monitoring-Eingang',
@@ -1654,5 +1655,9 @@ export default {
       'Spur {{track}} spielt {{engine}} und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur {{track}} am FM1 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
     unread:
       'Der FM1 hat nicht gemeldet, welche Engine Spur {{track}} spielt, deshalb wurde der Sound nicht gesendet. Prüfe, ob der FM1 verbunden ist, und versuche es dann erneut.',
+  },
+  attract: {
+    pressAnyKey: 'BELIEBIGE TASTE DRÜCKEN',
+    switchOff: 'Den Bildschirmschoner schaltest du unter Einstellungen ⋮ aus',
   },
 } as const

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import de from './locales/de'
 import britishEnglish from './locales/en-GB'
+import britishEnglishAttract from './locales/en-GB-attract'
 import britishEnglishEditorHelp from './locales/en-GB-editor-help'
 import britishEnglishFxPresets from './locales/en-GB-fx-presets'
 import britishEnglishHelp from './locales/en-GB-help'
@@ -32,6 +33,12 @@ function mergeStrings<T extends object, U extends object>(target: T, source: U):
 // British English strings that load with the lazy chunks that show them, each with the module that
 // adds it and one module known to read it.
 const lazyBritishEnglish = [
+  {
+    // Attract mode adds these itself, through the page's i18next (src/lib/attract-mode.ts).
+    module: '@/i18n/locales/en-GB-attract',
+    reader: '/src/lib/attract-mode.ts',
+    strings: britishEnglishAttract,
+  },
   {
     module: '@/i18n/fx-presets',
     reader: '/src/components/midi/fx-preset-library.tsx',
@@ -227,7 +234,9 @@ describe('translation resources', () => {
       const readers = new Set(lazyKeys.flatMap((key) => readersOf(key, Object.keys(strings))))
       const importsModule = new Map(sources)
       const missingImport = [...readers].filter(
-        (path) => !importsModule.get(path)?.includes(`import '${module}'`),
+        (path) =>
+          !importsModule.get(path)?.includes(`import '${module}'`) &&
+          !importsModule.get(path)?.includes(` from '${module}'`),
       )
 
       expect([...readers]).toContain(reader)

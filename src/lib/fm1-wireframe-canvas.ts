@@ -9,85 +9,137 @@ import {
   frameLines,
   makeCamera,
   restingView,
-  swayYaw,
+  spinSpeed,
+  spinStep,
+  type WireframeView,
   type WireLine,
 } from './fm1-wireframe'
 
-/** The canvas's size in its own pixels. It is drawn at this size and scaled, so every line is a pixel. */
+/** The canvas's size on the page; its pixels follow the screen's, so the lines stay sharp. */
 export const wireframeWidth = 280
 export const wireframeHeight = 200
 
-// Elite redrew its screen a dozen times a second, and so does this: it reads as a vector display.
-const frameInterval = 1000 / 12
-const turnPerPixel = 0.011
+const turnPerPixel = 0.01
 const tiltPerPixel = 0.006
+// A drag leaves the turntable spinning at the speed of the last move.
+const flingPerPixel = 0.6
 const keyTurn = 0.16
 const keyTilt = 0.08
+// The longest step one frame takes, so a stalled frame does not jump the case round.
+const longestStepMs = 50
+const glowBlur = 6
 
-type Palette = { bright: string; dim: string; ground: string }
+export type Palette = { bright: string; ground: string; line: string }
 
-// Read from the page's tokens, so the outline follows the finish chosen.
-function readPalette(element: Element): Palette {
+/** Read from the page's tokens, so the outline follows the finish chosen. */
+export function readPalette(element: Element): Palette {
   const style = getComputedStyle(element)
   const token = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback
   return {
     bright: token('--crt-acc-lt', '#9ff'),
-    dim: token('--crt-acc-dim', '#488'),
     ground: token('--crt-bg-well', '#000'),
+    line: token('--crt-acc', '#6cc'),
   }
 }
+
+type Stroke = { alpha: number; colour: 'bright' | 'line'; width: number }
+
+// Hidden-side detail faintly, the outline in the accent, and a hot line lit and thicker.
+const strokes: ReadonlyArray<readonly [(line: WireLine) => boolean, Stroke]> = [
+  [(line) => line[4] && !line[5], { alpha: 0.35, colour: 'line', width: 1 }],
+  [(line) => !line[4] && !line[5], { alpha: 0.8, colour: 'line', width: 1 }],
+  [(line) => line[5], { alpha: 1, colour: 'bright', width: 2 }],
+]
 
 function strokeLines(
   context: CanvasRenderingContext2D,
   lines: readonly WireLine[],
-  dim: boolean,
-  colour: string,
+  include: (line: WireLine) => boolean,
 ) {
-  context.strokeStyle = colour
   context.beginPath()
-  for (const [x1, y1, x2, y2, isDim] of lines) {
-    if (isDim !== dim) continue
-    // Half a pixel in, so a one-pixel line lands on one row of pixels rather than two.
-    context.moveTo(Math.round(x1) + 0.5, Math.round(y1) + 0.5)
-    context.lineTo(Math.round(x2) + 0.5, Math.round(y2) + 0.5)
+  for (const line of lines) {
+    if (!include(line)) continue
+    context.moveTo(line[0], line[1])
+    context.lineTo(line[2], line[3])
   }
   context.stroke()
 }
 
 /**
- * Starts the outline on a canvas: it sways about 12 frames a second, stops while the tab is hidden
- * or the canvas is off screen, turns when dragged, and holds one still frame with reduced motion.
- * Inside a `<dialog>`, the arrow keys turn it while the dialog has the keyboard, since the canvas
- * takes no focus, and a closed dialog draws nothing. Returns the cleanup, or null when the browser
- * cannot draw on a canvas.
+ * Strokes the case, turned to `view`, glowing in the palette's colours, into a box of the given
+ * size at the context's origin. The caller fills the ground and places the box.
+ */
+export function paintWireframe(
+  context: CanvasRenderingContext2D,
+  view: WireframeView,
+  width: number,
+  height: number,
+  palette: Palette,
+) {
+  context.lineJoin = 'round'
+  // The phosphor's glow: blur belongs to light, never to a shadow.
+  context.shadowColor = palette.line
+  context.shadowBlur = glowBlur
+  const lines = frameLines(view, makeCamera(width, height))
+  for (const [include, stroke] of strokes) {
+    context.globalAlpha = stroke.alpha
+    context.lineWidth = stroke.width
+    context.strokeStyle = palette[stroke.colour]
+    strokeLines(context, lines, include)
+  }
+  context.globalAlpha = 1
+  context.shadowBlur = 0
+}
+
+/**
+ * Starts the outline on a canvas: it spins on every animation frame, stops while the tab is hidden
+ * or the canvas is off screen, turns when dragged and keeps the speed it was flung at, and holds
+ * one still frame with reduced motion. Inside a `<dialog>`, the arrow keys turn it while the dialog
+ * has the keyboard, since the canvas takes no focus, and a closed dialog draws nothing. Returns the
+ * cleanup, or null when the browser cannot draw on a canvas.
  */
 export function runFm1Wireframe(canvas: HTMLCanvasElement): (() => void) | null {
   const context = canvas.getContext('2d')
   if (!context) return null
 
-  const camera = makeCamera(wireframeWidth, wireframeHeight)
   // Read here rather than from `@/lib/reduced-motion`: importing that made Rolldown split it out of
   // the entry into a chunk of its own, costing the entry bytes it never needed.
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
   const palette = readPalette(canvas)
   const dialog = canvas.closest('dialog')
-  const turn = { pitch: restingView.pitch, yaw: restingView.yaw }
-  let seconds = 0
+  const turn = {
+    pitch: restingView.pitch,
+    velocity: reduced ? 0 : spinSpeed,
+    yaw: restingView.yaw,
+  }
   let frame = 0
   let last = 0
   let visible = true
   let drawn = false
+  let dragging: { x: number; y: number } | null = null
+
+  // The canvas's pixels match its size on the page times the screen's density.
+  const fit = () => {
+    const width = canvas.clientWidth || wireframeWidth
+    const height = canvas.clientHeight || wireframeHeight
+    const density = window.devicePixelRatio || 1
+    const pixelWidth = Math.round(width * density)
+    const pixelHeight = Math.round(height * density)
+    if (canvas.width !== pixelWidth) canvas.width = pixelWidth
+    if (canvas.height !== pixelHeight) canvas.height = pixelHeight
+    context.setTransform(density, 0, 0, density, 0, 0)
+    return { height, width }
+  }
 
   const draw = () => {
     // A closed dialog draws nothing; the welcome is unmounted as it closes, so this is a guard.
     if (dialog && !dialog.open) return
-    const view = { pitch: turn.pitch, yaw: turn.yaw + (reduced ? 0 : swayYaw(seconds)) }
+    const { height, width } = fit()
+    context.globalAlpha = 1
+    context.shadowBlur = 0
     context.fillStyle = palette.ground
-    context.fillRect(0, 0, wireframeWidth, wireframeHeight)
-    context.lineWidth = 1
-    const lines = frameLines(view, camera)
-    strokeLines(context, lines, true, palette.dim)
-    strokeLines(context, lines, false, palette.bright)
+    context.fillRect(0, 0, width, height)
+    paintWireframe(context, turn, width, height, palette)
     drawn = true
   }
 
@@ -95,10 +147,9 @@ export function runFm1Wireframe(canvas: HTMLCanvasElement): (() => void) | null 
     frame = 0
     if (!visible || document.hidden) return
     frame = requestAnimationFrame(tick)
-    if (last !== 0 && time - last < frameInterval) return
-    // A long gap, such as a tab coming back, advances one frame rather than jumping.
-    seconds += (last === 0 ? frameInterval : Math.min(time - last, 250)) / 1000
+    const seconds = last === 0 ? 0 : Math.min(time - last, longestStepMs) / 1000
     last = time
+    if (!dragging) Object.assign(turn, spinStep(turn.yaw, turn.velocity, seconds))
     draw()
   }
   const start = () => {
@@ -149,15 +200,17 @@ export function runFm1Wireframe(canvas: HTMLCanvasElement): (() => void) | null 
   }
   dialog?.addEventListener('keydown', onKeyDown)
 
-  let dragging: { x: number; y: number } | null = null
   const onPointerDown = (event: PointerEvent) => {
     dragging = { x: event.clientX, y: event.clientY }
     canvas.setPointerCapture?.(event.pointerId)
   }
   const onPointerMove = (event: PointerEvent) => {
     if (!dragging) return
-    turn.yaw += (event.clientX - dragging.x) * turnPerPixel
+    const dx = event.clientX - dragging.x
+    turn.yaw += dx * turnPerPixel
     turn.pitch = clampPitch(turn.pitch + (event.clientY - dragging.y) * tiltPerPixel)
+    // With reduced motion a drag turns it and leaves it there, with no spin afterwards.
+    if (!reduced) turn.velocity = dx * flingPerPixel
     dragging = { x: event.clientX, y: event.clientY }
     draw()
   }

@@ -493,6 +493,34 @@
   }
 
   /*
+   * Attract mode's screen (src/lib/attract-mode.ts): over everything but the top layer, where an
+   * open dialog would sit, though it never starts while one is open. It fades in and hides the
+   * cursor, as a screen saver does; a press on it wakes the page and reaches nothing beneath.
+   */
+  .attract-mode {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    cursor: none;
+    animation: attract-mode-in 600ms ease-out both;
+  }
+
+  @keyframes attract-mode-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .attract-mode {
+      animation: none;
+    }
+  }
+
+  /*
    * Dialog title bar. Two hairlines run the full width of the bar and the
    * title and close button sit on top of them painted in the dialog's own
    * background, knocking a gap out of the rules rather than interrupting

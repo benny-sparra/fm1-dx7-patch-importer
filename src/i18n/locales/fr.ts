@@ -1059,6 +1059,7 @@ export default {
       'Projet open source indépendant, non affilié à M-VAVE ou Yamaha et non approuvé par ces sociétés.',
   },
   settings: {
+    screenSaver: 'Économiseur d’écran',
     description: 'Choisissez la langue de l’interface, les ports MIDI et les canaux.',
     output: 'Sortie',
     inputMonitor: 'Entrée de contrôle',
@@ -1632,5 +1633,9 @@ export default {
       'La piste {{track}} utilise {{engine}}, qui ne peut pas recevoir de son, donc rien n’a été envoyé. Réglez la piste {{track}} sur DX7 sur le FM1, ou choisissez le canal des notes d’une piste qui utilise DX7.',
     unread:
       'Le FM1 n’a pas indiqué quel moteur utilise la piste {{track}}, donc le son n’a pas été envoyé. Vérifiez que le FM1 est connecté, puis réessayez.',
+  },
+  attract: {
+    pressAnyKey: 'APPUYEZ SUR UNE TOUCHE',
+    switchOff: 'Désactivez l’économiseur d’écran dans Réglages ⋮',
   },
 } as const

@@ -1057,6 +1057,7 @@ export default {
       'Proyecto independiente de código abierto. No está afiliado ni respaldado por M-VAVE o Yamaha.',
   },
   settings: {
+    screenSaver: 'Salvapantallas',
     description: 'Elige el idioma de la interfaz, los puertos MIDI y los canales.',
     output: 'Salida',
     inputMonitor: 'Entrada de monitorización',
@@ -1630,5 +1631,9 @@ export default {
       'La pista {{track}} usa {{engine}}, que no admite un sonido, así que no se envió nada. Pon la pista {{track}} en DX7 en el FM1, o elige el canal de notas de una pista que use DX7.',
     unread:
       'El FM1 no indicó qué motor usa la pista {{track}}, así que el sonido no se envió. Comprueba que el FM1 esté conectado y vuelve a intentarlo.',
+  },
+  attract: {
+    pressAnyKey: 'PULSA CUALQUIER TECLA',
+    switchOff: 'Desactiva el salvapantallas en Ajustes ⋮',
   },
 } as const

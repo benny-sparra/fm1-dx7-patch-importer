@@ -922,7 +922,7 @@
     }
   }
 
-  /* Drawn at 280 by 200 and shown at that size, so every line is one pixel. */
+  /* Shown at 280 by 200; its pixels follow the screen's (src/lib/fm1-wireframe-canvas.ts). */
   .firmware-showcase-canvas {
     display: block;
     box-sizing: content-box;
@@ -930,7 +930,6 @@
     height: 200px;
     background: var(--crt-bg-well);
     cursor: grab;
-    image-rendering: pixelated;
     touch-action: pan-y;
   }
 

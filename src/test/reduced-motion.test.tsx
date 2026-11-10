@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import '@/i18n'
 import { Fm1Wireframe } from '@/components/fm1-wireframe'
+import { attractIdleMs, installAttractIdle } from '@/lib/attract-idle'
 import { AlgorithmPanel } from '@/components/editor/editor-workspace'
 import { OscillatorScope } from '@/components/editor/oscillator-scope'
 import { LfoWaveControl, PicturePickerControl } from '@/components/editor/parameter-controls'
@@ -116,6 +117,27 @@ describe('reduced motion', () => {
 
     expect(snaps(/\.menu-flash-copy,\s*\.phosphor-afterglow\s*\{\s*display:\s*none;/)).toBe(true)
     expect(snaps(/\.patch-name\[data-scramble\]::after\s*\{\s*content:\s*none;/)).toBe(true)
+  })
+
+  it('never starts attract mode, and snaps its fade, when reduced motion is requested', async () => {
+    const css = await readFile(path.resolve('src/index.css'), 'utf8')
+    const reducedMotionBlocks = css
+      .split('@media (prefers-reduced-motion: reduce)')
+      .slice(1)
+      .map((block) => block.slice(0, block.indexOf('\n  }\n')))
+    expect(
+      reducedMotionBlocks.some((block) => /\.attract-mode\s*\{\s*animation:\s*none;/.test(block)),
+    ).toBe(true)
+
+    vi.useFakeTimers()
+    vi.stubGlobal('matchMedia', () => ({ matches: true }))
+    const load = vi.fn(() => new Promise<never>(() => {}))
+    const uninstall = installAttractIdle({ addResourceBundle: vi.fn(), t: vi.fn() } as never, load)
+    await vi.advanceTimersByTimeAsync(attractIdleMs * 3)
+    expect(load).not.toHaveBeenCalled()
+    uninstall()
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
   })
 
   it('leaves the degauss out when reduced motion is requested', async () => {
@@ -437,7 +459,7 @@ describe('reduced motion', () => {
     vi.unstubAllGlobals()
     Reflect.deleteProperty(HTMLElement.prototype, 'scrollTo')
   })
-  it('holds the welcome’s FM1 outline still: no sway, no animation loop', () => {
+  it('holds the welcome’s FM1 outline still: no spin, no animation loop', () => {
     const strokes: string[] = []
     let stroke: string[] = []
     const context = {
@@ -449,6 +471,7 @@ describe('reduced motion', () => {
       lineWidth: 1,
       measureText: () => ({ width: 40 }),
       moveTo: (x: number, y: number) => stroke.push(`${x},${y}`),
+      setTransform: () => {},
       stroke: () => strokes.push(stroke.join(';')),
       strokeStyle: '',
       strokeText: () => {},

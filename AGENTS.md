@@ -123,7 +123,7 @@ open everything an earlier release could have saved.
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
-  `fm1-colourway`, `smk37-colourway` (the SMK-37's finish, kept apart from the FM1's), `fm1-last-backup`, `fm1-v16-effects` (the current shared V16 effects, version
+  `fm1-colourway`, `smk37-colourway` (the SMK-37's finish, kept apart from the FM1's), `fm1-last-backup`, `fm1-attract-mode` (the screen saver switch, `off` or `on`, read as on when missing or anything else), `fm1-v16-effects` (the current shared V16 effects, version
   1), and `fm1-voice-setup` (V16's Voice setup: a version 1 record
   of the "Play several Voices" switch and each of eight Voices' preset and channel), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
@@ -611,7 +611,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the SMK-37 write dialog when **Write to SMK-37…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the SMK-37 header photos (`src/lib/smk37-colorway-images.ts`) when an SMK-37 is identified, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, the page's idle decoration (`src/lib/retro-motion.ts`) once the page goes idle, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the SMK-37 write dialog when **Write to SMK-37…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the SMK-37 header photos (`src/lib/smk37-colorway-images.ts`) when an SMK-37 is identified, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, the page's idle decoration (`src/lib/retro-motion.ts`) once the page goes idle, attract mode (`src/lib/attract-mode.ts`, with its string) once the page has sat untouched for three minutes, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -948,9 +948,15 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   (how is in that file's comment; `docs/fm1-outline-check.png` shows the trace on the photo); only
   the heights and the case's thickness are estimates, and the jacks on the back edge are left out
   because no photo shows them. Change a control's place there, never by eye in the renderer. It
-  takes its colours from the `--crt-*` tokens, so every finish works, draws about 12 frames a
-  second, and stops while the tab is hidden, the canvas is off screen, or the dialog is closed.
-  With reduced motion it holds one still frame, with no sway, and still turns
+  takes its colours from the `--crt-*` tokens, so every finish works: lines in `--crt-acc` with a
+  phosphor glow (blur, as a glow may have), the MASTER knob's mark lit in `--crt-acc-lt`, and each
+  key, pad, button, and knob a solid cap whose far foot and posts show dimly through it, as the
+  owner chose from the retro animation prototype on 2026-11-10. Its canvas takes the screen's
+  pixel density, so the lines stay sharp at 280 by 200. It spins a full circle on every
+  animation frame, a drag flings it and the spin eases back to its resting speed, and it stops
+  while the tab is hidden, the canvas is off screen, or the dialog is closed. Its camera frames
+  the case at every turn (`makeCamera`), so a change to the outline's sizes checks that it still
+  fits. With reduced motion it holds one still frame, with no spin, and still turns
   when dragged. It shares the guide's chunk: as a chunk of its own, with no Lucide icon, it made
   Rolldown split the JSX runtime out of the entry's shared chunk, 220 B. It reads reduced motion
   itself, since importing `src/lib/reduced-motion.ts` split that out too. The photo is what shows
@@ -1384,6 +1390,29 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   and cost the entry 226 B. It writes only `data-` attributes React does not render, never
   text React owns, and its glyphs are generated content with an empty alternative
   (`content: … / ''`), so the accessible name stays the patch's own.
+- Attract mode is the one decoration that covers the page, because it is a screen saver (the
+  owner's choice, 2026-11-10, idea 13 of the retro animation prototype): once nobody has touched
+  the page for three minutes (`attractIdleMs`), the turntable's FM1 drifts and spins over the
+  dimmed page, bouncing off its edges, with **PRESS ANY KEY** blinking under it and, dim and
+  steady below that, how to switch it off. It is on by default (the owner, 2026-11-10: "it's very
+  cool"), and **Screen saver**, a `Switch` in the Settings menu, switches it off, stored by
+  `src/lib/attract-setting.ts`, which the menu and the watch both read. The watch
+  (`src/lib/attract-idle.ts`) starts with the idle decoration in `retro-motion-start.ts`, and
+  loads `src/lib/attract-mode.ts` only when the time comes. It never starts while the tab is
+  hidden, its window is not focused (the page beside a DAW, where moving the mouse never reaches
+  it, would otherwise blank as someone works there), a dialog is open (every transfer, import, and confirmation runs in one), the library is
+  saving (`data-saving` on the root, set by `usePatchLibrary` from an edit until it is stored),
+  or a MIDI activity LED is lit, which counts as activity, so playing the FM1 or a patch going
+  out keeps it away; any of those ends it too. With reduced motion it never starts. Any key,
+  pointer move of 4 px or more, wheel, or press ends it, and that key or press does nothing else:
+  the key is swallowed and a press lands on its own canvas, which goes as it wakes. Its canvas is
+  `aria-hidden`, takes no focus, and sends nothing. It paints with the welcome's
+  `paintWireframe`, so a change to the turntable's look shows there too. It takes the page's
+  i18next from the entry (`main.tsx` hands it to `retro-motion-start.ts`) and adds its own
+  British English through it, never importing i18next or `react-i18next`: either import made
+  Rolldown split i18next out of the entry's shared chunk, 450 B over the budget. Its entry cost
+  is 201 B: 67 B for the `data-saving` attribute and the handover, and 134 B for the Settings
+  switch and its label.
 - A lazy readout's afterglow (`PhosphorAfterglow`) and the keyboard's velocity meter
   (`VelocityMeter`, from `src/lib/peak-meter.ts`) draw their figures from `data-` attributes or
   paint from an animation frame, so the page never holds an old value as text a test or screen

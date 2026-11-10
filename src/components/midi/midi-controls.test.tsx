@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -126,6 +127,42 @@ describe('MidiSettingsMenu firmware', () => {
 
     expect(screen.getByText('Checking…')).toBeTruthy()
     expect(screen.queryByText(/Choose the FM1 as the input monitor/)).toBeNull()
+  })
+})
+
+describe('MidiSettingsMenu screen saver', () => {
+  afterEach(() => localStorage.clear())
+
+  it('has the screen saver switched on by default', () => {
+    renderSettings({ kind: 'unidentified' })
+
+    expect((screen.getByRole('switch', { name: 'Screen saver' }) as HTMLInputElement).checked).toBe(
+      true,
+    )
+  })
+
+  it('remembers the screen saver switched off, and shows it off next time', async () => {
+    const user = userEvent.setup()
+    renderSettings({ kind: 'unidentified' })
+    await user.click(screen.getByRole('switch', { name: 'Screen saver' }))
+
+    expect((screen.getByRole('switch', { name: 'Screen saver' }) as HTMLInputElement).checked).toBe(
+      false,
+    )
+    cleanup()
+    renderSettings({ kind: 'unidentified' })
+    expect((screen.getByRole('switch', { name: 'Screen saver' }) as HTMLInputElement).checked).toBe(
+      false,
+    )
+  })
+
+  it('names the screen saver in German', async () => {
+    await setLocale('de')
+    renderSettings({ kind: 'unidentified' })
+
+    expect(
+      (screen.getByRole('switch', { name: 'Bildschirmschoner' }) as HTMLInputElement).checked,
+    ).toBe(true)
   })
 })
 
