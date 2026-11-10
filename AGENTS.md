@@ -1400,13 +1400,15 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   size, and the entry pays only the class name. It shows no progress, since a DX7 bank goes as
   one message: the reels never fill or empty. The FX send and the MIDI switch keep the barber
   pole. With reduced motion the frame and reels hold still.
-- Under the footer's text, a synthwave horizon (the owner's choice, 2026-11-10, idea 06): a
-  sun in the finish's LED colour, fading to the pink phosphor and cut into bands, rests on a
-  glowing grid floor whose cross lines run towards the viewer. It is generated content on
-  `footer.hero-footer-text` (`::before` the sun, `::after` the floor, which is in flow and makes
-  the footer 92px taller), so it costs the entry no JavaScript and says nothing to assistive
-  technology, and it sits below the text, never behind it. With reduced motion the floor holds
-  still.
+- A synthwave horizon (the owner's choice, 2026-11-10, idea 06) runs along the foot of an empty
+  bank and of Favourites before anything is hearted: a sun in the finish's LED colour, fading to
+  the pink phosphor and cut into bands, rests on a glowing grid floor whose cross lines run
+  towards the viewer. The owner tried it under the footer first and moved it here, where it
+  fills an empty space at a natural moment. It is the `synthwave-horizon` class on those two
+  boxes, generated content (`::before` the sun, `::after` the floor), so it costs the entry only
+  the class name and says nothing to assistive technology; a search that matched nothing keeps
+  its plain box. The box's children stand above it and keep 84px clear beneath them, so the
+  message and its buttons never sit on the sun. With reduced motion the floor holds still.
 - Attract mode is the one decoration that covers the page, because it is a screen saver (the
   owner's choice, 2026-11-10, idea 13 of the retro animation prototype): once nobody has touched
   the page for three minutes (`attractIdleMs`), the turntable's FM1 drifts and spins over the

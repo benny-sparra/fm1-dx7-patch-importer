@@ -184,6 +184,16 @@ describe('LibrarianPage Favourites', () => {
     expect(undoChange).toHaveBeenCalledExactlyOnceWith(snapshot)
   })
 
+  it('sets an empty bank, and an empty Favourites, on the synthwave horizon', async () => {
+    const user = renderPage(makeLibrary(emptyPatchLibrary(['A'])), connectedMidi())
+
+    const bank = screen.getByRole('heading', { name: 'This bank is empty' })
+    expect(bank.closest('.synthwave-horizon')).not.toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Favourites' }))
+    const favourites = screen.getByRole('heading', { name: 'No favourites yet' })
+    expect(favourites.closest('.synthwave-horizon')).not.toBeNull()
+  })
+
   it('explains an empty Favourites and says why it cannot be sent', async () => {
     const user = renderPage(makeLibrary(makeWorkspace(0)), connectedMidi())
 

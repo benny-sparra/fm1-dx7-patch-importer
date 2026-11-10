@@ -1534,18 +1534,26 @@
   }
 
   /*
-   * Under the footer's text, a synthwave horizon (idea 06 of the retro animation prototype): a
-   * striped sun sinking behind a glowing grid floor that scrolls towards the viewer. It is
-   * generated content, so it costs the page's JavaScript nothing and says nothing to assistive
-   * technology, and it sits below the text rather than behind it, so the text keeps its ground.
+   * A synthwave horizon along the foot of an empty bank and of Favourites before anything is
+   * hearted (idea 06 of the retro animation prototype): a striped sun sinking behind a glowing
+   * grid floor that scrolls towards the viewer. It is generated content, so it costs the page's
+   * JavaScript only its class name and says nothing to assistive technology. The message and its
+   * buttons stay above it, and the box keeps room for it below them.
    */
-  footer.hero-footer-text {
+  .synthwave-horizon {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
   }
 
+  .synthwave-horizon > * {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 84px;
+  }
+
   /* The sun, resting on the horizon, its lower half cut into bands. */
-  footer.hero-footer-text::before {
+  .synthwave-horizon::before {
     position: absolute;
     bottom: 52px;
     left: 50%;
@@ -1579,10 +1587,12 @@
   }
 
   /* The grid floor, tilted away to the horizon, its cross lines coming towards the viewer. */
-  footer.hero-footer-text::after {
-    display: block;
+  .synthwave-horizon::after {
+    position: absolute;
+    right: -50%;
+    bottom: 0;
+    left: -50%;
     height: 52px;
-    margin: 40px -50% 0;
     border-top: 1px solid var(--crt-acc);
     background:
       linear-gradient(to bottom, var(--crt-acc) 0 1px, transparent 1px) 0 0 / 100% 13px,
@@ -1652,7 +1662,7 @@
 
     .tape-loader::before,
     .tape-loader::after,
-    footer.hero-footer-text::after {
+    .synthwave-horizon::after {
       animation: none;
     }
 

@@ -214,7 +214,7 @@ describe('reduced motion', () => {
     ).toBe(true)
   })
 
-  it('holds the tape loader’s stripes and reels, and the footer’s horizon, still when reduced motion is requested', async () => {
+  it('holds the tape loader’s stripes and reels, and the empty banks’ horizon, still when reduced motion is requested', async () => {
     const css = await readFile(path.resolve('src/index.css'), 'utf8')
     const reducedMotionBlocks = css
       .split('@media (prefers-reduced-motion: reduce)')
@@ -223,7 +223,7 @@ describe('reduced motion', () => {
 
     expect(
       reducedMotionBlocks.some((block) =>
-        /\.tape-loader::before,\s*\.tape-loader::after,\s*footer\.hero-footer-text::after\s*\{\s*animation:\s*none;/.test(
+        /\.tape-loader::before,\s*\.tape-loader::after,\s*\.synthwave-horizon::after\s*\{\s*animation:\s*none;/.test(
           block,
         ),
       ),

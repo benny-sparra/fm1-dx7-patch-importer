@@ -1457,7 +1457,7 @@ export function LibrarianPage({
           focusRequest={slotFocusRequest}
           emptyState={
             showsFavourites ? (
-              <div className="grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
+              <div className="synthwave-horizon grid min-h-72 place-items-center border border-dashed border-[var(--crt-line)] bg-[var(--crt-bg-well)] p-6 text-center">
                 <div className="max-w-md">
                   <PixelHeartIcon
                     aria-hidden="true"
