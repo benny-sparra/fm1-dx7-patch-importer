@@ -1059,6 +1059,7 @@ export default {
       'Projet open source indépendant, non affilié à M-VAVE ou Yamaha et non approuvé par ces sociétés.',
   },
   settings: {
+    screenSaver: 'Économiseur d’écran',
     description: 'Choisissez la langue de l’interface, les ports MIDI et les canaux.',
     output: 'Sortie',
     inputMonitor: 'Entrée de contrôle',
@@ -1635,5 +1636,6 @@ export default {
   },
   attract: {
     pressAnyKey: 'APPUYEZ SUR UNE TOUCHE',
+    switchOff: 'Désactivez l’économiseur d’écran dans Réglages ⋮',
   },
 } as const

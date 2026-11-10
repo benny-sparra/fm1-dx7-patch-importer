@@ -1074,6 +1074,7 @@ export default {
       'Unabhängiges Open-Source-Projekt. Nicht mit M-VAVE oder Yamaha verbunden oder von ihnen unterstützt.',
   },
   settings: {
+    screenSaver: 'Bildschirmschoner',
     description: 'Wähle Oberflächensprache, MIDI-Ports und Kanäle.',
     output: 'Ausgang',
     inputMonitor: 'Monitoring-Eingang',
@@ -1657,5 +1658,6 @@ export default {
   },
   attract: {
     pressAnyKey: 'BELIEBIGE TASTE DRÜCKEN',
+    switchOff: 'Den Bildschirmschoner schaltest du unter Einstellungen ⋮ aus',
   },
 } as const

@@ -247,6 +247,7 @@ export default {
       'Independent, open-source project. Not affiliated with or endorsed by M-VAVE or Yamaha.',
   },
   settings: {
+    screenSaver: 'Screen saver',
     description: 'Choose the interface language, MIDI ports, and channels.',
     output: 'Output',
     inputMonitor: 'Input monitor',

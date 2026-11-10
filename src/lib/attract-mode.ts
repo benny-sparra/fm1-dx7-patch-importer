@@ -4,6 +4,7 @@
   arcade cabinet does between games. It is decoration: its canvas is `aria-hidden` and never takes
   focus, it changes nothing on the page and sends nothing, and any key, pointer, wheel, or MIDI
   activity ends it. The key or tap that wakes the page does only that, as a screen saver's does.
+  A dim line under the prompt says it can be switched off in Settings.
 */
 
 import type { i18n as I18n } from 'i18next'
@@ -102,6 +103,8 @@ export function startAttractMode({
   // i18next out of the entry's shared chunk, 450 B over the budget.
   i18n.addResourceBundle('en-GB', 'translation', britishEnglish, true, false)
   const prompt = i18n.t('attract.pressAnyKey')
+  const hint = i18n.t('attract.switchOff')
+  const hintFont = `12px ${getComputedStyle(document.body).fontFamily || 'monospace'}`
   let drift: Drift = {
     vx: driftSpeed.x,
     vy: driftSpeed.y,
@@ -135,12 +138,18 @@ export function startAttractMode({
     paintWireframe(context, view, box.width, box.height, palette)
     context.setTransform(density, 0, 0, density, 0, 0)
 
+    context.textAlign = 'center'
     if (promptLit(seconds)) {
       context.font = font
-      context.textAlign = 'center'
       context.fillStyle = led
-      context.fillText(prompt, width / 2, height - 24)
+      context.fillText(prompt, width / 2, height - 40)
     }
+    // How to stop it, dim and steady, for anyone it annoys.
+    context.font = hintFont
+    context.globalAlpha = 0.7
+    context.fillStyle = palette.line
+    context.fillText(hint, width / 2, height - 18)
+    context.globalAlpha = 1
   }
 
   const tick = (time: number) => {

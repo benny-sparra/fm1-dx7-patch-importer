@@ -1057,6 +1057,7 @@ export default {
       'Proyecto independiente de código abierto. No está afiliado ni respaldado por M-VAVE o Yamaha.',
   },
   settings: {
+    screenSaver: 'Salvapantallas',
     description: 'Elige el idioma de la interfaz, los puertos MIDI y los canales.',
     output: 'Salida',
     inputMonitor: 'Entrada de monitorización',
@@ -1633,5 +1634,6 @@ export default {
   },
   attract: {
     pressAnyKey: 'PULSA CUALQUIER TECLA',
+    switchOff: 'Desactiva el salvapantallas en Ajustes ⋮',
   },
 } as const

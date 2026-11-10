@@ -9,6 +9,7 @@ const i18n: AttractI18n = { addResourceBundle: vi.fn(), t: vi.fn() as unknown as
 
 let hidden = false
 let reducedMotion = false
+let focused = true
 let uninstall: (() => void) | undefined
 
 function fakeAttract() {
@@ -29,6 +30,8 @@ beforeEach(() => {
   vi.useFakeTimers()
   hidden = false
   reducedMotion = false
+  focused = true
+  vi.spyOn(document, 'hasFocus').mockImplementation(() => focused)
   Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden })
   vi.stubGlobal('matchMedia', () => ({ matches: reducedMotion }))
 })
@@ -39,7 +42,9 @@ afterEach(() => {
   document.body.replaceChildren()
   document.documentElement.removeAttribute('data-saving')
   vi.useRealTimers()
+  localStorage.clear()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 describe('attract mode’s idle watch', () => {
@@ -113,6 +118,31 @@ describe('attract mode’s idle watch', () => {
     hidden = true
     uninstall = installAttractIdle(i18n, attract.load)
 
+    await idle()
+    expect(attract.startAttractMode).not.toHaveBeenCalled()
+  })
+
+  it('never starts while its window is not the one in use, and waits afresh on return', async () => {
+    const attract = fakeAttract()
+    focused = false
+    uninstall = installAttractIdle(i18n, attract.load)
+
+    await idle()
+    expect(attract.startAttractMode).not.toHaveBeenCalled()
+    focused = true
+    window.dispatchEvent(new Event('focus'))
+    await idle(attractIdleMs - 1000)
+    expect(attract.startAttractMode).not.toHaveBeenCalled()
+    await idle(1000)
+    expect(attract.startAttractMode).toHaveBeenCalledTimes(1)
+  })
+
+  it('never starts once switched off in Settings', async () => {
+    const attract = fakeAttract()
+    localStorage.setItem('fm1-attract-mode', 'off')
+    uninstall = installAttractIdle(i18n, attract.load)
+
+    await idle()
     await idle()
     expect(attract.startAttractMode).not.toHaveBeenCalled()
   })

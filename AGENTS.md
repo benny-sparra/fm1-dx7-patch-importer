@@ -123,7 +123,7 @@ open everything an earlier release could have saved.
   versioned workspace record (`StoredPatchLibrary`) and saved bank (`NamedBank`) shapes; the
   backup file in `src/lib/workspace-backup.ts`, which users keep outside the browser and which is
   versioned separately from the storage records; and `localStorage` keys such as `fm1-language`,
-  `fm1-colourway`, `smk37-colourway` (the SMK-37's finish, kept apart from the FM1's), `fm1-last-backup`, `fm1-v16-effects` (the current shared V16 effects, version
+  `fm1-colourway`, `smk37-colourway` (the SMK-37's finish, kept apart from the FM1's), `fm1-last-backup`, `fm1-attract-mode` (the screen saver switch, `off` or `on`, read as on when missing or anything else), `fm1-v16-effects` (the current shared V16 effects, version
   1), and `fm1-voice-setup` (V16's Voice setup: a version 1 record
   of the "Play several Voices" switch and each of eight Voices' preset and channel), and the MIDI port and help-dialog keys. Do not rename,
   remove, or repurpose any of them. A patch's share link (`#p=`, `src/lib/patch-share-link.ts`) is
@@ -1393,10 +1393,14 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
 - Attract mode is the one decoration that covers the page, because it is a screen saver (the
   owner's choice, 2026-11-10, idea 13 of the retro animation prototype): once nobody has touched
   the page for three minutes (`attractIdleMs`), the turntable's FM1 drifts and spins over the
-  dimmed page, bouncing off its edges, with **PRESS ANY KEY** blinking under it. The watch
+  dimmed page, bouncing off its edges, with **PRESS ANY KEY** blinking under it and, dim and
+  steady below that, how to switch it off. It is on by default (the owner, 2026-11-10: "it's very
+  cool"), and **Screen saver**, a `Switch` in the Settings menu, switches it off, stored by
+  `src/lib/attract-setting.ts`, which the menu and the watch both read. The watch
   (`src/lib/attract-idle.ts`) starts with the idle decoration in `retro-motion-start.ts`, and
   loads `src/lib/attract-mode.ts` only when the time comes. It never starts while the tab is
-  hidden, a dialog is open (every transfer, import, and confirmation runs in one), the library is
+  hidden, its window is not focused (the page beside a DAW, where moving the mouse never reaches
+  it, would otherwise blank as someone works there), a dialog is open (every transfer, import, and confirmation runs in one), the library is
   saving (`data-saving` on the root, set by `usePatchLibrary` from an edit until it is stored),
   or a MIDI activity LED is lit, which counts as activity, so playing the FM1 or a patch going
   out keeps it away; any of those ends it too. With reduced motion it never starts. Any key,
@@ -1406,8 +1410,9 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   `paintWireframe`, so a change to the turntable's look shows there too. It takes the page's
   i18next from the entry (`main.tsx` hands it to `retro-motion-start.ts`) and adds its own
   British English through it, never importing i18next or `react-i18next`: either import made
-  Rolldown split i18next out of the entry's shared chunk, 450 B over the budget. Its entry cost,
-  the `data-saving` attribute and the handover, is 67 B.
+  Rolldown split i18next out of the entry's shared chunk, 450 B over the budget. Its entry cost
+  is 201 B: 67 B for the `data-saving` attribute and the handover, and 134 B for the Settings
+  switch and its label.
 - A lazy readout's afterglow (`PhosphorAfterglow`) and the keyboard's velocity meter
   (`VelocityMeter`, from `src/lib/peak-meter.ts`) draw their figures from `data-` attributes or
   paint from an animation frame, so the page never holds an old value as text a test or screen

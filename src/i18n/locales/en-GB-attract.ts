@@ -6,5 +6,6 @@
 export default {
   attract: {
     pressAnyKey: 'PRESS ANY KEY',
+    switchOff: 'Switch the screen saver off in Settings ⋮',
   },
 } as const

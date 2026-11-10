@@ -1118,6 +1118,7 @@ export default {
       'Це незалежний проєкт із відкритим кодом, який не пов’язаний із M-VAVE чи Yamaha та не схвалений ними.',
   },
   settings: {
+    screenSaver: 'Заставка',
     description: 'Оберіть мову інтерфейсу, MIDI-порти та канали.',
     output: 'Вихід',
     inputMonitor: 'Вхід',
@@ -1705,5 +1706,6 @@ export default {
   },
   attract: {
     pressAnyKey: 'НАТИСНІТЬ БУДЬ-ЯКУ КЛАВІШУ',
+    switchOff: 'Вимкнути заставку можна в Налаштуваннях ⋮',
   },
 }

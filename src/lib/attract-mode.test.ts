@@ -43,7 +43,9 @@ function runFrames(time: number) {
 
 const i18n: AttractI18n = {
   addResourceBundle: vi.fn() as unknown as AttractI18n['addResourceBundle'],
-  t: vi.fn(() => 'PRESS ANY KEY') as unknown as AttractI18n['t'],
+  t: vi.fn((key: string) =>
+    key === 'attract.pressAnyKey' ? 'PRESS ANY KEY' : 'Switch it off in Settings',
+  ) as unknown as AttractI18n['t'],
 }
 
 function start() {
@@ -92,6 +94,13 @@ describe('attract mode', () => {
 
     expect(i18n.t).toHaveBeenCalledWith('attract.pressAnyKey')
     expect(fills).toContain('PRESS ANY KEY')
+  })
+
+  it('says under the prompt how to switch it off', () => {
+    start()
+
+    expect(i18n.t).toHaveBeenCalledWith('attract.switchOff')
+    expect(fills).toContain('Switch it off in Settings')
   })
 
   it('redraws the FM1 on every animation frame', () => {

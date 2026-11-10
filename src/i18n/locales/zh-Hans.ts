@@ -942,6 +942,7 @@ export default {
     disclaimer: '独立开源项目，与 M-VAVE 或 Yamaha 无隶属关系，也未获其认可。',
   },
   settings: {
+    screenSaver: '屏幕保护程序',
     description: '选择界面语言、MIDI 端口和通道。',
     output: '输出',
     inputMonitor: '监听输入',
@@ -1472,5 +1473,6 @@ export default {
   },
   attract: {
     pressAnyKey: '按任意键',
+    switchOff: '可在设置 ⋮ 中关闭屏幕保护程序',
   },
 } as const

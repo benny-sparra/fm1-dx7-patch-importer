@@ -1042,6 +1042,7 @@ export default {
       'Projeto independente de código aberto. Não é afiliado nem endossado pela M-VAVE ou Yamaha.',
   },
   settings: {
+    screenSaver: 'Protetor de tela',
     description: 'Escolha o idioma da interface, as portas MIDI e os canais.',
     output: 'Saída',
     inputMonitor: 'Entrada de monitoração',
@@ -1616,5 +1617,6 @@ export default {
   },
   attract: {
     pressAnyKey: 'PRESSIONE QUALQUER TECLA',
+    switchOff: 'Desative o protetor de tela em Configurações ⋮',
   },
 } as const
