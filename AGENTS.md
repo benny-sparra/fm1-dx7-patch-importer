@@ -494,7 +494,7 @@ open everything an earlier release could have saved.
   every item. The rail is as tall as the rack beside it, never taller: the list takes the
   room its rows need with **New FX preset…** under it, scrolls once it runs out of room, and
   scrolls the loaded preset into view whenever it changes (`scrollTopShowing`). A send shows on the Send
-  button, as the bank's does: a barber pole and **Sending…** in the same cell as **Send to FM1**,
+  button, as the bank's does: a barber pole (a bank's is a tape loading, below) and **Sending…** in the same cell as **Send to FM1**,
   with the words read aloud from a status region that shows nothing, so nothing below the strip
   moves while the effects go out.
 - The rack always has a name, kept easy to change in one place (`FxPresetLibrary`): the loaded
@@ -1390,6 +1390,23 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   and cost the entry 226 B. It writes only `data-` attributes React does not render, never
   text React owns, and its glyphs are generated content with an empty alternative
   (`content: … / ''`), so the accessible name stays the patch's own.
+- A bank on its way to the FM1 loads like a ZX Spectrum tape (the owner's choice, 2026-11-10,
+  idea 07 of the retro animation prototype): both bank Sends, the bank strip's and the
+  destination dialog's, take `tape-loader` beside `barber-pole`, which keeps the wristwatch
+  cursor (`tickWatchCursor`) and drops the pole's stripes. Stripes run round the button's edge
+  in a 3px frame, the pilot tone's steady bands for about a second, then the data's ragged ones,
+  and a three-spoke reel turns in each side's 12px padding. It is CSS alone (`::before` and
+  `::after` in `src/index.css`), so the middle stays plain for **Sending…**, the button keeps its
+  size, and the entry pays only the class name. It shows no progress, since a DX7 bank goes as
+  one message: the reels never fill or empty. The FX send and the MIDI switch keep the barber
+  pole. With reduced motion the frame and reels hold still.
+- Under the footer's text, a synthwave horizon (the owner's choice, 2026-11-10, idea 06): a
+  sun in the finish's LED colour, fading to the pink phosphor and cut into bands, rests on a
+  glowing grid floor whose cross lines run towards the viewer. It is generated content on
+  `footer.hero-footer-text` (`::before` the sun, `::after` the floor, which is in flow and makes
+  the footer 92px taller), so it costs the entry no JavaScript and says nothing to assistive
+  technology, and it sits below the text, never behind it. With reduced motion the floor holds
+  still.
 - Attract mode is the one decoration that covers the page, because it is a screen saver (the
   owner's choice, 2026-11-10, idea 13 of the retro animation prototype): once nobody has touched
   the page for three minutes (`attractIdleMs`), the turntable's FM1 drifts and spins over the

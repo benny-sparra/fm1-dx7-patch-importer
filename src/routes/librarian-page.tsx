@@ -1247,8 +1247,8 @@ export function LibrarianPage({
                 aria-disabled={isSendBlocked || undefined}
                 className={cn(
                   librarySendButtonClassName,
-                  // A barber pole while the bank is on its way.
-                  isSending && 'barber-pole',
+                  // A tape loading, with the barber pole's watch cursor, while the bank is on its way.
+                  isSending && 'barber-pole tape-loader',
                 )}
                 onClick={() => {
                   if (!isSendBlocked) sendSelectedBank()

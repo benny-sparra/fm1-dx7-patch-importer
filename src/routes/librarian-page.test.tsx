@@ -242,6 +242,7 @@ describe('LibrarianPage transfer analytics', () => {
     )
     const sending = screen.getByRole('button', { name: 'Sending…' })
     expect(sending.classList).toContain('barber-pole')
+    expect(sending.classList).toContain('tape-loader')
     expect(sending.getAttribute('aria-disabled')).toBe('true')
     expect(sending.hasAttribute('disabled')).toBe(false)
 
