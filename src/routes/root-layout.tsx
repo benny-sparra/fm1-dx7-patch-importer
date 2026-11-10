@@ -169,7 +169,9 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
       >
         {t('root.skipToContent')}
       </a>
-      <header className="synthwave-header synthwave-hero border-b">
+      {/* The header stacks above main, so its menus hang over the patch list, whose sticky bank
+          row (z-30) would otherwise paint over them as the later element at the same level. */}
+      <header className="synthwave-header synthwave-hero z-40 border-b">
         <div
           className={
             compact
