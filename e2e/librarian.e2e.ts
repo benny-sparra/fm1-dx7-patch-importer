@@ -908,6 +908,36 @@ for (const width of [320, 375]) {
   })
 }
 
+for (const width of [320, 375, 760, 800]) {
+  test(`shows the header's Settings menu above the sticky bank row at ${width} px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ height: 812, width })
+    await openLibrarian(page)
+    await page.getByRole('banner').getByLabel('Settings', { exact: true }).click()
+
+    // Below md the bank row sticks above the patch list, and stacking is CSS that jsdom cannot
+    // check, so every point of the open menu must be the menu's own.
+    const menu = page.getByRole('banner').locator('details[open] > .menu-surface')
+    await expect(menu).toBeVisible()
+    const covered = await menu.evaluate((surface) => {
+      const box = surface.getBoundingClientRect()
+      const misses: string[] = []
+      for (let row = 1; row < 20; row += 1) {
+        for (let column = 1; column < 10; column += 1) {
+          const x = box.left + (box.width * column) / 10
+          const y = box.top + (box.height * row) / 20
+          if (y >= innerHeight) continue
+          const hit = document.elementFromPoint(x, y)
+          if (!surface.contains(hit)) misses.push(`${Math.round(x)},${Math.round(y)}`)
+        }
+      }
+      return misses
+    })
+    expect(covered).toEqual([])
+  })
+}
+
 for (const width of [1280, 768, 360]) {
   test(`leaves room for a full ten-character patch name beside the heart and menu at ${width} px`, async ({
     page,
