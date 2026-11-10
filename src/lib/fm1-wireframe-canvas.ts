@@ -11,6 +11,7 @@ import {
   restingView,
   spinSpeed,
   spinStep,
+  type WireframeView,
   type WireLine,
 } from './fm1-wireframe'
 
@@ -28,10 +29,10 @@ const keyTilt = 0.08
 const longestStepMs = 50
 const glowBlur = 6
 
-type Palette = { bright: string; ground: string; line: string }
+export type Palette = { bright: string; ground: string; line: string }
 
-// Read from the page's tokens, so the outline follows the finish chosen.
-function readPalette(element: Element): Palette {
+/** Read from the page's tokens, so the outline follows the finish chosen. */
+export function readPalette(element: Element): Palette {
   const style = getComputedStyle(element)
   const token = (name: string, fallback: string) => style.getPropertyValue(name).trim() || fallback
   return {
@@ -62,6 +63,32 @@ function strokeLines(
     context.lineTo(line[2], line[3])
   }
   context.stroke()
+}
+
+/**
+ * Strokes the case, turned to `view`, glowing in the palette's colours, into a box of the given
+ * size at the context's origin. The caller fills the ground and places the box.
+ */
+export function paintWireframe(
+  context: CanvasRenderingContext2D,
+  view: WireframeView,
+  width: number,
+  height: number,
+  palette: Palette,
+) {
+  context.lineJoin = 'round'
+  // The phosphor's glow: blur belongs to light, never to a shadow.
+  context.shadowColor = palette.line
+  context.shadowBlur = glowBlur
+  const lines = frameLines(view, makeCamera(width, height))
+  for (const [include, stroke] of strokes) {
+    context.globalAlpha = stroke.alpha
+    context.lineWidth = stroke.width
+    context.strokeStyle = palette[stroke.colour]
+    strokeLines(context, lines, include)
+  }
+  context.globalAlpha = 1
+  context.shadowBlur = 0
 }
 
 /**
@@ -112,19 +139,7 @@ export function runFm1Wireframe(canvas: HTMLCanvasElement): (() => void) | null 
     context.shadowBlur = 0
     context.fillStyle = palette.ground
     context.fillRect(0, 0, width, height)
-    context.lineJoin = 'round'
-    // The phosphor's glow: blur belongs to light, never to a shadow.
-    context.shadowColor = palette.line
-    context.shadowBlur = glowBlur
-    const lines = frameLines(turn, makeCamera(width, height))
-    for (const [include, stroke] of strokes) {
-      context.globalAlpha = stroke.alpha
-      context.lineWidth = stroke.width
-      context.strokeStyle = palette[stroke.colour]
-      strokeLines(context, lines, include)
-    }
-    context.globalAlpha = 1
-    context.shadowBlur = 0
+    paintWireframe(context, turn, width, height, palette)
     drawn = true
   }
 

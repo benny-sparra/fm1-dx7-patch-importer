@@ -7,6 +7,8 @@ see the [README](../README.md).
 
 A first visit opens a short welcome: what the app does, three steps to start, and a glowing outline of the FM1 turning on a turntable, which you can drag or flick, or turn with the arrow keys, to look around it (it holds still if your system asks for reduced motion). **Full guide** turns it into the guide. Once closed, by **Start editing** or **✕**, it does not open itself again in that browser. The **Help** button (**?**) in the header opens the guide whenever you want it; beside it, the colour swatch chooses the colour of the FM1 the page follows, and the **⋮** settings menu holds the language and MIDI settings. Its **Getting started** tab explains connecting, playing and editing, sending, and keeping a backup, and, once the FM1 is identified as running Baud Girl's FM-1+VA, what that firmware adds. Its **Keyboard shortcuts** tab lists the shortcuts below.
 
+Leave the page untouched for three minutes and it shows a screen saver: the FM1 drifts across the dimmed page, as an arcade machine does between games. Any key, a mouse move, or a tap brings the page back, and does nothing else. It waits while a dialog is open, while your changes are saving, and while MIDI is going to or coming from the FM1, and it never appears if your system asks for reduced motion.
+
 A link to a shared patch opens that patch instead of the welcome.
 
 ## Banks, transfers, and settings

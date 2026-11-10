@@ -65,6 +65,20 @@ describe('usePatchLibrary page lifecycle', () => {
     )
   })
 
+  it('marks the page as saving from an edit until it is stored, for attract mode to wait on', async () => {
+    const hook = await renderLoadedLibrary()
+    expect(document.documentElement.hasAttribute('data-saving')).toBe(false)
+
+    act(() => hook.result.current.renameBank('A', 'Stage'))
+    expect(document.documentElement.hasAttribute('data-saving')).toBe(true)
+
+    act(() => {
+      window.dispatchEvent(new Event('pagehide'))
+    })
+    await waitFor(() => expect(hook.result.current.persistenceStatus).toBe('ready'))
+    expect(document.documentElement.hasAttribute('data-saving')).toBe(false)
+  })
+
   it('saves an edit waiting for autosave when the page is unloaded', async () => {
     const hook = await renderLoadedLibrary()
     act(() => hook.result.current.renameBank('A', 'Stage'))

@@ -160,6 +160,13 @@ export function usePatchLibrary() {
     persistenceController.current?.updateWorkspace(history.present)
   }, [history.present])
 
+  // Attract mode (src/lib/attract-idle.ts) reads this, so it never starts over a save under way.
+  const saving = persistence.status === 'saving'
+  useEffect(() => {
+    document.documentElement.toggleAttribute('data-saving', saving)
+    return () => document.documentElement.removeAttribute('data-saving')
+  }, [saving])
+
   useEffect(() => {
     if (!shouldWarnBeforeUnload(persistence)) return
     const warnBeforeUnload = (event: BeforeUnloadEvent) => {

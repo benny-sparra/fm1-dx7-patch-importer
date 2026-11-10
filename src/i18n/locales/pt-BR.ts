@@ -1614,4 +1614,7 @@ export default {
     unread:
       'O FM1 não informou qual motor a faixa {{track}} usa, então o som não foi enviado. Verifique se o FM1 está conectado e tente de novo.',
   },
+  attract: {
+    pressAnyKey: 'PRESSIONE QUALQUER TECLA',
+  },
 } as const

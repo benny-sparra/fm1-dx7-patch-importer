@@ -1633,4 +1633,7 @@ export default {
     unread:
       'Le FM1 n’a pas indiqué quel moteur utilise la piste {{track}}, donc le son n’a pas été envoyé. Vérifiez que le FM1 est connecté, puis réessayez.',
   },
+  attract: {
+    pressAnyKey: 'APPUYEZ SUR UNE TOUCHE',
+  },
 } as const

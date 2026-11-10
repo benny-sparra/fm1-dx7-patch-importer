@@ -1631,4 +1631,7 @@ export default {
     unread:
       'El FM1 no indicó qué motor usa la pista {{track}}, así que el sonido no se envió. Comprueba que el FM1 esté conectado y vuelve a intentarlo.',
   },
+  attract: {
+    pressAnyKey: 'PULSA CUALQUIER TECLA',
+  },
 } as const

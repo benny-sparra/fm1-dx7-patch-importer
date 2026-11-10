@@ -1470,4 +1470,7 @@ export default {
     unread:
       'FM1 没有告知音轨 {{track}} 使用哪种引擎，因此没有发送音色。请检查 FM1 是否已连接，然后重试。',
   },
+  attract: {
+    pressAnyKey: '按任意键',
+  },
 } as const

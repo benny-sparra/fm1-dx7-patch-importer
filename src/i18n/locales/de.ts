@@ -1655,4 +1655,7 @@ export default {
     unread:
       'Der FM1 hat nicht gemeldet, welche Engine Spur {{track}} spielt, deshalb wurde der Sound nicht gesendet. Prüfe, ob der FM1 verbunden ist, und versuche es dann erneut.',
   },
+  attract: {
+    pressAnyKey: 'BELIEBIGE TASTE DRÜCKEN',
+  },
 } as const
