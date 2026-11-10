@@ -1407,8 +1407,8 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   fills an empty space at a natural moment. It is the `synthwave-horizon` class on those two
   boxes, generated content (`::before` the sun, `::after` the floor), so it costs the entry only
   the class name and says nothing to assistive technology; a search that matched nothing keeps
-  its plain box. The box's children stand above it and keep 156px clear beneath them, so the
-  message and its buttons never sit on the sun, which is 60px tall on an 84px floor. With reduced motion the floor holds still.
+  its plain box. The box's children stand above it and keep 176px clear beneath them, so the
+  message and its buttons never sit on the sun, a whole half-disc 160px across and 80px tall on an 84px floor, never cut flat at the top. With reduced motion the floor holds still.
 - Attract mode is the one decoration that covers the page, because it is a screen saver (the
   owner's choice, 2026-11-10, idea 13 of the retro animation prototype): once nobody has touched
   the page for three minutes (`attractIdleMs`), the turntable's FM1 drifts and spins over the

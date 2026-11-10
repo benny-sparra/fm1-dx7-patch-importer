@@ -1549,7 +1549,7 @@
   .synthwave-horizon > * {
     position: relative;
     z-index: 1;
-    margin-bottom: 156px;
+    margin-bottom: 176px;
   }
 
   /* The sun, resting on the horizon, its lower half cut into bands. */
@@ -1557,10 +1557,10 @@
     position: absolute;
     bottom: 84px;
     left: 50%;
-    width: 192px;
-    height: 60px;
+    width: 160px;
+    height: 80px;
     translate: -50% 0;
-    border-radius: 96px 96px 0 0;
+    border-radius: 80px 80px 0 0;
     background: linear-gradient(to bottom, var(--crt-led), var(--crt-phosphor-red));
     -webkit-mask: linear-gradient(
       to bottom,

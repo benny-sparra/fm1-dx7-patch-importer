@@ -151,7 +151,7 @@ export default {
     removed: 'Removed “{{patch}}” from Favourites.',
     alreadyAdded: '“{{patch}}” is already in Favourites.',
     empty: 'No favourites yet',
-    emptyHelp: 'Select the heart on any patch to keep it here.',
+    emptyHelp: 'Select the heart on any patch to add it.',
     sendTitle: 'Send the first 32 favourites as a bank; choose the destination bank on the FM1',
     addFirst: 'Add a favourite before sending Favourites',
     initNote: 'A bank holds 32 patches, so sending Favourites fills the last slot with INIT VOICE.',
