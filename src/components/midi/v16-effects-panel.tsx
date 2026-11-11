@@ -152,6 +152,11 @@ function V16EffectsRack({ fxLibrary, midi }: Required<PanelProps>) {
           ) : null}
         </div>
         <FxPresetLibrary
+          effectOrder={
+            chain.status === 'unavailable'
+              ? undefined
+              : { order: chain.status === 'ready' ? chain.order : null, set: chain.set }
+          }
           fxLibrary={fxLibrary}
           liveRead={liveRead}
           midi={midi}

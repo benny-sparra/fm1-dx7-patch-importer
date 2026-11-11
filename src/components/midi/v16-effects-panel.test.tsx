@@ -28,6 +28,13 @@ import { makeSettingsBlockReply } from '@/test/v16-settings-replies'
 
 beforeAll(async () => {
   await setLocale('en-GB')
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function close() {
+    this.open = false
+    this.dispatchEvent(new Event('close'))
+  }
 })
 
 beforeEach(() => {
@@ -105,13 +112,13 @@ describe('V16 effects panel', () => {
     expect(screen.queryByText(/last only while this tab stays open/)).toBeNull()
   })
 
-  it('explains in its help that presets leave out the order, and how to read the FM1’s', async () => {
+  it('explains in its help that presets keep the order, and how to read the FM1’s', async () => {
     const user = userEvent.setup()
     renderWithToasts(<V16EffectsPanel fxLibrary={makeLibrary()} midi={offlineMidi} />)
     await user.hover(screen.getByRole('button', { name: 'Help: Effects' }))
 
     const help = screen.getByRole('note').textContent
-    expect(help).toContain('not the effect order.')
+    expect(help).toContain('Presets keep the effect order too')
     expect(help).toContain('“Read from FM1” brings the FM1’s current effects')
   })
 })
@@ -477,5 +484,160 @@ describe('Read from FM1', () => {
       'Switch MIDI online and choose the FM1’s input and output to read its effects.',
     )
     expect(screen.queryByText('Read the effects from the FM1.')).toBeNull()
+  })
+})
+
+describe('FX presets keep the effect order', () => {
+  const now = '2026-11-11T12:00:00.000Z'
+  const fmOrder = [2, 0, 1, 3, 5, 4]
+
+  function orderedLibrary(order?: number[]) {
+    return {
+      ...makeLibrary(),
+      presets: [
+        createFxLibraryPreset({
+          effects: new Uint8Array(24),
+          id: 'fx-a',
+          name: 'Plate',
+          now,
+          order,
+        }),
+      ],
+    }
+  }
+
+  function sending(midi: Midi): Midi {
+    return {
+      ...midi,
+      sendSharedEffectSettings: vi.fn(() =>
+        Promise.resolve({ ok: true as const, sent: 24 as const }),
+      ),
+    }
+  }
+
+  const writeOf = (order: number[]) => {
+    const answer = parseSettingsBlockReply(makeSettingsBlockReply(makeBlock()))
+    if (answer?.type !== 'block') throw new Error('fixture')
+    return makeEffectOrderWrite(answer.block, order)
+  }
+
+  it('saves a new preset with the FM1’s order', async () => {
+    const user = userEvent.setup()
+    const { midi } = setupFm1()
+    const library = makeLibrary()
+    library.save = vi.fn((name: string, effects: Uint8Array, order?: readonly number[] | null) =>
+      Promise.resolve(createFxLibraryPreset({ effects, id: 'fx-new', name, now, order })),
+    )
+    renderWithToasts(<V16EffectsPanel fxLibrary={library} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await user.click(screen.getByRole('button', { name: 'New FX preset…' }))
+    await user.type(screen.getByRole('textbox', { name: 'Preset name' }), 'Hall')
+    await user.click(screen.getByRole('button', { name: 'Save preset' }))
+
+    await waitFor(() => expect(library.save).toHaveBeenCalledTimes(1))
+    expect(vi.mocked(library.save).mock.calls[0][2]).toEqual(fmOrder)
+  })
+
+  it('saves a new preset without an order while the FM1’s is unknown', async () => {
+    const user = userEvent.setup()
+    const library = makeLibrary()
+    library.save = vi.fn((name: string, effects: Uint8Array) =>
+      Promise.resolve(createFxLibraryPreset({ effects, id: 'fx-new', name, now })),
+    )
+    renderWithToasts(<V16EffectsPanel fxLibrary={library} midi={offlineMidi} />)
+
+    await user.click(screen.getByRole('button', { name: 'New FX preset…' }))
+    await user.type(screen.getByRole('textbox', { name: 'Preset name' }), 'Hall')
+    await user.click(screen.getByRole('button', { name: 'Save preset' }))
+
+    await waitFor(() => expect(library.save).toHaveBeenCalledTimes(1))
+    expect(vi.mocked(library.save).mock.calls[0][2]).toBeNull()
+  })
+
+  it('writes a recalled preset’s order to the FM1 and lays the rack out in it', async () => {
+    const user = userEvent.setup()
+    const fm1 = setupFm1()
+    renderWithToasts(
+      <V16EffectsPanel fxLibrary={orderedLibrary([5, 4, 3, 2, 1, 0])} midi={sending(fm1.midi)} />,
+    )
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await user.click(screen.getByRole('button', { name: 'Plate' }))
+
+    await waitFor(() => expect(fm1.writes()).toHaveLength(1))
+    expect(fm1.writes()[0]).toEqual(writeOf([5, 4, 3, 2, 1, 0]))
+    expect(effectNames()).toEqual(['Phaser', 'Chorus', 'Distortion', 'Delay', 'Reverb', 'Filter'])
+    expect(screen.queryByText('edited')).toBeNull()
+  })
+
+  it('leaves the FM1’s order alone when a recalled preset has none', async () => {
+    const user = userEvent.setup()
+    const fm1 = setupFm1()
+    renderWithToasts(<V16EffectsPanel fxLibrary={orderedLibrary()} midi={sending(fm1.midi)} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await user.click(screen.getByRole('button', { name: 'Plate' }))
+
+    expect(await screen.findByText('Loaded “Plate”.')).toBeTruthy()
+    expect(fm1.reads()).toHaveLength(1)
+    expect(fm1.writes()).toEqual([])
+  })
+
+  it('puts the previous order back on Undo of a recall', async () => {
+    const user = userEvent.setup()
+    const fm1 = setupFm1()
+    renderWithToasts(
+      <V16EffectsPanel fxLibrary={orderedLibrary([5, 4, 3, 2, 1, 0])} midi={sending(fm1.midi)} />,
+    )
+    await waitFor(() => expect(grips()).toHaveLength(6))
+    await user.click(screen.getByRole('button', { name: 'Plate' }))
+    await waitFor(() => expect(fm1.writes()).toHaveLength(1))
+
+    await user.click(await screen.findByRole('button', { name: 'Undo' }))
+
+    await waitFor(() => expect(fm1.writes()).toHaveLength(2))
+    expect(fm1.writes()[1]).toEqual(writeOf(fmOrder))
+    expect(effectNames()).toEqual(['Delay', 'Filter', 'Reverb', 'Distortion', 'Phaser', 'Chorus'])
+  })
+
+  it('marks a loaded preset edited once the FM1’s order differs, and saves the new order', async () => {
+    const user = userEvent.setup()
+    const fm1 = setupFm1()
+    const library = orderedLibrary([5, 4, 3, 2, 1, 0])
+    library.update = vi.fn((preset, effects: Uint8Array, order?: readonly number[] | null) =>
+      Promise.resolve({ ...preset, effects, order: order ? [...order] : preset.order }),
+    )
+    renderWithToasts(<V16EffectsPanel fxLibrary={library} midi={sending(fm1.midi)} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+    await user.click(screen.getByRole('button', { name: 'Plate' }))
+    await waitFor(() => expect(fm1.writes()).toHaveLength(1))
+
+    await user.click(screen.getByRole('button', { name: 'Actions for Filter' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Move earlier' }))
+
+    expect(await screen.findByText('edited')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(library.update).toHaveBeenCalledTimes(1))
+    expect(vi.mocked(library.update).mock.calls[0][2]).toEqual([5, 4, 3, 2, 0, 1])
+  })
+
+  it('names a preset after a read only when its order matches the FM1’s', async () => {
+    const user = userEvent.setup()
+    const { midi } = setupLiveFm1()
+    const effects = Uint8Array.from(sentRack('Read run A distinct'))
+    const library = {
+      ...makeLibrary(),
+      presets: [
+        createFxLibraryPreset({ effects, id: 'fx-x', name: 'Other order', now, order: fmOrder }),
+      ],
+    }
+    renderWithToasts(<V16EffectsPanel fxLibrary={library} midi={midi} />)
+    await waitFor(() => expect(grips()).toHaveLength(6))
+
+    await readFromFm1(user)
+
+    expect(await screen.findByText('Read the effects from the FM1.')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Unsaved effects' })).toBeTruthy()
   })
 })

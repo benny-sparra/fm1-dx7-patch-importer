@@ -82,14 +82,16 @@ export function useFxLibrary() {
     if (status !== 'ready') throw new Error('The FX preset library has not loaded.')
   }, [status])
 
+  /** Saves `effects` as a new preset, with the effect order when it is known. */
   const save = useCallback(
-    (name: string, effects: Uint8Array) => {
+    (name: string, effects: Uint8Array, order?: readonly number[] | null) => {
       requireReady()
       const record = createFxLibraryPreset({
         effects,
         id: createId(),
         name,
         now: new Date().toISOString(),
+        order,
       })
       return serialize(async () => {
         await addStoredFxLibraryPreset(record)
@@ -117,10 +119,11 @@ export function useFxLibrary() {
     [requireReady, serialize],
   )
 
+  /** Overwrites `preset`; an `order` of `undefined` keeps the preset's own (`updateFxLibraryPreset`). */
   const update = useCallback(
-    (preset: FxLibraryPreset, effects: Uint8Array) => {
+    (preset: FxLibraryPreset, effects: Uint8Array, order?: readonly number[] | null) => {
       requireReady()
-      const record = updateFxLibraryPreset(preset, effects, new Date().toISOString())
+      const record = updateFxLibraryPreset(preset, effects, new Date().toISOString(), order)
       return serialize(async () => {
         await updateStoredFxLibraryPreset(record, preset)
         if (mounted.current) {
@@ -164,8 +167,8 @@ export function useFxLibrary() {
     (portable: readonly PortableFxPreset[]) => {
       requireReady()
       const now = new Date().toISOString()
-      const records = portable.map(({ effects, name }) =>
-        createFxLibraryPreset({ effects, id: createId(), name, now }),
+      const records = portable.map(({ effects, name, order }) =>
+        createFxLibraryPreset({ effects, id: createId(), name, now, order }),
       )
       return serialize(async () => {
         await addStoredFxLibraryPresets(records)

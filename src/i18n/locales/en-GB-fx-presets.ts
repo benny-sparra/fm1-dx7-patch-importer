@@ -43,7 +43,8 @@ export default {
     offline: 'No MIDI output is selected. Loading changes only this browser.',
     ineligible: 'This firmware has no shared V16 FX group. Loading changes only this browser.',
     help: 'Edit effects and save presets. On V16, all Voices share the effects.',
-    orderHelp: 'Presets hold the effect controls shown here, not the effect order.',
+    orderHelp:
+      'Presets keep the effect order too, once the FM1 has given it, and loading one puts it back.',
     readback: '“Read from FM1” brings the FM1’s current effects and their order here.',
     readFromFm1: 'Read from FM1',
     readDone: 'Read the effects from the FM1.',

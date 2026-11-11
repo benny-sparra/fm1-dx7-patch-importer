@@ -106,9 +106,9 @@ the shared FX group on the **Effect channel**. Other firmware does not offer the
 sends it no shared-FX messages.
 
 The title strip above the rack always names it: the loaded preset's name, with “edited” beside it
-once you change a control, or **Unsaved effects**. **New FX preset…** at the foot of the list
-names a snapshot of the 24 controls shown and saves it as a new preset, which then loads; a toast
-confirms. While a loaded preset is edited, **Save** and **Revert** appear beside its name: **Save**
+once you change a control or the effect order, or **Unsaved effects**. **New FX preset…** at the
+foot of the list names a snapshot of the 24 controls shown, and of the effect order once the FM1
+has given it, and saves it as a new preset, which then loads; a toast confirms. While a loaded preset is edited, **Save** and **Revert** appear beside its name: **Save**
 replaces that preset at once, with **Undo** in its toast, and **Revert** puts it back as saved. The searchable list is alphabetical. Each preset’s **⋮** menu offers Rename…, Duplicate,
 Download preset, and Delete…, which offers **Undo** and leaves the current effects unchanged. On a
 phone the list opens from the name in the title strip, and choosing a preset closes it. Switching
@@ -118,23 +118,26 @@ actions** (the **⋮** by the search field) has **Import…** and **Download all
 `fm1-fx-presets.json`; Import adds valid presets with new identities and keeps everything already
 present.
 
-Click a preset to load it; **Undo** in the toast puts the previous effects back and sends them too. If the load cannot reach the FM1, because MIDI is offline, the notice
+Click a preset to load it; **Undo** in the toast puts the previous effects and order back and sends them too. If the load cannot reach the FM1, because MIDI is offline, the notice
 under the strip says so, and it replaces only the browser’s current Effects controls; it is not
 sent later when MIDI reconnects. With an identified M-VAVE V16 online, the click also sends all 24
-controls once, in their existing order, to the shared FX group. Repeated clicks do not resend
-unchanged settings. **Send to FM1** on the strip sends the effects as they are, saved or not,
+controls once to the shared FX group and, when the preset holds an effect order different from
+the FM1's, writes that order too. A preset saved before the FM1 gave its order, or by an earlier
+release, has none and leaves the FM1's order as it is. Repeated clicks do not resend unchanged
+settings. **Send to FM1** on the strip sends the effects as they are, saved or not,
 for example after a send that failed or after turning the FM1's own knobs. The FM1 does not acknowledge or verify these messages.
 
 **Read from FM1**, beside **Send to FM1** on the strip, asks the FM1 once for the FX group it is playing, front-panel changes
 included, and puts its 24 controls and its effect order here. It sends the FM1 nothing else and
-changes nothing on it. If a preset holds exactly those effects, it is the one named on the strip;
+changes nothing on it. If a preset holds exactly those effects, in that order or with no order of
+its own, it is the one named on the strip;
 otherwise they show as **Unsaved effects**, ready for **New FX preset…**. **Undo** in its toast
 puts back the effects shown before, in this browser only. If the FM1 does not answer, or its answer
 cannot be read, nothing here changes; try again. It needs MIDI online with SysEx, and the FM1's
 input and output selected; until then the button says so.
 
-FX presets do not contain the hardware's effect-chain order. Loading does not select a Voice, change Voice setup, save on the FM1,
-or choose another hardware FX group. Use the FM1's own Save flow when you want to keep its live
+An FX preset's name stays in this browser: no MIDI message names the FM1's own FX groups. Loading
+does not select a Voice, change Voice setup, save on the FM1, or choose another hardware FX group. Use the FM1's own Save flow when you want to keep its live
 shared effects after power-off.
 
 Baud Girl's firmware also chooses a bank's destination differently. When a bank arrives it asks **Replace Bank

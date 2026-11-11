@@ -218,6 +218,24 @@ function versionSixFixture() {
   }
 }
 
+function versionSevenFixture() {
+  const fixture = versionSixFixture()
+  return {
+    ...fixture,
+    fxPresets: [
+      { ...fixture.fxPresets[0], order: [3, 0, 1, 2, 4, 5] },
+      {
+        createdAt: '2026-11-11T10:00:00.000Z',
+        effects: btoa(String.fromCharCode(...new Uint8Array(24).fill(2))),
+        id: 'fx-backup-2',
+        name: 'No order',
+        updatedAt: '2026-11-11T10:00:00.000Z',
+      },
+    ],
+    version: 7,
+  }
+}
+
 function fixtureVoiceBytes() {
   const data = new Uint8Array(dx7PackedVoiceSize)
   for (let index = 0; index < 118; index += 1) data[index] = index % 100
@@ -424,6 +442,53 @@ describe('workspace backup', () => {
       makeWorkspaceBackup(makeWorkspace(), [], '2026-10-30T13:00:00.000Z', [preset]),
     )
     expect(roundTrip.fxPresets).toEqual([preset])
+  })
+
+  it('reads a version 6 FX preset without an order, ignoring one it never held', () => {
+    const fixture = versionSixFixture()
+    fixture.fxPresets = [{ ...fixture.fxPresets[0], order: [5, 4, 3, 2, 1, 0] } as never]
+
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.fxPresets?.[0]).not.toHaveProperty('order')
+  })
+
+  it('reads the version 7 fixture with each FX preset’s effect order, where it has one', () => {
+    const backup = parseWorkspaceBackup(JSON.stringify(versionSevenFixture()))
+
+    expect(backup.fxPresets?.map(({ id, order }) => ({ id, order }))).toEqual([
+      { id: 'fx-backup-1', order: [3, 0, 1, 2, 4, 5] },
+      { id: 'fx-backup-2', order: undefined },
+    ])
+    expect(backup.fxPresets?.[1]).not.toHaveProperty('order')
+  })
+
+  it('writes an FX preset’s effect order and reads it back', () => {
+    const preset = createFxLibraryPreset({
+      effects: new Uint8Array(24).fill(2),
+      id: 'fx-ordered',
+      name: 'Delay first',
+      now: '2026-11-11T12:00:00.000Z',
+      order: [2, 0, 1, 3, 4, 5],
+    })
+
+    const text = makeWorkspaceBackup(makeWorkspace(), [], '2026-11-11T13:00:00.000Z', [preset])
+
+    expect(JSON.parse(text)).toMatchObject({ version: 7 })
+    expect(parseWorkspaceBackup(text).fxPresets).toEqual([preset])
+  })
+
+  it('counts a version 7 FX preset with an unreadable order as damaged, keeping the rest', () => {
+    const fixture = versionSevenFixture()
+    fixture.fxPresets = [
+      { ...fixture.fxPresets[0], id: 'bad', order: [0, 1] },
+      ...fixture.fxPresets,
+    ]
+
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.fxPresets?.map(({ id }) => id)).toEqual(['fx-backup-1', 'fx-backup-2'])
+    expect(backup.damagedFxPresetCount).toBe(1)
   })
 
   it('leaves a damaged FX preset out of a version 6 backup and counts it, keeping the rest', () => {

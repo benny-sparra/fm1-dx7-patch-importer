@@ -138,9 +138,13 @@ open everything an earlier release could have saved.
 - Only bump the IndexedDB schema version for additive changes. `onupgradeneeded` may create stores
   and indexes but must not delete stores, clear records, or reshape existing data.
 - IndexedDB schema version 3 adds the independent `fx-presets` store, keyed by `id`. Each named FX
-  preset is a version 1 public record. Full-library backup version 6 carries those records; versions
-  1–5 have no FX section and leave the browser's FX presets untouched when restored. The dedicated
-  `fm1-fx-presets` JSON format is independently versioned at 1.
+  preset is a public record: version 1 holds the 24 controls, and version 2 (2026-11-11, issue 510)
+  adds an optional `order`, V16's effect chain by position, present only when the FM1 had given
+  its order as the preset was saved. A version 1 record reads as version 2 without one, and a
+  version 1 record's stray `order` is never read. Full-library backup version 6 carries those
+  records and version 7 adds each one's order; versions 1–5 have no FX section and leave the
+  browser's FX presets untouched when restored. The dedicated `fm1-fx-presets` JSON format is
+  independently versioned: version 2 adds the order, and version 1 files still import.
 - New fields must be optional when read, with safe defaults for records that predate them. Unknown
   or out-of-range values from old records are normalised, not treated as a reason to discard the
   workspace; genuinely unreadable data surfaces the `incompatible` error rather than being replaced.
@@ -323,8 +327,11 @@ open everything an earlier release could have saved.
   `effectOrder` capability, listed for the `mvave` family from release 16 since the owner's run of
   2026-11-01 reordered the FM1's FX chain from the editor
   (`docs/hardware-runs/stock-v16-effect-order-2026-11-01.md`), gates the Effects view's
-  reordering (`useV16EffectOrder`). The order is live state, not part of an FX preset, and the
-  FM1 stores it only with its own SAVE.
+  reordering (`useV16EffectOrder`). The order is live state on the FM1, which stores it only
+  with its own SAVE. An FX preset keeps the order it was saved with (issue 510): recalling one
+  whose order differs from the FM1's writes it through the same read and write a move makes
+  (`set`), and a preset without an order leaves the FM1's as it is. Saving while the FM1's order is
+  unknown keeps a preset's own rather than dropping it.
 - On stock V16 (`FM-1_016`) the owner approved, on 2026-11-02, one read of the live FX settings:
   object 5's low-offset live read (`FUN_0200c970`, at most 215 bytes, offset below `0x10000000`),
   to fill **Read effects from FM1** in the Effects view (docs/v16-fx-readback-handoff.md). It
@@ -344,7 +351,8 @@ open everything an earlier release could have saved.
   **Read from FM1**, beside **Send to FM1** on the Effects view's strip, sends that one read once per click while
   the profile's `liveEffectsRead` allows (`useV16LiveEffectsRead`), on the effects' transfer queue,
   cancelled by a port change or leaving the view. It puts the 24 controls and the order in the rack,
-  as the preset holding exactly them if one does, sends nothing back, and offers an Undo that
+  as the preset holding exactly them if one does (its order the same, or none), sends nothing back,
+  and offers an Undo that
   changes the rack alone. Every other `00 32` command stays **Dangerous / excluded**:
   object 5's write, offsets from `0x10000000` (raw storage), command `0x15`, any hardware SAVE
   or save helper, and object 8. Reading the group's name or number is not approved: no normal
@@ -510,8 +518,10 @@ open everything an earlier release could have saved.
   point, so the strip otherwise holds only the name, **Read from FM1** (where the profile's
   `liveEffectsRead` allows it, raised but not lit, to pair with Send as get and put; the owner's
   choice, 2026-11-05), and **Send to FM1**. Recall stays one click and sends as above, then
-  `toast.success` “Loaded “name”” offers **Undo**: it puts back the previous 24 values and loaded
-  id and sends them through the same sender when MIDI is eligible. One step, no history; it is
+  `toast.success` “Loaded “name”” offers **Undo**: it puts back the previous 24 values, effect
+  order, and loaded id and sends them through the same senders when MIDI is eligible. A loaded
+  preset reads as edited once its order differs from the FM1's too, and **Save** stores the
+  FM1's order with the controls. One step, no history; it is
   built in the component, since `undoToastOptions` takes a patch-library snapshot.
 - Rename…, Duplicate, Download preset, and Delete… live only in a row's ⋮, Delete last in the
   danger colour; the list's own ⋮ (**FX preset actions**) holds Import… and Download all. The list
@@ -520,7 +530,8 @@ open everything an earlier release could have saved.
   choosing a preset recalls it and closes the sheet. A menu opened in a modal passes `portalTarget`
   to `PortalMenu`, since a modal dialog covers everything outside it.
 - Save, rename, duplicate and import report success through `toast.success` after storage commits;
-  only errors stay on the page, in `ErrorNotice`. Creating an FX preset snapshots the current rack.
+  only errors stay on the page, in `ErrorNotice`. Creating an FX preset snapshots the current rack and, once
+  the FM1 has given it, the effect order.
   Updating or deleting offers Undo; neither action, nor Undo, sends MIDI. Deleting a loaded preset
   leaves the rack unchanged as **Unsaved effects**.
 - The FX library has one owner: a panel handed a library by the page never opens a second one. FX

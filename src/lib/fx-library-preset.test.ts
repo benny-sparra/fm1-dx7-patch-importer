@@ -9,8 +9,10 @@ import {
   fxLibraryPresetNameLength,
   readStoredFxLibraryPreset,
   renameFxLibraryPreset,
+  sameEffectOrder,
   sameFxLibraryPreset,
   sortFxLibraryPresets,
+  updateFxLibraryPreset,
 } from './fx-library-preset'
 
 const now = '2026-10-30T12:00:00.000Z'
@@ -22,7 +24,7 @@ function effects(seed = 0) {
 }
 
 describe('FX library preset records', () => {
-  it('captures an independent version 1 snapshot with a trimmed Unicode name', () => {
+  it('captures an independent version 2 snapshot with a trimmed Unicode name and no order', () => {
     const current = effects(1)
     const preset = createFxLibraryPreset({ effects: current, id: 'fx-1', name: '  Warm 🌊  ', now })
 
@@ -34,10 +36,40 @@ describe('FX library preset records', () => {
       id: 'fx-1',
       name: 'Warm 🌊',
       updatedAt: now,
-      version: 1,
+      version: 2,
     })
     expect(preset.effects).not.toBe(current)
   })
+
+  it('keeps an effect order given as it is saved, without aliasing it', () => {
+    const order = [5, 4, 3, 2, 1, 0]
+    const preset = createFxLibraryPreset({
+      effects: effects(),
+      id: 'fx-1',
+      name: 'Odd',
+      now,
+      order,
+    })
+
+    order[0] = 0
+
+    expect(preset.order).toEqual([5, 4, 3, 2, 1, 0])
+  })
+
+  it.each([[[0, 1, 2, 3, 4]], [[0, 0, 1, 2, 3, 4]], [[0, 1, 2, 3, 4, 6]], ['012345']])(
+    'refuses an order that is not each of the six effects once: %o',
+    (order) => {
+      expect(() =>
+        createFxLibraryPreset({
+          effects: effects(),
+          id: 'fx-1',
+          name: 'Bad',
+          now,
+          order: order as number[],
+        }),
+      ).toThrow('effect order')
+    },
+  )
 
   it('counts names by Unicode code point and rejects blank or overlong names', () => {
     expect(() =>
@@ -75,14 +107,55 @@ describe('FX library preset records', () => {
 
     expect(read.name).toBe('Stage')
     expect(read.effects).toEqual(fm1EffectParameterMaximums)
+    expect(read.version).toBe(2)
+    expect(read).not.toHaveProperty('order')
     expect(stored.name).toBe('  Stage  ')
     expect(stored.effects[0]).toBe(255)
+    expect(stored.version).toBe(1)
+  })
+
+  it('ignores an order in a version 1 record, which never held one', () => {
+    const read = readStoredFxLibraryPreset({
+      createdAt: now,
+      effects: effects(),
+      id: 'fx-1',
+      name: 'Stage',
+      order: [5, 4, 3, 2, 1, 0],
+      updatedAt: now,
+      version: 1,
+    })
+
+    expect(read).not.toHaveProperty('order')
+  })
+
+  it('reads the version 2 fixture with its effect order, and one saved without an order', () => {
+    const stored = {
+      createdAt: now,
+      effects: effects(3),
+      id: 'fx-2',
+      name: ' Reverb first ',
+      order: [1, 0, 2, 3, 4, 5],
+      updatedAt: now,
+      version: 2,
+    }
+
+    expect(readStoredFxLibraryPreset(stored)).toEqual({ ...stored, name: 'Reverb first' })
+    expect(readStoredFxLibraryPreset({ ...stored, order: undefined })).not.toHaveProperty('order')
   })
 
   it.each([
     null,
     {},
-    { createdAt: now, effects: effects(), id: 'fx-1', name: 'Future', updatedAt: now, version: 2 },
+    { createdAt: now, effects: effects(), id: 'fx-1', name: 'Future', updatedAt: now, version: 3 },
+    {
+      createdAt: now,
+      effects: effects(),
+      id: 'fx-1',
+      name: 'Bad order',
+      order: [0, 1, 2],
+      updatedAt: now,
+      version: 2,
+    },
     {
       createdAt: now,
       effects: Array.from(effects()),
@@ -120,9 +193,29 @@ describe('FX library preset records', () => {
     duplicate.effects[0] = 0
 
     expect(renamed.name).toBe('Renamed')
+    expect(renamed.version).toBe(2)
     expect(renamed.createdAt).toBe(now)
     expect(duplicate.name).toBe('Copy of Original')
     expect(source.effects[0]).not.toBe(0)
+  })
+
+  it('keeps the order through a rename and a duplicate', () => {
+    const order = [2, 0, 1, 3, 4, 5]
+    const source = createFxLibraryPreset({ effects: effects(), id: 'fx-1', name: 'A', now, order })
+
+    expect(renameFxLibraryPreset(source, 'B', now).order).toEqual(order)
+    expect(duplicateFxLibraryPreset(source, 'fx-2', now).order).toEqual(order)
+  })
+
+  it('updates the order when one is given, keeps it when none is known, and clears it on null', () => {
+    const order = [2, 0, 1, 3, 4, 5]
+    const source = createFxLibraryPreset({ effects: effects(), id: 'fx-1', name: 'A', now, order })
+
+    expect(updateFxLibraryPreset(source, effects(1), now, [5, 4, 3, 2, 1, 0]).order).toEqual([
+      5, 4, 3, 2, 1, 0,
+    ])
+    expect(updateFxLibraryPreset(source, effects(1), now).order).toEqual(order)
+    expect(updateFxLibraryPreset(source, effects(1), now, null)).not.toHaveProperty('order')
   })
 
   it('bounds a duplicate name to 80 code points', () => {
@@ -146,6 +239,10 @@ describe('FX library preset records', () => {
 
     expect(sameFxLibraryPreset(a1, { ...a1, effects: a1.effects.slice() })).toBe(true)
     expect(sameFxLibraryPreset(a1, { ...a1, name: 'Changed' })).toBe(false)
+    expect(sameFxLibraryPreset(a1, { ...a1, order: [0, 1, 2, 3, 4, 5] })).toBe(false)
+    expect(sameEffectOrder(undefined, null)).toBe(true)
+    expect(sameEffectOrder([0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5])).toBe(true)
+    expect(sameEffectOrder([0, 1, 2, 3, 4, 5], [1, 0, 2, 3, 4, 5])).toBe(false)
     expect(sortFxLibraryPresets([beta, a2, a1], new Intl.Collator('en-GB'))).toEqual([a1, a2, beta])
   })
 
