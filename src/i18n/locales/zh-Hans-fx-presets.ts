@@ -41,7 +41,7 @@ export default {
     offline: '未选择 MIDI 输出。加载只会更改此浏览器。',
     ineligible: '此固件没有 V16 共享 FX 组。加载只会更改此浏览器。',
     help: '编辑效果并保存预设。在 V16 上，所有音色共享效果。',
-    orderHelp: '预设包含这里显示的效果控制值，不包含效果顺序。',
+    orderHelp: '预设也会保存效果顺序（在 FM1 提供之后），载入预设时会恢复该顺序。',
     readback: '“从 FM1 读取”会把 FM1 当前的效果及其顺序载入这里。',
     readFromFm1: '从 FM1 读取',
     readDone: '已从 FM1 读取效果。',

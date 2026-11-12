@@ -15,12 +15,12 @@ import {
 const now = '2026-10-30T12:00:00.000Z'
 const validEffects = Array.from(fm1EffectParameterMaximums)
 
-function file(presets: unknown[]) {
-  return JSON.stringify({ format: 'fm1-fx-presets', presets, version: 1 })
+function file(presets: unknown[], version = 1) {
+  return JSON.stringify({ format: 'fm1-fx-presets', presets, version })
 }
 
 describe('FX preset portable files', () => {
-  it('exports only portable names and values in display order', () => {
+  it('exports only portable names, values and orders in display order, as version 2', () => {
     const presets = [
       createFxLibraryPreset({
         effects: Uint8Array.from(validEffects),
@@ -33,6 +33,7 @@ describe('FX preset portable files', () => {
         id: 'local-1',
         name: 'First',
         now,
+        order: [1, 0, 2, 3, 4, 5],
       }),
     ]
 
@@ -40,9 +41,9 @@ describe('FX preset portable files', () => {
       format: 'fm1-fx-presets',
       presets: [
         { effects: validEffects, name: 'Second' },
-        { effects: Array.from({ length: 24 }, () => 0), name: 'First' },
+        { effects: Array.from({ length: 24 }, () => 0), name: 'First', order: [1, 0, 2, 3, 4, 5] },
       ],
-      version: 1,
+      version: 2,
     })
   })
 
@@ -54,10 +55,36 @@ describe('FX preset portable files', () => {
     expect(parsed).toEqual([{ effects: Uint8Array.from(validEffects), name: 'Imported' }])
   })
 
+  it('reads a version 1 file as it was written, with no order and a stray one ignored', () => {
+    const parsed = parseFxPresetFile(
+      file([{ effects: validEffects, name: 'Old', order: [5, 4, 3, 2, 1, 0] }], 1),
+    )
+
+    expect(parsed).toEqual([{ effects: Uint8Array.from(validEffects), name: 'Old' }])
+  })
+
+  it('reads each preset’s order from a version 2 file, and a preset without one', () => {
+    const parsed = parseFxPresetFile(
+      file(
+        [
+          { effects: validEffects, name: 'Ordered', order: [5, 4, 3, 2, 1, 0] },
+          { effects: validEffects, name: 'Plain' },
+        ],
+        2,
+      ),
+    )
+
+    expect(parsed).toEqual([
+      { effects: Uint8Array.from(validEffects), name: 'Ordered', order: [5, 4, 3, 2, 1, 0] },
+      { effects: Uint8Array.from(validEffects), name: 'Plain' },
+    ])
+  })
+
   it.each([
     ['not JSON', 'nope'],
     ['wrong format', JSON.stringify({ format: 'other', presets: [], version: 1 })],
-    ['future version', JSON.stringify({ format: 'fm1-fx-presets', presets: [], version: 2 })],
+    ['future version', JSON.stringify({ format: 'fm1-fx-presets', presets: [], version: 3 })],
+    ['bad order', file([{ effects: validEffects, name: 'Order', order: [0, 1, 2, 3, 4, 4] }], 2)],
     ['missing list', JSON.stringify({ format: 'fm1-fx-presets', version: 1 })],
     ['blank name', file([{ effects: validEffects, name: ' ' }])],
     ['short values', file([{ effects: validEffects.slice(1), name: 'Short' }])],

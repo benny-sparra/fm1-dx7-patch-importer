@@ -146,7 +146,8 @@ function assertRead(block: V16SettingsBlock) {
   }
 }
 
-const isArrangement = (order: ArrayLike<number>) =>
+/** Whether `order` is each of the six effects, 0 to 5, once: an order V16's chain can take. */
+export const isEffectOrder = (order: ArrayLike<number>) =>
   order.length === effectOrderSize &&
   Array.from({ length: effectOrderSize }, (_, effect) => effect).every((effect) =>
     Array.from(order).includes(effect),
@@ -163,7 +164,7 @@ export function effectOrderOfTable(table: ArrayLike<number>) {
   const entries = Array.from({ length: fxTableEntries }, (_, entry) => table[entry * 3])
   if (new Set(entries).size !== fxTableEntries || entries.some((effect) => effect > 8)) return null
   const order = entries.slice(0, effectOrderSize)
-  return isArrangement(order) ? order : null
+  return isEffectOrder(order) ? order : null
 }
 
 /** The effects of V16's chain by position, as the FM1 holds them in a block it sent. */
@@ -184,7 +185,7 @@ export function makeEffectOrderWrite(block: V16SettingsBlock, order: ArrayLike<n
   if (readEffectOrder(block) === null) {
     throw new RangeError('The FM1’s FX table is not an order of the six effects.')
   }
-  if (!isArrangement(order)) {
+  if (!isEffectOrder(order)) {
     throw new RangeError(
       `The effect order is each of 0 to 5 once; received ${Array.from(order).join(', ')}.`,
     )

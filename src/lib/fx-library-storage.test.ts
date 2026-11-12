@@ -39,7 +39,7 @@ describe('stored FX preset library', () => {
     expect(writing.durability).toBe('strict')
   })
 
-  it('starts empty and round-trips independent version 1 records', async () => {
+  it('starts empty and round-trips independent version 2 records', async () => {
     expect(await listStoredFxLibraryPresets()).toEqual({ damagedCount: 0, presets: [] })
 
     const source = preset('fx-1', 'First')
@@ -50,6 +50,53 @@ describe('stored FX preset library', () => {
     expect(loaded.damagedCount).toBe(0)
     expect(loaded.presets).toEqual([preset('fx-1', 'First')])
     expect(loaded.presets[0].effects).not.toBe(source.effects)
+  })
+
+  it('reads a version 1 record as an earlier release stored it, rewriting it only on a save', async () => {
+    const stored = {
+      createdAt: now,
+      effects: new Uint8Array(24).fill(1),
+      id: 'fx-old',
+      name: 'Earlier',
+      updatedAt: now,
+      version: 1,
+    }
+    await listStoredFxLibraryPresets() // creates the database as the app does
+    const database = await openRawDatabase()
+    await transaction(database, 'readwrite', (store) => store.put(stored))
+    database.close()
+
+    const [loaded] = (await listStoredFxLibraryPresets()).presets
+    expect(loaded).toEqual({ ...stored, version: 2 })
+    expect(await readRaw('fx-old')).toEqual(stored)
+
+    const saved = { ...loaded, order: [1, 0, 2, 3, 4, 5], updatedAt: '2026-11-11T12:00:00.000Z' }
+    await updateStoredFxLibraryPreset(saved, loaded)
+    expect(await readRaw('fx-old')).toEqual(saved)
+  })
+
+  it('round-trips a version 2 record with its effect order', async () => {
+    const source = createFxLibraryPreset({
+      effects: new Uint8Array(24),
+      id: 'fx-ordered',
+      name: 'Ordered',
+      now,
+      order: [5, 4, 3, 2, 1, 0],
+    })
+    await addStoredFxLibraryPreset(source)
+
+    expect((await listStoredFxLibraryPresets()).presets).toEqual([source])
+  })
+
+  it('skips and reports a record a newer release wrote, leaving it stored', async () => {
+    const newer = { ...preset('fx-new'), version: 3 }
+    await listStoredFxLibraryPresets() // creates the database as the app does
+    const database = await openRawDatabase()
+    await transaction(database, 'readwrite', (store) => store.put(newer))
+    database.close()
+
+    expect(await listStoredFxLibraryPresets()).toEqual({ damagedCount: 1, presets: [] })
+    expect(await readRaw('fx-new')).toEqual(newer)
   })
 
   it('skips and reports a damaged row without erasing or replacing it', async () => {
@@ -122,6 +169,19 @@ describe('stored FX preset library', () => {
     )
   })
 })
+
+async function readRaw(id: string) {
+  const database = await openRawDatabase()
+  try {
+    return await new Promise<unknown>((resolve, reject) => {
+      const request = database.transaction('fx-presets').objectStore('fx-presets').get(id)
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error ?? new Error('IndexedDB read failed.'))
+    })
+  } finally {
+    database.close()
+  }
+}
 
 function openRawDatabase() {
   return new Promise<IDBDatabase>((resolve, reject) => {

@@ -37,7 +37,7 @@ describe('useFxLibrary', () => {
     await act(() => hook.result.current.save('  Stage  ', current))
     current[2] = 0
 
-    expect(hook.result.current.presets[0]).toMatchObject({ name: 'Stage', version: 1 })
+    expect(hook.result.current.presets[0]).toMatchObject({ name: 'Stage', version: 2 })
     expect(hook.result.current.presets[0].effects[2]).toBe(1)
     hook.unmount()
 

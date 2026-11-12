@@ -7,6 +7,7 @@ import { makeLogEntry } from '@/lib/midi'
 import { midiActivity } from '@/lib/midi-activity'
 import {
   effectOrderSize,
+  isEffectOrder,
   makeEffectOrderWrite,
   readEffectOrder,
   readV16SettingsBlock,
@@ -31,6 +32,11 @@ export type V16EffectOrder = {
   adopt: (order: readonly number[]) => void
   /** Moves the effect at place `from` to place `to`; one read and one write of the FM1's table. */
   move: (from: number, to: number) => void
+  /**
+   * Puts the whole chain in `order`, as an FX preset recalls it: one read and one write, or nothing
+   * when the order is not `ready` or already `order`.
+   */
+  set: (order: readonly number[]) => void
   /** The effects by number, first place first: as read from the FM1, or the default meanwhile. */
   order: readonly number[]
   /**
@@ -67,7 +73,14 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
     input !== undefined &&
     output !== undefined
   const [read, setRead] = useState<Read | null>(null)
-  const [order, setOrder] = useState<number[] | null>(null)
+  const [order, setShownOrder] = useState<number[] | null>(null)
+  // The order last shown, for a call from an older render, such as a toast's Undo, to compare
+  // against. Written beside the state, never during render.
+  const latest = useRef<number[] | null>(null)
+  const setOrder = useCallback((next: number[] | null) => {
+    latest.current = next
+    setShownOrder(next)
+  }, [])
   const [writeFailed, setWriteFailed] = useState(false)
   const session = useRef<{ confirmed: number[]; signal: AbortSignal } | null>(null)
 
@@ -117,23 +130,23 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
       controller.abort()
       session.current = null
     }
-  }, [input, logStore, makeLink, offered, output])
+  }, [input, logStore, makeLink, offered, output, setOrder])
 
   const current = offered && read?.input === input && read.output === output ? read : null
   const shown = current?.order ? (order ?? current.order) : defaultOrder
 
-  const move = useCallback(
-    (from: number, to: number) => {
+  /** Shows `next` at once and writes it to the FM1, putting the order back if that fails. */
+  const write = useCallback(
+    (next: number[]) => {
       const active = session.current
-      if (!input || !output || !active || !order || from === to) return
-      if (
-        ![from, to].every((place) => Number.isInteger(place) && place >= 0 && place < order.length)
-      )
-        return
-      const next = order.slice()
-      next.splice(to, 0, ...next.splice(from, 1))
+      if (!input || !output || !active) return
       setOrder(next)
       setWriteFailed(false)
+      const fail = () => {
+        if (active.signal.aborted) return
+        setOrder(active.confirmed)
+        setWriteFailed(true)
+      }
       void queueEffectOrder(async () => {
         if (active.signal.aborted) return
         try {
@@ -148,17 +161,38 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
           logStore.append(makeLogEntry('out', 'Changed the effect order on the FM1.', message))
           active.confirmed = next
         } catch {
-          if (active.signal.aborted) return
-          setOrder(active.confirmed)
-          setWriteFailed(true)
+          fail()
         }
-      }, active.signal).catch(() => {
-        if (active.signal.aborted) return
-        setOrder(active.confirmed)
-        setWriteFailed(true)
-      })
+      }, active.signal).catch(fail)
     },
-    [input, logStore, makeLink, order, output, queueEffectOrder],
+    [input, logStore, makeLink, output, queueEffectOrder, setOrder],
+  )
+
+  const move = useCallback(
+    (from: number, to: number) => {
+      const latestOrder = latest.current
+      if (!session.current || !latestOrder || from === to) return
+      if (
+        ![from, to].every(
+          (place) => Number.isInteger(place) && place >= 0 && place < latestOrder.length,
+        )
+      )
+        return
+      const next = latestOrder.slice()
+      next.splice(to, 0, ...next.splice(from, 1))
+      write(next)
+    },
+    [write],
+  )
+
+  const set = useCallback(
+    (wanted: readonly number[]) => {
+      const latestOrder = latest.current
+      if (!session.current || !latestOrder || !isEffectOrder(wanted)) return
+      if (wanted.every((effect, place) => effect === latestOrder[place])) return
+      write(wanted.slice())
+    },
+    [write],
   )
 
   const adopt = useCallback(
@@ -170,12 +204,13 @@ export function useV16EffectOrder(midi: EffectOrderMidi): V16EffectOrder {
       setRead({ input, order: next, output })
       setWriteFailed(false)
     },
-    [input, offered, output],
+    [input, offered, output, setOrder],
   )
 
   return {
     adopt,
     move,
+    set,
     order: shown,
     status: !offered ? 'unavailable' : !current ? 'reading' : current.order ? 'ready' : 'failed',
     writeFailed,

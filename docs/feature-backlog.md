@@ -23,6 +23,23 @@ multi-parameter edits, tests in the same change, and the legacy-data rules for a
       an FM1, as Vivaldi has now, never a browser just because it is built on Chromium. Ranked
       first because it is a few strings and answers a user directly.
 
+- [x] **Keep the effect order in FX presets.** Issue 510 (2026-11-11): Read from FM1 brought the
+      order into the rack, but a preset saved from it lost the order, so recalling it later did
+      not put the chain back. _Done (2026-11-11):_ FX preset records are version 2 with an
+      optional `order`, the preset file version 2, and the backup version 7, each reading every
+      earlier version; saving keeps the FM1's order once it is known, recalling writes it through
+      the effect order's own read and write, and Undo puts the previous order back. Not yet tried
+      on the FM1.
+
+- [ ] **Make the Effects tab findable on V16.** Issue 510 called V16's FX management "a
+      nightmare". Paolo's own points were the order (above), names, and backups, but the
+      **Effects** tab also appears only once the FM1 is identified as running V16 (`sharedEffects`
+      in `librarian-page.tsx`), so someone who has not switched MIDI online never sees it. Options,
+      cheapest first: a line in the help guide and `docs/user-guide.md` saying where V16's effects
+      are edited; a short `InfoNotice` in the voice editor's effects panel on V16 pointing to the
+      tab; or showing the tab, disabled with its reason, while the firmware is unknown. Never show
+      it as usable for a firmware without `sharedEffects`.
+
 - [x] **Stop cutting off port names in Settings.** On macOS the closed **Output** and **Input
       monitor** lists show "USB Composite Dev", cut without an ellipsis (seen 2026-09-29). Let the
       name wrap or end in an ellipsis, with the full name in its title, at every width from 360 px.

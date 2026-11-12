@@ -31,7 +31,7 @@ import {
  * change for different reasons.
  */
 const workspaceBackupFormat = 'fm1-librarian-backup'
-export const workspaceBackupVersion = 6
+export const workspaceBackupVersion = 7
 export const workspaceBackupFileAccept = '.json,application/json'
 
 /**
@@ -142,6 +142,15 @@ type BackupFileV6 = Omit<BackupFileV5, 'version'> & {
   version: 6
 }
 
+/** From version 7 an FX preset carries its effect order, where it has one (preset version 2). */
+type BackupFxPresetV7 = BackupFxPresetV6 & { order?: number[] }
+
+/** Version 7 adds each FX preset's effect order. Everything else is as version 6 wrote it. */
+type BackupFileV7 = Omit<BackupFileV6, 'fxPresets' | 'version'> & {
+  fxPresets: BackupFxPresetV7[]
+  version: 7
+}
+
 // 'format' is not a backup at all, 'newer' was written by a later release, and 'damaged' is a
 // backup whose workspace cannot be read.
 type WorkspaceBackupProblem = 'damaged' | 'format' | 'newer' | 'size'
@@ -240,7 +249,7 @@ export function makeWorkspaceBackup(
       return []
     }),
   )
-  const file: BackupFileV6 = {
+  const file: BackupFileV7 = {
     fxPresets: fxPresets.map((preset) => {
       const readable = readStoredFxLibraryPreset(preset)
       return {
@@ -248,6 +257,7 @@ export function makeWorkspaceBackup(
         effects: encodeBase64(readable.effects),
         id: readable.id,
         name: readable.name,
+        ...(readable.order ? { order: readable.order } : {}),
         updatedAt: readable.updatedAt,
       }
     }),
@@ -505,8 +515,11 @@ function readSavedBank(value: unknown, version: number): NamedBank | null {
   }
 }
 
-/** Reads the FX presets that are readable, and counts the ones that are not. */
-function readBackupFxPresets(value: unknown) {
+/**
+ * Reads the FX presets that are readable, and counts the ones that are not. Their effect orders
+ * arrived in version 7; a version 6 preset is read without one.
+ */
+function readBackupFxPresets(value: unknown, version: number) {
   const presets: FxLibraryPreset[] = []
   let damagedCount = 0
   for (const entry of Array.isArray(value) ? value : []) {
@@ -515,7 +528,7 @@ function readBackupFxPresets(value: unknown) {
       const preset = readStoredFxLibraryPreset({
         ...entry,
         effects: decodeBase64(entry.effects),
-        version: 1,
+        version: version >= 7 ? 2 : 1,
       })
       // A preset listed twice is kept once, as the first copy.
       if (!presets.some(({ id }) => id === preset.id)) presets.push(preset)
@@ -562,7 +575,9 @@ export function parseWorkspaceBackup(text: string): WorkspaceBackup {
   }
 
   const hasFxPresets = file.version >= 6
-  const fx = hasFxPresets ? readBackupFxPresets(file.fxPresets) : { damagedCount: 0, presets: [] }
+  const fx = hasFxPresets
+    ? readBackupFxPresets(file.fxPresets, file.version)
+    : { damagedCount: 0, presets: [] }
   return {
     damagedFxPresetCount: fx.damagedCount,
     damagedSavedBankCount,

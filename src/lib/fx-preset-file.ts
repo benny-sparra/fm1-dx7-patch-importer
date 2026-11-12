@@ -1,9 +1,13 @@
 import { fm1EffectParameterMaximums } from '@/lib/fm1-effects'
 import {
   normalizeFxLibraryPresetName,
+  readFxLibraryPresetOrder,
   readStoredFxLibraryPreset,
   type FxLibraryPreset,
 } from '@/lib/fx-library-preset'
+
+/** The newest file version: version 2 adds each preset's effect order, where it has one. */
+const fxPresetFileVersion = 2
 
 export const fxPresetFileAccept = '.json,application/json'
 export const fxPresetFileName = 'fm1-fx-presets.json'
@@ -22,7 +26,7 @@ export class FxPresetFileError extends Error {
   }
 }
 
-export type PortableFxPreset = { effects: Uint8Array; name: string }
+export type PortableFxPreset = { effects: Uint8Array; name: string; order?: number[] }
 
 function damaged(message: string): never {
   throw new FxPresetFileError('damaged', message)
@@ -32,7 +36,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
-function readPortablePreset(value: unknown): PortableFxPreset {
+function readPortablePreset(value: unknown, version: number): PortableFxPreset {
   if (!isRecord(value) || typeof value.name !== 'string' || !Array.isArray(value.effects)) {
     damaged('The file contains an unreadable FX preset.')
   }
@@ -57,7 +61,16 @@ function readPortablePreset(value: unknown): PortableFxPreset {
     }
     return effect
   })
-  return { effects: Uint8Array.from(effects), name }
+  // Version 1 has no order; a version 1 file's stray `order` is not read.
+  let order: number[] | undefined
+  try {
+    order = version >= 2 ? readFxLibraryPresetOrder(value.order) : undefined
+  } catch {
+    damaged('The file contains an FX preset with an unreadable effect order.')
+  }
+  return order
+    ? { effects: Uint8Array.from(effects), name, order }
+    : { effects: Uint8Array.from(effects), name }
 }
 
 export function parseFxPresetFile(text: string): PortableFxPreset[] {
@@ -70,8 +83,9 @@ export function parseFxPresetFile(text: string): PortableFxPreset[] {
   if (!isRecord(file) || file.format !== 'fm1-fx-presets') {
     throw new FxPresetFileError('format', 'The file is not an FX preset library.')
   }
-  if (file.version !== 1) {
-    if (typeof file.version === 'number' && file.version > 1) {
+  const version = file.version
+  if (version !== 1 && version !== 2) {
+    if (typeof version === 'number' && version > fxPresetFileVersion) {
       throw new FxPresetFileError('newer', 'The file was made by a newer release.')
     }
     damaged('The file has no readable version.')
@@ -82,7 +96,7 @@ export function parseFxPresetFile(text: string): PortableFxPreset[] {
       `An FX preset file cannot contain more than ${maximumFxPresetFilePresets.toLocaleString('en-GB')} presets.`,
     )
   }
-  return file.presets.map(readPortablePreset)
+  return file.presets.map((preset) => readPortablePreset(preset, version))
 }
 
 export function makeFxPresetFile(presets: readonly FxLibraryPreset[]) {
@@ -90,9 +104,13 @@ export function makeFxPresetFile(presets: readonly FxLibraryPreset[]) {
     format: 'fm1-fx-presets',
     presets: presets.map((preset) => {
       const readable = readStoredFxLibraryPreset(preset)
-      return { effects: Array.from(readable.effects), name: readable.name }
+      return {
+        effects: Array.from(readable.effects),
+        name: readable.name,
+        ...(readable.order ? { order: readable.order } : {}),
+      }
     }),
-    version: 1,
+    version: fxPresetFileVersion,
   })
 }
 

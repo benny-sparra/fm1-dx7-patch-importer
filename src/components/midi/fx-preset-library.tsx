@@ -48,6 +48,7 @@ import {
   fxLibraryPresetCopyName,
   FxLibraryPresetNameError,
   fxLibraryPresetNameLength,
+  sameEffectOrder,
   type FxLibraryPreset,
 } from '@/lib/fx-library-preset'
 import { FxLibraryPresetConflictError } from '@/lib/fx-library-storage'
@@ -77,8 +78,18 @@ type FxPresetUndo =
   | { kind: 'delete'; preset: FxLibraryPreset }
   | { kind: 'update'; preset: FxLibraryPreset; updated: FxLibraryPreset }
 
+/** V16's effect order, where the FM1 offers it, for presets to keep and recall. */
+type PresetEffectOrder = {
+  /** The FM1's order as the rack shows it, or null while it is not known. */
+  order: readonly number[] | null
+  /** Puts the FM1's chain in `order`, as a recalled preset holds it. */
+  set: (order: readonly number[]) => void
+}
+
 type Props = {
   children?: ReactNode
+  /** The effect order presets keep and recall, where the FM1 offers it. */
+  effectOrder?: PresetEffectOrder
   fxLibrary: FxLibrary
   /** The read of the FM1's live effects, where its firmware allows it. */
   liveRead?: V16LiveEffectsRead
@@ -101,6 +112,7 @@ function downloadPresets(presets: readonly FxLibraryPreset[]) {
 /** The named FX presets beside the live rack: a list to load from and the actions on the rack. */
 export function FxPresetLibrary({
   children,
+  effectOrder,
   fxLibrary,
   liveRead,
   midi,
@@ -133,9 +145,13 @@ export function FxPresetLibrary({
   const mutationInFlight = useRef(false)
   const sendInFlight = useRef(false)
   const sendAbort = useRef<AbortController | null>(null)
-  const saveCapture = useRef<Uint8Array | null>(null)
+  const saveCapture = useRef<{ effects: Uint8Array; order: readonly number[] | null } | null>(null)
   const loaded = fxLibrary.presets.find((preset) => preset.id === loadedId)
-  const modified = Boolean(loaded && !bytesEqual(loaded.effects, current))
+  const chainOrder = effectOrder?.order ?? null
+  // A preset's order counts only while the FM1's is known; one without an order matches any.
+  const orderDiffers = (preset: FxLibraryPreset) =>
+    Boolean(preset.order && chainOrder && !sameEffectOrder(preset.order, chainOrder))
+  const modified = Boolean(loaded && (!bytesEqual(loaded.effects, current) || orderDiffers(loaded)))
   const route = v16EffectsRouteKey(midi.selectedOutputId, midi.effectChannel, midi.firmware)
   const sharedEffects = resolveFirmwareProfile(midi.firmware).capabilities.sharedEffects
   const eligible = midi.hasMidiOutput && sharedEffects
@@ -222,7 +238,7 @@ export function FxPresetLibrary({
 
   const startSave = () => {
     if (unavailable || mode !== null) return
-    saveCapture.current = current.slice()
+    saveCapture.current = { effects: current.slice(), order: chainOrder?.slice() ?? null }
     setName('')
     setMode('save')
   }
@@ -243,8 +259,10 @@ export function FxPresetLibrary({
     if (!loaded) return
     const preset = loaded
     const effects = current.slice()
+    // While the FM1's order is unknown the preset keeps its own.
+    const order = chainOrder?.slice()
     await run(async () => {
-      const updated = await fxLibrary.update(preset, effects)
+      const updated = await fxLibrary.update(preset, effects, order)
       showUndoToast(
         { kind: 'update', preset, updated },
         t('fxPresets.updated', { name: preset.name }),
@@ -257,19 +275,28 @@ export function FxPresetLibrary({
     const undone = await run(() =>
       entry.kind === 'delete'
         ? fxLibrary.restorePresets([preset])
-        : fxLibrary.update(entry.updated, preset.effects),
+        : fxLibrary.update(entry.updated, preset.effects, preset.order ?? null),
     )
     if (undone) toast.success(t('fxPresets.restored', { name: preset.name }))
     else showUndoToast(entry, successMessage)
   }
 
-  /** Puts `effects` in the rack as `presetId`, and sends them when the FM1 can take them. */
-  const recall = async (effects: Uint8Array, presetId: string, sendAgain: boolean) => {
+  /**
+   * Puts `effects` in the rack as `presetId`, and sends them when the FM1 can take them. An
+   * `order` puts the FM1's chain in that order too, through its own read and write.
+   */
+  const recall = async (
+    effects: Uint8Array,
+    presetId: string,
+    sendAgain: boolean,
+    order?: readonly number[] | null,
+  ) => {
     if (sendInFlight.current || mutationInFlight.current) return
     setError('')
     setV16Effects(effects)
     setV16EffectsPresetId(presetId)
     setLoadedOnly(!eligible)
+    if (order && eligible) effectOrder?.set(order)
     if (!eligible || (isSent(presetId, effects) && !sendAgain)) return
     const controller = new AbortController()
     sendAbort.current = controller
@@ -301,14 +328,15 @@ export function FxPresetLibrary({
     message = t('fxPresets.loaded', { name: preset.name }),
   ) => {
     if (sendInFlight.current || mutationInFlight.current) return
-    const before = { effects: current.slice(), id: loadedId }
-    const changed = preset.id !== loadedId || !bytesEqual(preset.effects, current)
-    const done = recall(preset.effects, preset.id, false)
+    const before = { effects: current.slice(), id: loadedId, order: chainOrder?.slice() }
+    const changed =
+      preset.id !== loadedId || !bytesEqual(preset.effects, current) || orderDiffers(preset)
+    const done = recall(preset.effects, preset.id, false, preset.order)
     if (changed) {
       toast.success(message, {
         action: {
           label: t('toasts.undo'),
-          onAction: () => void recall(before.effects, before.id, true),
+          onAction: () => void recall(before.effects, before.id, true, before.order),
         },
       })
     }
@@ -320,7 +348,7 @@ export function FxPresetLibrary({
       const captured = saveCapture.current
       if (!captured) return
       const saved = await run(async () => {
-        const record = await fxLibrary.save(name, captured)
+        const record = await fxLibrary.save(name, captured.effects, captured.order)
         setV16EffectsPresetId(record.id)
       })
       if (saved) toast.success(t('fxPresets.saved', { name: name.trim() }))
@@ -357,7 +385,13 @@ export function FxPresetLibrary({
       )
       return
     }
-    const matching = fxLibrary.presets.find((preset) => bytesEqual(preset.effects, result.effects))
+    // The preset holding exactly these effects in this order, or failing that one with no order.
+    const holding = fxLibrary.presets.filter(
+      (preset) =>
+        bytesEqual(preset.effects, result.effects) &&
+        (!preset.order || sameEffectOrder(preset.order, result.order)),
+    )
+    const matching = holding.find((preset) => preset.order) ?? holding[0]
     setV16Effects(result.effects)
     setV16EffectsPresetId(matching?.id ?? '')
     markV16EffectsSent(matching?.id ?? '', route, result.effects)

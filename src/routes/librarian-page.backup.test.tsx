@@ -136,7 +136,7 @@ describe('LibrarianPage backup', () => {
       await screen.findByText('Downloading a backup of your banks and saved banks.'),
     ).toBeTruthy()
     const backup = JSON.parse(await createObjectURL.mock.calls[0][0].text())
-    expect(backup).toMatchObject({ format: 'fm1-librarian-backup', fxPresets: [], version: 6 })
+    expect(backup).toMatchObject({ format: 'fm1-librarian-backup', fxPresets: [], version: 7 })
     expect(backup.workspace.slots).toHaveLength(32)
   })
 

@@ -44,7 +44,7 @@ export default {
       'Este firmware no tiene el grupo de FX compartido de V16. La carga solo cambia este navegador.',
     help: 'Edita efectos y guarda presets. En V16, todas las Voces comparten los efectos.',
     orderHelp:
-      'Los presets contienen los controles de efectos que aparecen aquí, no el orden de efectos.',
+      'Los presets también guardan el orden de efectos, una vez que el FM1 lo ha dado, y al cargarlos lo restauran.',
     readback: '«Leer del FM1» trae aquí los efectos actuales del FM1 y su orden.',
     readFromFm1: 'Leer del FM1',
     readDone: 'Se leyeron los efectos del FM1.',
