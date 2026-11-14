@@ -117,3 +117,5 @@ This does not cover third-party material bundled with it, which keeps its own te
 - **Fonts**: Doto, Space Grotesk, JetBrains Mono, and VT323 are installed from npm under the SIL Open
   Font License 1.1. Departure Mono is under the same licence. DSEG7 Classic (keshikan), which draws
   the editor's numbers, is vendored in `src/fonts/dseg/` under it too.
+
+Related: try FM-1 firmwares in the browser with the free community [FM-1 Emulator](https://fm1-emulator.atst.tools/).
