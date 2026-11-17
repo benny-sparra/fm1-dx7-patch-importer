@@ -1584,6 +1584,9 @@ export default {
     deleteConfirm: '¿Eliminar permanentemente “{{name}}” de este navegador?',
     loadConfirm: '¿Sustituir los 32 sonidos de “{{bank}}” por “{{name}}”?',
     replaceAction: 'Sustituir sonidos',
+    conflict:
+      'Este banco guardado se modificó o eliminó en otra pestaña. Tus cambios se conservan aquí. Recarga los bancos guardados y vuelve a abrir sus detalles para revisar la última versión.',
+    reload: 'Recargar bancos guardados',
     operationFailed: 'La operación del banco guardado ha fallado.',
     openFailed:
       'No se pudieron abrir los bancos guardados. Recarga la página e inténtalo de nuevo.',

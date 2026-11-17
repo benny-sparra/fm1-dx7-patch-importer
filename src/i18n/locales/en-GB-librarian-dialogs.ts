@@ -417,6 +417,9 @@ export default {
     deleteConfirm: 'Permanently delete “{{name}}” from this browser?',
     loadConfirm: 'Replace the 32 patches in “{{bank}}” with “{{name}}”?',
     replaceAction: 'Replace patches',
+    conflict:
+      'This saved bank changed or was deleted in another tab. Your edits are kept here. Reload saved banks, then reopen its details to review the latest version.',
+    reload: 'Reload saved banks',
     operationFailed: 'The saved-bank operation failed.',
     loadFailed: 'Saved banks could not be loaded from browser storage.',
     damagedBanks:

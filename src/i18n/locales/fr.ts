@@ -1586,6 +1586,9 @@ export default {
     deleteConfirm: 'Supprimer définitivement « {{name}} » de ce navigateur ?',
     loadConfirm: 'Remplacer les 32 sons de « {{bank}} » par « {{name}} » ?',
     replaceAction: 'Remplacer les sons',
+    conflict:
+      'Cette banque enregistrée a été modifiée ou supprimée dans un autre onglet. Vos modifications sont conservées ici. Rechargez les banques enregistrées, puis rouvrez ses détails pour consulter la dernière version.',
+    reload: 'Recharger les banques enregistrées',
     operationFailed: 'L’opération sur la banque enregistrée a échoué.',
     openFailed: 'Impossible d’ouvrir les banques enregistrées. Rechargez la page et réessayez.',
     loadFailed: 'Impossible de charger les banques enregistrées depuis le stockage du navigateur.',

@@ -115,10 +115,16 @@ phone the list opens from the name in the title strip, and choosing a preset clo
 between Patches and Effects keeps the selected FX preset and any unsaved edits. Saving, renaming,
 duplicating, deleting, Undo, searching, importing and downloading send no MIDI. **FX preset
 actions** (the **⋮** by the search field) has **Import…** and **Download all**, which writes
-`fm1-fx-presets.json`; Import adds valid presets with new identities and keeps everything already
-present.
+`fm1-fx-presets.json` when the collection fits one import file. Larger collections download as
+`fm1-fx-presets.zip`, containing numbered JSON files of at most 1,000 presets and 1 MiB each.
+Extract the ZIP, then use **Import…** for each JSON file separately. Import adds valid presets
+with new identities and keeps everything already present.
 
-Click a preset to load it; **Undo** in the toast puts the previous effects and order back and sends them too. If the load cannot reach the FM1, because MIDI is offline, the notice
+Click a preset to load it; **Undo** in the toast puts the previous effects and order back and sends
+them too. Undo for loading or reverting a preset expires when you leave Effects, change the MIDI
+output, Effect channel or firmware, or MIDI goes offline. Returning to the same route does not
+revive it. Undo for saving or deleting a preset still works after leaving Effects.
+If the load cannot reach the FM1, because MIDI is offline, the notice
 under the strip says so, and it replaces only the browser’s current Effects controls; it is not
 sent later when MIDI reconnects. With an identified M-VAVE V16 online, the click also sends all 24
 controls once to the shared FX group and, when the preset holds an effect order different from
@@ -356,6 +362,11 @@ release of the editor asks you to reload, which fetches that release and opens i
 To tidy banks after importing archives, choose **Find duplicate patches…** from the menu in the patch-bank header. It lists the patches in your loaded banks whose voice settings match, grouped together, even when a copy has another name. FM1 effects and FM-1+VA preset settings are not compared, and a group says when its copies' effects or preset settings differ. Virtual Analogue presets are grouped with identical Virtual Analogue presets only, and 8-Bit presets with 8-Bit ones. Choose a patch in the list to go to its bank and play it, as clicking its slot does. The list only reads your library: delete or replace a copy yourself, from its bank.
 
 Each bank's menu also offers **Save bank…**, which keeps a named copy of its 32 patches and their FM1 effects in this browser, and **Load bank…**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has patches asks first. If a bank is empty, you can load the built-in demo bank instead.
+
+If another tab changes or deletes a saved bank while you are editing or confirming its deletion,
+the action stops and explains the conflict. Your typed name and description stay in the form.
+Choose **Reload saved banks**, then reopen the bank's details to review its latest version before
+trying again. A failed reload keeps the list already shown and offers another try.
 
 ### Favourites
 

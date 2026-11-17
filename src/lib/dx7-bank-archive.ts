@@ -34,19 +34,17 @@ function isBankHeader(bytes: Uint8Array<ArrayBuffer>, start: number) {
  */
 function findBankMessages(bytes: Uint8Array<ArrayBuffer>) {
   const messages: Uint8Array<ArrayBuffer>[] = []
-  let start = bytes.indexOf(0xf0)
-  while (start !== -1) {
-    const end = bytes.indexOf(0xf7, start)
-    const nextStart = bytes.indexOf(0xf0, start + 1)
-    const next =
-      nextStart !== -1 && (end === -1 || nextStart < end)
-        ? nextStart
-        : end === -1
-          ? bytes.length
-          : end + 1
-    if (isBankHeader(bytes, start)) messages.push(bytes.slice(start, next))
-    start = bytes.indexOf(0xf0, next)
+  let start = -1
+  // Inspect each byte once, even if every F0 interrupts a message with no F7 ahead.
+  for (let index = 0; index < bytes.length; index += 1) {
+    const byte = bytes[index]
+    if (byte !== 0xf0 && byte !== 0xf7) continue
+    if (start !== -1 && isBankHeader(bytes, start)) {
+      messages.push(bytes.slice(start, byte === 0xf7 ? index + 1 : index))
+    }
+    start = byte === 0xf0 ? index : -1
   }
+  if (start !== -1 && isBankHeader(bytes, start)) messages.push(bytes.slice(start))
   return messages
 }
 

@@ -21,3 +21,6 @@ package-lock.json
 # Locally installed agent skills
 .agents
 skills-lock.json
+
+# Generated local agent-tool metadata
+.impeccable/

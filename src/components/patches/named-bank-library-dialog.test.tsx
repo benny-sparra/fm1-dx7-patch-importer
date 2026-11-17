@@ -1,15 +1,30 @@
 // @vitest-environment jsdom
 
-import { cleanup, render as renderPlain, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  renderHook,
+  render as renderPlain,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps, ReactElement } from 'react'
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setLocale } from '@/i18n'
 import { NamedBankLibraryDialog } from '@/components/patches/named-bank-library-dialog'
 import { ToastProvider } from '@/components/ui/toast'
 import { downloadFile } from '@/lib/download-file'
-import { createNamedBank } from '@/lib/named-bank'
+import { usePatchLibrary } from '@/hooks/use-patch-library'
+import { installFakeIndexedDb } from '@/test/fake-indexed-db'
+import {
+  listStoredNamedBanks,
+  saveStoredNamedBank,
+  saveStoredPatchLibrary,
+  PatchLibraryStorageError,
+} from '@/lib/patch-library-storage'
+import { createNamedBank, renameNamedBank } from '@/lib/named-bank'
 import {
   emptyPatchLibrary,
   importVoices,
@@ -52,6 +67,7 @@ const library: DialogLibrary = {
   namedBanks: [],
   namedBanksLoadFailed: false,
   namedBanksLoading: false,
+  reloadNamedBanks: vi.fn(),
   saveNamedBank: vi.fn(),
   updateNamedBankDetails: vi.fn(),
   workspaceBanks: ['A'],
@@ -187,7 +203,7 @@ describe('NamedBankLibraryDialog saved bank actions', () => {
     await user.click(screen.getByRole('button', { name: 'Delete Stage' }))
     await user.click(screen.getByRole('button', { name: 'Delete bank' }))
 
-    expect(deleteNamedBank).toHaveBeenCalledExactlyOnceWith('bank-1')
+    expect(deleteNamedBank).toHaveBeenCalledExactlyOnceWith(makeSavedBank())
   })
 
   it('shows saved bank dates in the interface language', async () => {
@@ -403,5 +419,131 @@ describe('NamedBankLibraryDialog managing saved banks', () => {
       true,
     )
     expect(screen.getByRole('button', { name: 'Delete Stage' }).hasAttribute('disabled')).toBe(true)
+  })
+})
+
+describe('NamedBankLibraryDialog stale saved-bank actions', () => {
+  beforeEach(async () => {
+    installFakeIndexedDb()
+    await setLocale('en-GB')
+  })
+  afterEach(async () => {
+    vi.unstubAllGlobals()
+    await setLocale('en-GB')
+  })
+
+  async function setupStoredDialog() {
+    await saveStoredPatchLibrary(emptyPatchLibrary(), null)
+    const bank = createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      id: 'bank-1',
+      name: 'Stage',
+      description: 'Original',
+      now: '2026-11-08T12:00:00.000Z',
+    })
+    await saveStoredNamedBank(bank, null)
+    const hook = renderHook(() => usePatchLibrary())
+    await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
+    const dialog = () => (
+      <NamedBankLibraryDialog destinationBank="A" library={hook.result.current} mode="load" />
+    )
+    const view = render(dialog())
+    const refresh = () => view.rerender(dialog())
+    const updateElsewhere = async () => {
+      await saveStoredNamedBank(renameNamedBank(bank, 'First tab', 'Winner', bank.updatedAt), bank)
+      await act(() => hook.result.current.reloadNamedBanks())
+      refresh()
+    }
+    return { hook, refresh, updateElsewhere, user: userEvent.setup() }
+  }
+
+  it('keeps the captured edit target and typed fields when the bank list changes', async () => {
+    const { hook, refresh, updateElsewhere, user } = await setupStoredDialog()
+    await user.click(screen.getByRole('button', { name: 'Edit Stage' }))
+    const name = screen.getByRole<HTMLInputElement>('textbox', { name: 'Bank name' })
+    const description = screen.getByRole<HTMLTextAreaElement>('textbox', {
+      name: 'Description (optional)',
+    })
+    await user.clear(name)
+    await user.type(name, 'My draft')
+    await user.clear(description)
+    await user.type(description, 'Draft description')
+    await updateElsewhere()
+
+    await user.click(screen.getByRole('button', { name: 'Update details' }))
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'This saved bank changed or was deleted in another tab.',
+    )
+    expect(name.value).toBe('My draft')
+    expect(description.value).toBe('Draft description')
+    expect((await listStoredNamedBanks()).banks[0]).toMatchObject({
+      name: 'First tab',
+      description: 'Winner',
+    })
+    expect(screen.queryByText('Updated “My draft”.')).toBeNull()
+
+    await user.click(screen.getByRole('button', { name: 'Reload saved banks' }))
+    await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
+    refresh()
+    expect(name.value).toBe('My draft')
+    expect(description.value).toBe('Draft description')
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    await user.click(screen.getByRole('button', { name: 'Edit First tab' }))
+    const reviewedName = screen.getByRole<HTMLInputElement>('textbox', { name: 'Bank name' })
+    expect(reviewedName.value).toBe('First tab')
+    await user.clear(reviewedName)
+    await user.type(reviewedName, 'Reviewed edit')
+    await user.click(screen.getByRole('button', { name: 'Update details' }))
+    await screen.findByText('Updated “Reviewed edit”.')
+    expect((await listStoredNamedBanks()).banks[0]).toMatchObject({
+      name: 'Reviewed edit',
+      description: 'Winner',
+    })
+  })
+
+  it('keeps the deletion target captured when confirmation opened after the list changes', async () => {
+    const { updateElsewhere, user } = await setupStoredDialog()
+    await user.click(screen.getByRole('button', { name: 'Delete Stage' }))
+    await updateElsewhere()
+    expect(screen.getByText('Permanently delete “Stage” from this browser?')).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Delete bank' }))
+
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'This saved bank changed or was deleted in another tab.',
+    )
+    expect((await listStoredNamedBanks()).banks[0]).toMatchObject({
+      name: 'First tab',
+      description: 'Winner',
+    })
+    expect(screen.queryByText('Deleted “Stage”.')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Reload saved banks' })).toBeTruthy()
+  })
+
+  it('explains a conflict in French with a translated reload action', async () => {
+    await setLocale('fr')
+    const bank = createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      id: 'bank-1',
+      name: 'Stage',
+      description: '',
+      now: '2026-11-08T12:00:00.000Z',
+    })
+    const updateNamedBankDetails = vi
+      .fn<DialogLibrary['updateNamedBankDetails']>()
+      .mockRejectedValue(new PatchLibraryStorageError('conflict', 'Technical conflict text'))
+    render(
+      <NamedBankLibraryDialog
+        destinationBank="A"
+        mode="load"
+        library={{ ...library, namedBanks: [bank], updateNamedBankDetails }}
+      />,
+    )
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Modifier Stage' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Mettre à jour' }))
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Cette banque enregistrée a été modifiée ou supprimée dans un autre onglet.',
+    )
+    expect(screen.getByRole('button', { name: 'Recharger les banques enregistrées' })).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).not.toContain('Technical conflict text')
   })
 })

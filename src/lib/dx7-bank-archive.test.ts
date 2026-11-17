@@ -1,9 +1,14 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { Dx7BankFileError, dx7BankFileSize, parseDx7Bank } from '@/lib/dx7'
+import {
+  dx7BankArchiveMaximumBanks,
+  Dx7BankFileError,
+  dx7BankFileSize,
+  parseDx7Bank,
+} from '@/lib/dx7'
 
 import { parseDx7BankArchive, readDx7BankArchive } from './dx7-bank-archive'
 
@@ -37,7 +42,69 @@ function problemOf(bytes: Uint8Array) {
 const firstNames = (bytes: Uint8Array) =>
   parseDx7BankArchive(bytes.buffer as ArrayBuffer).map(({ voices }) => voices?.[0].name ?? null)
 
+afterEach(() => vi.unstubAllGlobals())
+
 describe('parseDx7BankArchive', () => {
+  it('bounds byte inspections when rejecting repeated F0 bytes without an F7', () => {
+    const input = new Uint8Array(512).fill(0xf0)
+    let inspections = 0
+    // Instrument the input view, retaining ordinary byte access and indexOf semantics. Generic
+    // Array.indexOf visits the proxy's indices, so both searches and loops count inspected bytes.
+    const counted = new Proxy(input, {
+      get(target, property) {
+        if (property === 'indexOf') return Array.prototype.indexOf
+        if (typeof property === 'string' && /^\d+$/.test(property)) inspections += 1
+        return Reflect.get(target, property, target)
+      },
+    })
+    vi.stubGlobal(
+      'Uint8Array',
+      new Proxy(Uint8Array, {
+        construct(target, args) {
+          return args[0] === input.buffer ? counted : Reflect.construct(target, args)
+        },
+      }),
+    )
+
+    try {
+      expect(problemOf(input)).toBe('size')
+    } finally {
+      vi.unstubAllGlobals()
+    }
+
+    // A generous linear work bound for 512 input bytes, independent of wall-clock speed.
+    expect(inspections).toBeLessThanOrEqual(4_096)
+  })
+
+  it('keeps many interrupted dumps in their places before a valid bank', () => {
+    const headers = Array<Uint8Array>(256).fill(rom1a.slice(0, 6))
+    expect(firstNames(join(...headers, rom1b))).toEqual([
+      ...Array<null>(256).fill(null),
+      'PIANO   4',
+    ])
+  })
+
+  it('ignores stray F7 bytes and an interrupted unrelated SysEx message', () => {
+    const unrelated = Uint8Array.of(0xf7, 0xf7, 0xf0, 0x7d, 1, 2, 3)
+    expect(firstNames(join(unrelated, rom1a, Uint8Array.of(0xf7, 0x7f)))).toEqual(['BRASS   1'])
+  })
+
+  it('accepts an exact maximum-size file with a bank after stray padding', () => {
+    const input = new Uint8Array(dx7BankFileSize * dx7BankArchiveMaximumBanks)
+    input.set(rom1b, input.length - rom1b.length)
+    expect(firstNames(input)).toEqual(['PIANO   4'])
+  })
+
+  it('reports a lone bank missing its F7 with its own size error', () => {
+    expect(problemOf(rom1a.slice(0, -1))).toBe('size')
+  })
+
+  it('reports a lone bank with a missing F7 but the correct length as a format error', () => {
+    const input = rom1a.slice()
+    input[input.length - 1] = 0
+    expect(problemOf(input)).toBe('format')
+  })
+
   it('reads a file holding one bank as that bank', () => {
     const [bank] = parseDx7BankArchive(rom1a.buffer as ArrayBuffer)
 
