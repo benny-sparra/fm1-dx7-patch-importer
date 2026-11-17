@@ -172,7 +172,8 @@ for (const count of [1, 1001]) {
       expect(bytes.byteLength).toBeLessThanOrEqual(1024 * 1024)
       const file = JSON.parse(Buffer.from(bytes).toString('utf8'))
       expect(file.format).toBe('fm1-fx-presets')
-      expect(file.version).toBe(1)
+      // Files are written in the newest version; these imported presets have no effect order.
+      expect(file.version).toBe(2)
       expect(file.presets.length).toBeLessThanOrEqual(1000)
       return file.presets
     })

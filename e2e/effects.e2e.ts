@@ -128,14 +128,18 @@ test('a live FX read updates all controls, order and matching name; Undo restore
   await page.getByRole('menuitem', { name: 'Download all', exact: true }).click()
   const download = await downloading
   expect(JSON.parse(await readFile(await download.path(), 'utf8')).presets).toEqual([
-    { effects: zeroRack, name: 'Browser zero' },
+    // Saved while the FM1's order, read from its settings block, was known, so it keeps it.
+    { effects: zeroRack, name: 'Browser zero', order: [2, 0, 1, 3, 5, 4] },
     { effects: sentRack('Read run A distinct'), name: 'Read run A distinct' },
   ])
   await readToast.getByRole('button', { name: 'Undo', exact: true }).click()
 
   await expect.poll(() => rackValues(page)).toEqual(zeroRack)
-  await expect(page.getByRole('heading', { name: 'Browser zero', exact: true })).toBeVisible()
-  // Order is the FM1's live state; Undo restores the browser controls, not hardware order.
+  // Order is the FM1's live state; Undo restores the browser controls, not hardware order, so
+  // the preset, saved with the FM1's earlier order, reads as edited.
+  await expect(
+    page.getByRole('heading', { name: 'Browser zero edited', exact: true }),
+  ).toBeVisible()
   expect(await rackOrder(page)).toEqual(effectNames)
   await page.clock.fastForward(6000)
   expect(await sentMidi(page)).toEqual([fakeMidiRequests.liveEffects])
