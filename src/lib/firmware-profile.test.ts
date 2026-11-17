@@ -264,21 +264,19 @@ describe('resolveFirmwareProfile', () => {
     expect(fm1Va('FM-1_089').family).toBe('fm1-va')
   })
 
-  it('sends Official Open dumps to DX7 tracks it reads, and no channel message it misreads', () => {
+  it('sends Official Open dumps to DX7 tracks it reads, on either device, and no bank or channel message', () => {
     for (const identity of [
       'FM-1_8000012',
       'FM-1_8000013',
       'FM-1_8000099',
       'FM1_COMMUNITY_3',
       'FM1_OFFICIAL_OPEN',
+      'SMK-37 Pro_8000001',
+      'SMK-37 Elite_8000001',
+      'SMK37P_OPEN_001',
     ]) {
       expect(resolveFirmwareProfile({ identity, kind: 'official-open' })).toEqual({
-        capabilities: {
-          ...nothing,
-          bankDumps: true,
-          singleVoiceDumps: true,
-          trackEngineRead: true,
-        },
+        capabilities: { ...nothing, singleVoiceDumps: true, trackEngineRead: true },
         effectControllerBase: 0,
         family: 'official-open',
         presetWriteTiming: presetsPageTiming,
@@ -362,7 +360,7 @@ describe('resolveFirmwareProfile', () => {
     })
   })
 
-  it('sends a bank dump to every firmware but the SMK-37 and DX747', () => {
+  it('sends a bank dump to every firmware but the SMK-37, DX747, and Official Open', () => {
     for (const firmware of [
       { kind: 'checking' },
       { kind: 'unidentified' },
@@ -370,9 +368,13 @@ describe('resolveFirmwareProfile', () => {
       { identity: 'FM-1_016', kind: 'mvave' },
       { identity: 'FM-1_097', kind: 'fm1-va' },
       { identity: 'FM-1_908', kind: 'felucca' },
-      { identity: 'FM-1_8000012', kind: 'official-open' },
     ] as const) {
       expect(resolveFirmwareProfile(firmware).capabilities.bankDumps).toBe(true)
+    }
+    for (const identity of ['FM-1_8000012', 'SMK-37 Pro_8000001']) {
+      expect(
+        resolveFirmwareProfile({ identity, kind: 'official-open' }).capabilities.bankDumps,
+      ).toBe(false)
     }
     expect(
       resolveFirmwareProfile({ identity: 'SMK-37 Pro_015', kind: 'smk37' }).capabilities.bankDumps,

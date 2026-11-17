@@ -218,7 +218,10 @@ open everything an earlier release could have saved.
   MIDI is switched off, rather than matching it by port identity. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
   release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`. M-VAVE's Official Open is
   `FM-1_8` and six digits (`FM-1_8000012` is V12), `FM1_COMMUNITY_` and a number, or
-  `FM1_OFFICIAL_OPEN`, the names its updater accepts. M-VAVE's SMK-37 keyboard, on the FM1's
+  `FM1_OFFICIAL_OPEN`, the names its updater accepts; its SMK-37 port, SMK37 OPEN, is
+  `SMK-37 Pro_8` or `SMK-37 Elite_8` and six digits (`SMK-37 Pro_8000001` is V1), or
+  `SMK37P_OPEN_` or `SMK37E_OPEN_` and three digits, the names its updater accepts
+  (`docs/smk37-open-research.md`). M-VAVE's SMK-37 keyboard, on the FM1's
   chip and engines, answers in the same format with its model before the underscore: its own
   firmware is `SMK-37 Pro_`, `SMK-37 Elite_`, or `MKE-P37_` and a release from `000` to `099`
   (`SMK-37 Pro_015` is its V15, not the FM1's). A port of FM-1 firmware to it keeps the model and
@@ -253,10 +256,22 @@ open everything an earlier release could have saved.
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
   not yet identified too. The badge, the firmware setting, and the bank instructions say so.
+  It drops any SysEx over 192 bytes, so a bank did nothing on the FM1, and its profile leaves out
+  `bankDumps`: **Send to FM1** opens the title-only dialog saying it ignores banks.
+- SMK37 OPEN (M-VAVE's port of Official Open to the SMK-37, V01 read 2026-11-17,
+  `docs/smk37-open-research.md`) runs Official Open's transfer code and engines unchanged, so it is
+  the `official-open` family on the `smk37` device, and the editor sends it what it sends Official
+  Open on the FM1, the dump and command 0, and nothing else (the owner's go-ahead, 2026-11-17).
+  Its badge and setting are Official Open's, which name no device; the track notices name the
+  SMK-37 (`OfficialOpenTrackStatus`'s `smk37`). This is Likely, from source, and **Needs hardware
+  test**. Its tracks' input channels can be changed on the keyboard (**IN CH**), which command 0
+  does not report, so a dump goes to the track a channel reaches only while the defaults hold.
+  Its writes to the DX7 library (commands 3–5 with kind 4) stay **Dangerous / excluded**.
 - The device and its firmware are separate axes (the owner, 2026-11-03: stock, Official Open,
   and Baud Girl's firmware should each run on the FM1 and the SMK-37). `fm1Device` reads the
   device from the identity's model, the text before its last underscore (`SMK-37 Pro`,
-  `SMK-37 Elite`, `MKE-P37`, `SMK-37`), whatever number follows, so an SMK-37 on a community port
+  `SMK-37 Elite`, `MKE-P37`, `SMK-37`), whatever number follows, or from SMK37 OPEN's build
+  names (`SMK37P_OPEN_001`), so an SMK-37 on a community port
   such as Skiff (`SMK-37 Pro_714`) is still an SMK-37. What the page shows of the hardware, its
   name in the title and on Send, its photo, and its finishes, follows the device; what the editor
   sends follows the firmware's profile, and the `smk37` family is the SMK-37's stock firmware.
@@ -275,7 +290,8 @@ open everything an earlier release could have saved.
   `danger` that it cannot be undone, and only then sends one single-voice dump through
   `useSmk37PresetWrite`, a lazy hook outside `useMidi` that takes its turn on the transfer
   queue through `queueEffectOrder`, so the entry pays nothing for it. Another release gets it only after its own
-  run. Every other family but DX747 lists `bankDumps`, so only the SMK-37 and DX747 are refused a bank.
+  run. Every other family but DX747 and Official Open lists `bankDumps`, so only the SMK-37,
+  DX747, and Official Open are refused a bank.
   `sendsBankTo` (in the profile module) also refuses a bank to an output named `SMK` while the
   firmware is checking or unidentified, since an input on another device leaves the SMK-37
   unanswered. `useMidi.sendBank` returns `unsupported` without sending, and **Send to FM1** opens

@@ -18,8 +18,8 @@ export default {
       'Drehe SELECT auf Replace und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab. Sie ersetzen auch die Werkspresets dieser Bank dauerhaft.',
     bankFm1VaNote:
       'Läuft auf deinem FM1 die Firmware von Baud Girl, fragt er stattdessen „Replace Bank A?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Replace, und drücke SEL.',
-    bankOfficialOpenNote:
-      'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Projekte also nicht.',
+    bankOfficialOpenTitle:
+      'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, deshalb wird keine gesendet',
     bankSmk37Title:
       'Das SMK-37 würde eine Bank über seine Presets speichern, deshalb wird keine gesendet',
     bankDx747Title: 'DX747 nimmt keine Bank über MIDI an, deshalb wird keine gesendet',
@@ -1304,7 +1304,7 @@ export default {
       'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}: acht Voices, jede auf einem eigenen Kanal, mit einer gemeinsamen FX-Gruppe. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
     officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
+      'Die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
     dx747BadgeLabel: 'DX747-Firmware, {{release}}',
     dx747BadgeTitle:
       'Auf dem FM1 läuft DX747, {{release}}: bis zu acht Parts, jeder auf einem eigenen Kanal. Ein Sound, den du anklickst oder bearbeitest, geht an den Part auf dem Notenkanal. Banken nimmt die Firmware nicht an, und der Editor sendet weder Program Change noch Effektregler.',
@@ -1654,6 +1654,12 @@ export default {
       'Spur {{track}} spielt {{engine}} und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur {{track}} am FM1 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
     unread:
       'Der FM1 hat nicht gemeldet, welche Engine Spur {{track}} spielt, deshalb wurde der Sound nicht gesendet. Prüfe, ob der FM1 verbunden ist, und versuche es dann erneut.',
+    sentSmk37:
+      '„{{name}}“ an Spur {{track}} gesendet. Speichere das Projekt auf dem SMK-37, um ihn zu behalten.',
+    notDx7Smk37:
+      'Spur {{track}} spielt {{engine}} und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur {{track}} am SMK-37 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
+    unreadSmk37:
+      'Das SMK-37 hat nicht gemeldet, welche Engine Spur {{track}} spielt, deshalb wurde der Sound nicht gesendet. Prüfe, ob das SMK-37 verbunden ist, und versuche es dann erneut.',
   },
   attract: {
     pressAnyKey: 'BELIEBIGE TASTE DRÜCKEN',

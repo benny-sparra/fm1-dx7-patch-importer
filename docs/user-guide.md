@@ -166,9 +166,16 @@ track runs DX7: before each patch the app asks the FM1 which engine every track 
 runs another engine, or the note channel reaches no track, nothing is sent and the app says how to
 fix it: set the track to DX7 on the FM1, or choose the note channel of a DX7 track. Save the
 project on the FM1 to keep a patch. In the editor each change is sent when you let go of the
-control, so the FM1's own undo steps match the editor's. Official Open ignores DX7 banks, and the
-app sends it no Program Change and no effect controls, which it would take as changes to its
-tracks.
+control, so the FM1's own undo steps match the editor's. Official Open ignores DX7 banks, so
+**Send to FM1** sends none and says why, and the app sends it no Program Change and no effect
+controls, which it would take as changes to its tracks.
+
+Official Open runs on the SMK-37 too, as M-VAVE's SMK37 OPEN, and the app treats it the same way:
+it names it **M-VAVE OPEN** with its release, such as V1, and sends a patch to the track on the
+note channel once that track runs DX7. Tracks listen on channels 1 to 7 and 10 until you change a
+track's **IN CH** on the keyboard; the app cannot see that setting, so keep a track on its own
+channel to send it patches. This support was built from SMK37 OPEN's source and has not been run
+on an SMK-37 yet.
 
 DX747, Esben von Buchwald's eight-part multitimbral DX7 firmware, is named **DX747** with the name it
 reports, since that name carries no release. Each of its parts listens on its own MIDI channel, so a
@@ -186,7 +193,8 @@ changes, an unsaved edit that selecting another preset discards. The SMK-37 save
 bank dump over its stored presets, and has no way to back them up, so **Send to SMK-37** sends no
 bank and says why, and neither does a port named SMK-37 whose firmware has not answered. It
 ignores Program Change and the effect controls, so the editor hides the effects; the patch keeps
-them. A port of another FM1 firmware to the SMK-37 shows as **Not identified**.
+them. A port of another FM1 firmware to the SMK-37, apart from M-VAVE's SMK37 OPEN, shows as
+**Not identified**.
 
 To keep a patch on the SMK-37, select the preset to replace on its synth screen, where **BANK A**
 to **BANK D** shows, then choose **Write to SMK-37…** in the patch's ⋮ menu. The SMK-37 cannot

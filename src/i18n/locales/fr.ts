@@ -19,8 +19,8 @@ export default {
       'Tournez SELECT jusqu’à Replace et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler. Ils remplacent aussi définitivement les presets d’usine de cette banque.',
     bankFm1VaNote:
       'Si votre FM1 utilise le firmware de Baud Girl, il demande plutôt « Replace Bank A? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Replace, et appuyez sur SEL.',
-    bankOfficialOpenNote:
-      'Le firmware Open de M-VAVE ignore les banques DX7, donc envoyer cette banque ne modifie pas ses projets.',
+    bankOfficialOpenTitle:
+      'Le firmware Open de M-VAVE ignore les banques DX7, donc aucune n’est envoyée',
     bankSmk37Title:
       'Le SMK-37 enregistrerait une banque par-dessus ses presets, donc aucune n’est envoyée',
     bankDx747Title: 'DX747 n’accepte pas de banque par MIDI, donc aucune n’est envoyée',
@@ -1289,7 +1289,7 @@ export default {
       'Le FM1 utilise le firmware d’origine de M-VAVE, {{release}} : huit Voices, chacune sur son propre canal, avec un seul groupe FX partagé. Les sons que vous jouez vont dans son tampon d’édition.',
     officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'Le FM1 utilise le firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
+      'Firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
     dx747BadgeLabel: 'Firmware DX747, {{release}}',
     dx747BadgeTitle:
       'Le FM1 utilise DX747, {{release}} : jusqu’à huit parties, chacune sur son propre canal. Un son sur lequel vous cliquez ou que vous modifiez va à la partie du canal des notes. Il n’accepte aucune banque, et l’éditeur n’envoie ni Program Change ni commandes d’effets.',
@@ -1632,6 +1632,12 @@ export default {
       'La piste {{track}} utilise {{engine}}, qui ne peut pas recevoir de son, donc rien n’a été envoyé. Réglez la piste {{track}} sur DX7 sur le FM1, ou choisissez le canal des notes d’une piste qui utilise DX7.',
     unread:
       'Le FM1 n’a pas indiqué quel moteur utilise la piste {{track}}, donc le son n’a pas été envoyé. Vérifiez que le FM1 est connecté, puis réessayez.',
+    sentSmk37:
+      '« {{name}} » envoyé à la piste {{track}}. Enregistrez le projet sur le SMK-37 pour le conserver.',
+    notDx7Smk37:
+      'La piste {{track}} utilise {{engine}}, qui ne peut pas recevoir de son, donc rien n’a été envoyé. Réglez la piste {{track}} sur DX7 sur le SMK-37, ou choisissez le canal des notes d’une piste qui utilise DX7.',
+    unreadSmk37:
+      'Le SMK-37 n’a pas indiqué quel moteur utilise la piste {{track}}, donc le son n’a pas été envoyé. Vérifiez que le SMK-37 est connecté, puis réessayez.',
   },
   attract: {
     pressAnyKey: 'APPUYEZ SUR UNE TOUCHE',

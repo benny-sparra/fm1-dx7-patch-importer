@@ -431,7 +431,7 @@ test.describe('with an FM-1 on M-VAVE’s Official Open', () => {
     await installFakeMidi(page, { firmware: 'official-open', trackEngines })
     await openLibrarian(page)
     await switchMidiOn(page)
-    await expect(page.getByTitle(/^The FM1 runs M-VAVE’s Open firmware, V12/)).toBeVisible()
+    await expect(page.getByTitle(/^M-VAVE’s Open firmware, V12/)).toBeVisible()
   }
 
   test('reads the track engines, then sends the patch to the DX7 track on the note channel', async ({

@@ -36,7 +36,8 @@ export type EffectControllerBase = 0 | 70
  * - `bankDumps`: **Send to FM1** may send a DX7 32-voice bank dump, whose destination the FM1 asks
  *   for on its own screen. The SMK-37 saves a single-voice dump over its selected preset and has
  *   no bank export to back its presets up, so a bank dump would very likely replace a stored bank
- *   for good (docs/hardware-runs/smk37-2026-11-03.md); it gets none.
+ *   for good (docs/hardware-runs/smk37-2026-11-03.md); it gets none. Official Open drops one
+ *   unread, on the FM1 and the SMK-37, so it gets none either.
  * - `trackEngineRead`: Official Open's command 0, `F0 7D 'F' 'M' 02 00`, which reads each track's
  *   engine. Where it is offered, a dump goes to the track on the note channel, and only after
  *   command 0 shows that track running DX7, since a dump to another engine is dropped silently.
@@ -193,8 +194,10 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   // M-VAVE's Official Open is an eight-track groovebox, not a bank of DX7 presets, and takes a
   // slot's Program Change and the effect controllers as changes to its tracks
   // (docs/fm1-research.md, "Official Open: released source"). It takes a single-voice dump into
-  // a DX7 track, and command 0 says which tracks run DX7 (both approved 2026-10-16).
-  'official-open': { capabilities: { bankDumps: 0, singleVoiceDumps: 0, trackEngineRead: 0 } },
+  // a DX7 track, and command 0 says which tracks run DX7 (both approved 2026-10-16). It drops
+  // any SysEx over 192 bytes, so a bank did nothing on the FM1 (2026-10-16), and its SMK-37 port,
+  // SMK37 OPEN, runs the same code on a device whose stock firmware stores a dump: it gets none.
+  'official-open': { capabilities: { singleVoiceDumps: 0, trackEngineRead: 0 } },
   // M-VAVE's SMK-37 keyboard on its stock V015 (docs/hardware-runs/smk37-2026-11-03.md) holds DX7
   // parameter changes as an unsaved edit, but saves a single-voice dump over its selected preset,
   // ignores Program Change, and did nothing with the effect controllers on channel 2. With no

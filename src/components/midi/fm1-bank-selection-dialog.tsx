@@ -45,15 +45,15 @@ export function Fm1BankSelectionDialog({
   const { t } = useTranslation()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const sysexUnavailable = !midi.sysexAvailable
-  // The SMK-37 would save a bank over its stored presets, which nothing can back up, so the dialog
-  // says why no bank goes rather than offering to send one.
+  // The SMK-37 would save a bank over its stored presets, which nothing can back up, and DX747 and
+  // Official Open drop one, so the dialog says why no bank goes rather than offering to send one.
   const sendsBank = sendsBankTo(
     midi.firmware,
     midi.outputs.find((output) => output.id === midi.selectedOutputId)?.name,
   )
   // M-VAVE's firmware and FM-1+VA choose the destination bank differently. Until the editor knows
-  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca, SLOOP,
-  // and M-VAVE's Official Open ignore DX7 banks, so the dialog says so before the bank is sent.
+  // which one the FM1 runs, it gives M-VAVE's steps and says how FM-1+VA differs. Felucca and SLOOP
+  // ignore DX7 banks, so the dialog says so before the bank is sent.
   const firmwareKind = midi.firmware.kind
   const steps =
     firmwareKind === 'fm1-va'
@@ -68,11 +68,9 @@ export function Fm1BankSelectionDialog({
     ? t('dialogs.bankFeluccaOrSloopNote')
     : firmwareKind === 'felucca'
       ? t('dialogs.bankFeluccaNote')
-      : firmwareKind === 'official-open'
-        ? t('dialogs.bankOfficialOpenNote')
-        : firmwareKind === 'checking' || firmwareKind === 'unidentified'
-          ? t('dialogs.bankFm1VaNote')
-          : null
+      : firmwareKind === 'checking' || firmwareKind === 'unidentified'
+        ? t('dialogs.bankFm1VaNote')
+        : null
   const closeDialog = () => dialogRef.current?.close()
 
   // The librarian mounts this dialog only while it is wanted, so it opens itself as it appears and
@@ -98,7 +96,9 @@ export function Fm1BankSelectionDialog({
                 ? 'dialogs.bankTitle'
                 : firmwareKind === 'dx747'
                   ? 'dialogs.bankDx747Title'
-                  : 'dialogs.bankSmk37Title',
+                  : firmwareKind === 'official-open'
+                    ? 'dialogs.bankOfficialOpenTitle'
+                    : 'dialogs.bankSmk37Title',
           )}
         </DialogTitle>
         <DialogCloseButton
