@@ -651,6 +651,8 @@ export default {
       review:
         'Haz clic en un sonido para escucharlo en el FM1. Tu biblioteca no cambia hasta que reemplaces algo.',
       destination: 'Elige adónde van los sonidos.',
+      sourceRead: 'Elige qué leer del {{device}}. Leer no cambia nada en él.',
+      read: 'Elige qué leer y pulsa Leer. Nada cambia en el {{device}}.',
     },
     sourceLegend: 'Qué está enviando',
     sources: {
@@ -658,6 +660,10 @@ export default {
       fm1Hint: 'Un banco de 32 sonidos, enviado con GLOBE → Export.',
       patch: 'Un sonido de otro dispositivo',
       patchHint: 'Desde Dexed, un DX7 u otro editor.',
+      library: 'Un banco de su biblioteca',
+      libraryHint: '32 sonidos de la biblioteca DX7 del {{device}}.',
+      track: 'El sonido de una pista',
+      trackHint: 'El sonido que toca una pista DX7 del {{device}}.',
     },
     stepsHeading: 'Pasos',
     steps: {
@@ -667,6 +673,11 @@ export default {
       patchConnect:
         'Conecta el dispositivo, o abre Dexed o el otro editor, con su salida MIDI llegando a este ordenador.',
       patchSend: 'Envía desde él un sonido como volcado DX7 de una sola voz.',
+      readConnect: 'Conecta el {{device}} por USB y activa MIDI, con él como salida y entrada.',
+      readNextBank:
+        'Pulsa Siguiente, elige uno de los cuatro bancos de su biblioteca y pulsa Leer.',
+      readNextTrack: 'Pulsa Siguiente, elige una pista DX7 y pulsa Leer.',
+      readUnchanged: 'El editor solo lee: nada cambia en el {{device}}.',
     },
     startFm1: 'Ahora abre GLOBE en el FM1, elige Export y luego un banco.',
     startPatch: 'Ahora envía el sonido como volcado DX7 de una sola voz.',
@@ -707,6 +718,31 @@ export default {
     noBanks:
       'Un sonido solo puede reemplazar a otro que ya esté en un banco. Añade primero un banco con sonidos.',
     replace: 'Reemplazar',
+    read: {
+      bankLegend: 'Banco de la biblioteca que leer',
+      bank: 'Banco {{number}}',
+      trackLegend: 'Pista que leer',
+      track: 'Pista {{track}}',
+      noDx7Tracks:
+        'Ninguna pista del {{device}} usa DX7. Pon el motor de una pista en DX7 para leer su sonido.',
+      noPorts:
+        'Elige el {{device}} como salida y entrada MIDI, con SysEx permitido, para leer de él.',
+      readBank: 'Leer banco {{number}}',
+      readTrack: 'Leer pista {{track}}',
+      reading: 'Leyendo…',
+      readBankDone:
+        'Se leyeron 32 sonidos, empezando por «{{patch}}». Pulsa Siguiente para oírlos.',
+      readVoiceDone: 'Se leyó «{{patch}}». Pulsa Siguiente para oírlo.',
+      tryAgain: 'Reintentar',
+      errors: {
+        noReply: 'El {{device}} no respondió. Comprueba la conexión y vuelve a intentarlo.',
+        refused: 'El {{device}} rechazó la lectura. Vuelve a intentarlo.',
+        sendFailed: 'No se pudo enviar la petición al {{device}}. Comprueba su conexión MIDI.',
+        unexpected:
+          'Lo que envió el {{device}} no es un sonido ni un banco DX7. Vuelve a intentarlo.',
+        tracks: 'No se pudieron leer las pistas del {{device}}.',
+      },
+    },
   },
   bankFile: {
     legend: 'Bancos de este archivo',

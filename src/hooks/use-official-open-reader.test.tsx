@@ -1,19 +1,16 @@
 // @vitest-environment jsdom
 
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
-
 import { cleanup, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { unpackSevenBitStream } from '@/lib/fm1-firmware'
 import { MidiLogStore } from '@/lib/midi-log-store'
 import {
   officialOpenChecksum,
   officialOpenHeader,
   packSevenBitStream,
 } from '@/lib/official-open-transfer'
-import { makeFakeFm1Devices, makeFakeFm1Ports, officialOpenInfoReply } from '@/test/fake-fm1-midi'
+import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
+import { answerFromOfficialOpenCapture } from '@/test/official-open-v14-capture'
 
 import { useOfficialOpenReader } from './use-official-open-reader'
 
@@ -21,51 +18,12 @@ afterEach(cleanup)
 
 type Midi = Parameters<typeof useOfficialOpenReader>[0]
 
-// The reads of 2026-10-20 on Official Open V14, exactly as the FM1 sent them.
-const capture: { captures: { hex?: string; what: string }[] } = JSON.parse(
-  readFileSync(
-    path.resolve(
-      __dirname,
-      '../../docs/hardware-runs/official-open-v14-reads-capture-2026-10-20.json',
-    ),
-    'utf8',
-  ),
-)
-
-function captured(what: string) {
-  const hex = capture.captures.find((entry) => entry.what === what)?.hex
-  if (!hex) throw new Error(`The capture holds no ${what}.`)
-  return Uint8Array.from(hex.match(/../g) ?? [], (byte) => Number.parseInt(byte, 16))
-}
-
 const v14 = { identity: 'FM-1_8000014', kind: 'official-open' } as const
 
 /** A fake FM1 on Official Open that answers commands 0, 1, 2, and 6 from the capture. */
 function setup(firmware: Midi['firmware'] = v14) {
   const ports = makeFakeFm1Ports()
-  const commands: number[] = []
-  let held = new Uint8Array()
-  ports.output.send.mockImplementation((request) => {
-    const command = request[5]
-    commands.push(command)
-    const token = request[6] | (request[7] << 7)
-    const payload = Array.from(unpackSevenBitStream(request.slice(8, -2)))
-    const reply = (data: readonly number[]) => {
-      const body = [...officialOpenHeader.slice(1), command | 0x40, request[6], request[7]]
-      body.push(...packSevenBitStream([0, ...data]))
-      ports.input.receive([0xf0, ...body, officialOpenChecksum(body), 0xf7])
-    }
-    if (command === 0) ports.input.receive(officialOpenInfoReply(token, [0, 1, 5, 0, 3, 3, 3, 3]))
-    if (command === 1) {
-      held = captured(payload[0] === 4 ? `bank ${payload[1]}` : `voice, track ${payload[1] + 1}`)
-      reply([held.length & 0xff, held.length >> 8])
-    }
-    if (command === 2) {
-      const offset = payload[0] | (payload[1] << 8)
-      reply(Array.from(held.slice(offset, offset + payload[2])))
-    }
-    if (command === 6) reply([])
-  })
+  const commands = answerFromOfficialOpenCapture(ports)
 
   const turns: (() => Promise<void>)[] = []
   const logStore = new MidiLogStore([])

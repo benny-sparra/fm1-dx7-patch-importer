@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next'
-import { Cable, Music, Upload, Usb } from 'lucide-react'
+import { Cable, Library, ListMusic, Music, Upload, Usb } from 'lucide-react'
 import { type CSSProperties, type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -7,6 +7,11 @@ import { DeviceSelect } from '@/components/midi/device-select'
 import { MidiConnectionError } from '@/components/midi/midi-connection-error'
 import { bankErrorMessage } from '@/components/patches/bank-error-message'
 import { BankPreview, useWizardScreens, WizardFooter } from '@/components/patches/bank-wizard'
+import {
+  OfficialOpenReadScreen,
+  type OfficialOpenRead,
+  type OfficialOpenReadSource,
+} from '@/components/patches/official-open-read-screen'
 import { PreviewPatchButton } from '@/components/patches/preview-patch-button'
 import { undoToastOptions } from '@/components/patches/undo-toast'
 import { BevelRadio, slotBadgeClassName } from '@/components/ui/bevel-radio'
@@ -31,13 +36,20 @@ import { trackAnalyticsEvent } from '@/lib/analytics'
 import { Dx7BankFileError, type Dx7Voice } from '@/lib/dx7'
 import type { Dx7VoiceFileError } from '@/lib/dx7-voice-file'
 import type { Dx7VoiceReceipt } from '@/lib/dx7-voice-receiver'
+import { resolveFirmwareProfile } from '@/lib/firmware-profile'
+import { fm1Device } from '@/lib/fm1-firmware'
 import { patchSlotCode, voiceId } from '@/lib/patch-library'
+import { cn } from '@/lib/utils'
 import { voiceFingerprint } from '@/lib/voice-fingerprint'
 
-/** What is sending: an FM1 on M-VAVE's V16 with Bank Export, or one patch from anything else. */
-type ReceiveSource = 'fm1' | 'patch'
+/**
+ * What is sending: an FM1 on M-VAVE's V16 with Bank Export, or one patch from anything else; or,
+ * on Official Open and SMK37 OPEN, what the editor reads: a library bank or a track's voice.
+ */
+type ReceiveSource = 'fm1' | 'patch' | OfficialOpenReadSource
 
 type ReceiveMidi = Parameters<typeof useDx7VoiceReceiver>[0] &
+  Parameters<typeof OfficialOpenReadScreen>[0]['midi'] &
   Pick<
     MidiController,
     'connectMidi' | 'error' | 'isConnecting' | 'midiAccess' | 'setSelectedInputId'
@@ -50,7 +62,8 @@ type ReceiveFromFm1DialogProps = {
   initialBank: string
   /** The slot a single patch replaces unless another is chosen, when a slot's menu opened it. */
   initialSlot?: number
-  initialSource: ReceiveSource
+  /** V16's Bank Export from a bank's menu, or one patch from a slot's. */
+  initialSource: 'fm1' | 'patch'
   library: Pick<
     PatchLibrary,
     'importBank' | 'loadedBanks' | 'patches' | 'replaceVoice' | 'undoChange' | 'voices'
@@ -66,13 +79,28 @@ type ReceiveFromFm1DialogProps = {
 type Screen = 'destination' | 'listen' | 'review' | 'source'
 const screens: Screen[] = ['source', 'listen', 'review', 'destination']
 
-type Received = { kind: 'bank'; voices: Dx7Voice[] } | { kind: 'voice'; voice: Dx7Voice }
+type Received = OfficialOpenRead
 
 const screenHelpKeys = {
   destination: 'receiveWizard.help.destination',
   listen: 'receiveWizard.help.listen',
   review: 'receiveWizard.help.review',
   source: 'receiveWizard.help.source',
+} as const
+
+const readSourceOptions = {
+  library: {
+    Icon: Library,
+    hint: 'receiveWizard.sources.libraryHint',
+    title: 'receiveWizard.sources.library',
+    value: 'library',
+  },
+  track: {
+    Icon: ListMusic,
+    hint: 'receiveWizard.sources.trackHint',
+    title: 'receiveWizard.sources.track',
+    value: 'track',
+  },
 } as const
 
 const sourceOptions = [
@@ -100,6 +128,16 @@ const sourceSteps = {
     'receiveWizard.steps.patchConnect',
     'receiveWizard.steps.next',
     'receiveWizard.steps.patchSend',
+  ],
+  library: [
+    'receiveWizard.steps.readConnect',
+    'receiveWizard.steps.readNextBank',
+    'receiveWizard.steps.readUnchanged',
+  ],
+  track: [
+    'receiveWizard.steps.readConnect',
+    'receiveWizard.steps.readNextTrack',
+    'receiveWizard.steps.readUnchanged',
   ],
 } as const
 
@@ -163,7 +201,7 @@ type ListeningScreenProps = {
   midi: ReceiveMidi
   onReceipt: (receipt: Dx7VoiceReceipt) => void
   received: Received | null
-  source: ReceiveSource
+  source: 'fm1' | 'patch'
 }
 
 /**
@@ -265,7 +303,23 @@ export function ReceiveFromFm1Dialog({
   const descriptionId = useId()
   const toast = useToast()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const [source, setSource] = useState(initialSource)
+  const isSmk37 = fm1Device(midi.firmware) === 'smk37'
+  const device = isSmk37 ? 'SMK-37' : 'FM1'
+  const { libraryBankRead, trackVoiceRead } = resolveFirmwareProfile(midi.firmware).capabilities
+  // On Official Open and SMK37 OPEN the editor reads what the device holds, in place of V16's
+  // Bank Export, which they lack; a slot's menu reads one patch, so it offers no bank.
+  const fromSlot = initialSlot !== undefined
+  const options = trackVoiceRead
+    ? [
+        ...(libraryBankRead && !fromSlot ? [readSourceOptions.library] : []),
+        readSourceOptions.track,
+        sourceOptions[1],
+      ]
+    : sourceOptions
+  const [source, setSourceState] = useState<ReceiveSource>(
+    trackVoiceRead ? options[0].value : initialSource,
+  )
+  const isRead = source === 'library' || source === 'track'
   // What arrived last, each voice keeping one object so playing it twice sends it once, and the
   // error of a dump that arrived after it, which leaves nothing to take on.
   const [received, setReceived] = useState<Received | null>(null)
@@ -325,6 +379,20 @@ export function ReceiveFromFm1Dialog({
     if (!dialog || dialog.open) return
     dialog.showModal()
   }, [])
+
+  // What arrived from one source is not what another sends, so changing it starts again.
+  const setSource = (next: ReceiveSource) => {
+    setSourceState(next)
+    setReceived(null)
+    setReceiveError(null)
+    setPlayingIndex(null)
+  }
+
+  const takeRead = (read: OfficialOpenRead) => {
+    setPlayingIndex(null)
+    setReceiveError(null)
+    setReceived(read)
+  }
 
   const receive = (receipt: Dx7VoiceReceipt) => {
     setPlayingIndex(null)
@@ -402,7 +470,11 @@ export function ReceiveFromFm1Dialog({
       </DialogHeader>
       <DialogBody>
         <p className="px-4 pt-3 text-sm leading-6 text-[var(--crt-ink-3)]" id={descriptionId}>
-          {t(screenHelpKeys[screen])}
+          {isRead && (screen === 'source' || screen === 'listen')
+            ? t(screen === 'source' ? 'receiveWizard.help.sourceRead' : 'receiveWizard.help.read', {
+                device,
+              })
+            : t(screenHelpKeys[screen])}
         </p>
 
         <form className="grid gap-5 p-5" id={formId} noValidate onSubmit={submit} ref={formRef}>
@@ -410,11 +482,16 @@ export function ReceiveFromFm1Dialog({
             <>
               <fieldset>
                 <legend className="sr-only">{t('receiveWizard.sourceLegend')}</legend>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {sourceOptions.map(({ Icon, hint, title, value }) => (
+                <div
+                  className={cn(
+                    'grid gap-3',
+                    options.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
+                  )}
+                >
+                  {options.map(({ Icon, hint, title, value }) => (
                     <BevelRadio
                       aria-describedby={`${formId}${value}`}
-                      aria-label={t(title)}
+                      aria-label={t(title, { device })}
                       checked={source === value}
                       className="grid h-full content-start justify-items-start gap-2 p-5"
                       key={value}
@@ -423,10 +500,10 @@ export function ReceiveFromFm1Dialog({
                     >
                       <Icon aria-hidden="true" className="size-7 text-[var(--crt-acc-lt)]" />
                       <span aria-hidden="true" className="text-base font-semibold">
-                        {t(title)}
+                        {t(title, { device })}
                       </span>
                       <span className="text-sm text-[var(--crt-ink-3)]" id={`${formId}${value}`}>
-                        {t(hint)}
+                        {t(hint, { device })}
                       </span>
                     </BevelRadio>
                   ))}
@@ -438,14 +515,23 @@ export function ReceiveFromFm1Dialog({
                 </h3>
                 <ol className="list-decimal space-y-1 pl-5 text-sm" key={source}>
                   {sourceSteps[source].map((step) => (
-                    <li key={step}>{t(step)}</li>
+                    <li key={step}>{t(step, { device })}</li>
                   ))}
                 </ol>
               </section>
             </>
           ) : null}
 
-          {screen === 'listen' ? (
+          {screen === 'listen' && isRead ? (
+            <OfficialOpenReadScreen
+              device={device}
+              midi={midi}
+              onRead={takeRead}
+              read={received}
+              source={source}
+            />
+          ) : null}
+          {screen === 'listen' && !isRead ? (
             <ListeningScreen
               error={receiveError}
               midi={midi}
