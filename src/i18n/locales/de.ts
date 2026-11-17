@@ -1571,6 +1571,9 @@ export default {
     deleteConfirm: '„{{name}}“ dauerhaft aus diesem Browser löschen?',
     loadConfirm: 'Die 32 Sounds in „{{bank}}“ durch „{{name}}“ ersetzen?',
     replaceAction: 'Sounds ersetzen',
+    conflict:
+      'Diese gespeicherte Bank wurde in einem anderen Tab geändert oder gelöscht. Deine Eingaben bleiben hier erhalten. Lade die gespeicherten Bänke neu und öffne dann die Details erneut, um den aktuellen Stand zu prüfen.',
+    reload: 'Gespeicherte Bänke neu laden',
     operationFailed: 'Der Vorgang für die gespeicherte Bank ist fehlgeschlagen.',
     openFailed:
       'Die gespeicherten Bänke konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',

@@ -85,7 +85,7 @@ describe('usePatchLibrary deleting a saved bank', () => {
     const hook = await renderWithSavedBanks()
     expect(listedBankIds(hook)).toEqual(['newer', 'older'])
 
-    await act(() => hook.result.current.deleteNamedBank('newer'))
+    await act(() => hook.result.current.deleteNamedBank(listedBank(hook, 'newer')))
 
     expect(listedBankIds(hook)).toEqual(['older'])
   })
@@ -93,7 +93,7 @@ describe('usePatchLibrary deleting a saved bank', () => {
   it('removes the bank from browser storage, so it stays gone when the library opens again', async () => {
     const hook = await renderWithSavedBanks()
 
-    await act(() => hook.result.current.deleteNamedBank('newer'))
+    await act(() => hook.result.current.deleteNamedBank(listedBank(hook, 'newer')))
     hook.unmount()
     const reopened = renderHook(() => usePatchLibrary())
     await waitFor(() => expect(reopened.result.current.namedBanksLoading).toBe(false))
@@ -109,7 +109,9 @@ describe('usePatchLibrary deleting a saved bank', () => {
     })
 
     await act(async () => {
-      await expect(hook.result.current.deleteNamedBank('newer')).rejects.toMatchObject({
+      await expect(
+        hook.result.current.deleteNamedBank(listedBank(hook, 'newer')),
+      ).rejects.toMatchObject({
         code: 'write-failed',
         name: 'PatchLibraryStorageError',
       })
@@ -123,17 +125,21 @@ describe('usePatchLibrary deleting a saved bank', () => {
   it('finishes deleting from storage when the library closes before the delete completes', async () => {
     const hook = await renderWithSavedBanks()
 
-    const deleting = hook.result.current.deleteNamedBank('newer')
+    const deleting = hook.result.current.deleteNamedBank(listedBank(hook, 'newer'))
     hook.unmount()
 
     await expect(deleting).resolves.toBeUndefined()
     expect(await storedBankIds()).toEqual(['older'])
   })
 
-  it('leaves the other saved banks alone when the bank is already gone', async () => {
+  it('rejects a missing bank without changing the other saved banks', async () => {
     const hook = await renderWithSavedBanks()
 
-    await act(() => hook.result.current.deleteNamedBank('missing'))
+    await act(async () => {
+      await expect(
+        hook.result.current.deleteNamedBank(makeSavedBank('missing', now)),
+      ).rejects.toMatchObject({ code: 'conflict' })
+    })
 
     expect(listedBankIds(hook)).toEqual(['newer', 'older'])
     expect(await storedBankIds()).toEqual(['newer', 'older'])
@@ -241,7 +247,9 @@ describe('usePatchLibrary copying a saved bank', () => {
 
   it('lists and stores no copy when it cannot be saved', async () => {
     const hook = await renderWithSavedBanks()
-    const failingWrites = failStorageWrites()
+    const failingWrites = vi.spyOn(IDBObjectStore.prototype, 'add').mockImplementation(() => {
+      throw new DOMException('The quota was exceeded.', 'QuotaExceededError')
+    })
 
     await act(async () => {
       await expect(
@@ -292,7 +300,9 @@ describe('usePatchLibrary changing saved banks while their list is still loading
   it('keeps a bank deleted before the list arrives out of it', async () => {
     const hook = await renderBeforeListLoads()
 
-    await act(() => hook.result.current.deleteNamedBank('newer'))
+    await act(() =>
+      hook.result.current.deleteNamedBank(makeSavedBank('newer', '2026-09-02T10:00:00.000Z')),
+    )
     await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
 
     expect(listedBankIds(hook)).toEqual(['older'])
@@ -310,5 +320,101 @@ describe('usePatchLibrary saving a bank with empty slots', () => {
     expect(saved?.slots.every((slot) => 'voice' in slot && slot.voice.name === 'INIT VOICE')).toBe(
       true,
     )
+  })
+})
+
+describe('usePatchLibrary saved banks across two tabs', () => {
+  async function openSecondTab() {
+    const hook = renderHook(() => usePatchLibrary())
+    await waitFor(() => expect(hook.result.current.namedBanksLoading).toBe(false))
+    return hook
+  }
+
+  it('rejects a stale rename and reloads the winning tab’s details on request', async () => {
+    const first = await renderWithSavedBanks()
+    const second = await openSecondTab()
+    const stale = listedBank(second, 'older')
+    await act(() =>
+      first.result.current.updateNamedBankDetails(
+        listedBank(first, 'older'),
+        'First tab',
+        'Winner',
+      ),
+    )
+
+    await act(async () => {
+      await expect(
+        second.result.current.updateNamedBankDetails(stale, 'Second tab', 'Stale'),
+      ).rejects.toMatchObject({ code: 'conflict' })
+    })
+
+    expect(listedBank(second, 'older')).toEqual(stale)
+    expect((await storedBanks())[0]).toMatchObject({ name: 'First tab', description: 'Winner' })
+    await act(() => second.result.current.reloadNamedBanks())
+    expect(listedBank(second, 'older')).toMatchObject({ name: 'First tab', description: 'Winner' })
+  })
+
+  it('rejects a stale delete without removing the winning tab’s bank', async () => {
+    const first = await renderWithSavedBanks()
+    const second = await openSecondTab()
+    const stale = listedBank(second, 'older')
+    await act(() =>
+      first.result.current.updateNamedBankDetails(
+        listedBank(first, 'older'),
+        'First tab',
+        'Winner',
+      ),
+    )
+    await act(async () => {
+      await expect(second.result.current.deleteNamedBank(stale)).rejects.toMatchObject({
+        code: 'conflict',
+      })
+    })
+    expect(listedBank(second, 'older')).toEqual(stale)
+    expect((await storedBanks())[0]).toMatchObject({ name: 'First tab', description: 'Winner' })
+  })
+
+  it('does not recreate a bank deleted by the other tab', async () => {
+    const first = await renderWithSavedBanks()
+    const second = await openSecondTab()
+    const stale = listedBank(second, 'older')
+    await act(() => first.result.current.deleteNamedBank(listedBank(first, 'older')))
+    await act(async () => {
+      await expect(
+        second.result.current.updateNamedBankDetails(stale, 'Resurrected', ''),
+      ).rejects.toMatchObject({ code: 'conflict' })
+    })
+    expect(listedBank(second, 'older')).toEqual(stale)
+    expect(await storedBankIds()).toEqual(['newer'])
+  })
+})
+
+describe('usePatchLibrary saved-bank creation collisions', () => {
+  it.each([
+    {
+      name: 'saving a workspace bank',
+      create: (hook: Awaited<ReturnType<typeof renderWithSavedBanks>>) =>
+        hook.result.current.saveNamedBank('A', 'Collision', ''),
+    },
+    {
+      name: 'duplicating a saved bank',
+      create: (hook: Awaited<ReturnType<typeof renderWithSavedBanks>>) =>
+        hook.result.current.copyNamedBank(listedBank(hook, 'older')),
+    },
+  ])('rejects an ID collision when $name', async ({ create }) => {
+    const id = '00000000-0000-4000-8000-000000000000'
+    const existing = makeSavedBank(id, now)
+    await addStoredNamedBank(existing)
+    const hook = await renderWithSavedBanks()
+    const before = await storedBanks()
+    const listedBefore = hook.result.current.namedBanks
+    vi.spyOn(crypto, 'randomUUID').mockReturnValue(id)
+
+    await act(async () => {
+      await expect(create(hook)).rejects.toMatchObject({ code: 'conflict' })
+    })
+
+    expect(await storedBanks()).toEqual(before)
+    expect(hook.result.current.namedBanks).toEqual(listedBefore)
   })
 })

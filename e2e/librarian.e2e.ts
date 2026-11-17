@@ -2,7 +2,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { unzipSync } from 'fflate'
 import { readFile } from 'node:fs/promises'
 
-import { installFakeMidi } from './fake-midi'
+import { installFakeMidi, sentMidi } from './fake-midi'
 
 const factoryBank = 'public/dx7-banks/factory/rom1a.syx'
 
@@ -113,6 +113,94 @@ async function openEffects(page: Page) {
   await page.getByText('MIDI offline', { exact: true }).locator('visible=true').first().click()
   await page.getByRole('button', { name: 'Effects', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
+}
+
+for (const count of [1, 1001]) {
+  test(`FX Download all round-trips ${count} presets through individual JSON imports`, async ({
+    page,
+    browser,
+    baseURL,
+  }) => {
+    const presets = Array.from({ length: count }, (_, index) => ({
+      effects: Array.from({ length: 24 }, (_value, control) => (control === 0 ? index % 2 : 0)),
+      name: `🎵 Hall ${String(index).padStart(4, '0')}`,
+    }))
+    const importFile = async (target: Page, name: string, buffer: Buffer, records: number) => {
+      const chooser = target.waitForEvent('filechooser')
+      await target.getByRole('button', { name: 'FX preset actions' }).click()
+      await target.getByRole('menuitem', { name: 'Import…', exact: true }).click()
+      await (await chooser).setFiles({ buffer, mimeType: 'application/json', name })
+      await expect(target.getByRole('region', { name: 'Completed actions' })).toContainText(
+        `Imported ${records.toLocaleString('en-GB')} FX preset${records === 1 ? '' : 's'}. Existing presets were kept.`,
+      )
+    }
+    const downloadAll = async (target: Page) => {
+      const downloadPromise = target.waitForEvent('download')
+      await target.getByRole('button', { name: 'FX preset actions' }).click()
+      await target.getByRole('menuitem', { name: 'Download all', exact: true }).click()
+      const download = await downloadPromise
+      const bytes = await readFile(await download.path())
+      expect(download.suggestedFilename()).toBe(
+        count === 1 ? 'fm1-fx-presets.json' : 'fm1-fx-presets.zip',
+      )
+      if (count === 1) return { 'fm1-fx-presets.json': bytes }
+      await expect(target.getByRole('region', { name: 'Completed actions' })).toContainText(
+        'Downloaded FX presets as a ZIP. Extract it, then import each JSON file separately.',
+      )
+      const files = unzipSync(bytes)
+      expect(Object.keys(files)).toEqual(['fm1-fx-presets-001.json', 'fm1-fx-presets-002.json'])
+      return files
+    }
+
+    // Only local application resources and the synthetic MIDI API take part in this journey.
+    await page.route('https://**/*', (route) => route.abort())
+    await openEffects(page)
+    // Keep the list filtered: Download all must include even the rows outside this search.
+    await page.getByRole('searchbox', { name: 'Search FX presets' }).fill('no matching preset')
+    const midiBefore = await sentMidi(page)
+    for (let start = 0; start < count; start += 1000) {
+      const batch = presets.slice(start, start + 1000)
+      await importFile(
+        page,
+        `input-${start}.json`,
+        Buffer.from(JSON.stringify({ format: 'fm1-fx-presets', presets: batch, version: 1 })),
+        batch.length,
+      )
+    }
+    const files = await downloadAll(page)
+    const portable = Object.values(files).flatMap((bytes) => {
+      expect(bytes.byteLength).toBeLessThanOrEqual(1024 * 1024)
+      const file = JSON.parse(Buffer.from(bytes).toString('utf8'))
+      expect(file.format).toBe('fm1-fx-presets')
+      expect(file.version).toBe(1)
+      expect(file.presets.length).toBeLessThanOrEqual(1000)
+      return file.presets
+    })
+    expect(portable).toEqual(presets)
+    expect(await sentMidi(page)).toEqual(midiBefore)
+
+    const freshContext = await browser.newContext({ baseURL, locale: 'en-GB' })
+    try {
+      const freshPage = await freshContext.newPage()
+      await freshPage.route('https://**/*', (route) => route.abort())
+      await openEffects(freshPage)
+      await freshPage.getByRole('searchbox', { name: 'Search FX presets' }).fill('no match')
+      const freshMidiBefore = await sentMidi(freshPage)
+      for (const [name, bytes] of Object.entries(files)) {
+        const records = JSON.parse(Buffer.from(bytes).toString('utf8')).presets.length
+        await importFile(freshPage, name, Buffer.from(bytes), records)
+      }
+      // Compare the portable bytes, not newly assigned browser IDs or ZIP timestamps.
+      const restoredFiles = await downloadAll(freshPage)
+      expect(Object.keys(restoredFiles)).toEqual(Object.keys(files))
+      for (const [name, bytes] of Object.entries(restoredFiles)) {
+        expect(Buffer.from(bytes)).toEqual(Buffer.from(files[name]))
+      }
+      expect(await sentMidi(freshPage)).toEqual(freshMidiBefore)
+    } finally {
+      await freshContext.close()
+    }
+  })
 }
 
 test('uses the independent Effects view and keeps a named FX preset across a reload', async ({

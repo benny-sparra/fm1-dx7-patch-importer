@@ -118,12 +118,11 @@ function App() {
     library.patches.find((candidate) => candidate.id === patchId)
   // A patch opens from its slot, and closes back into it, with the classic Mac zoom rectangles.
   // A patch opened from anywhere else, such as a search result with no slot, simply opens.
-  const slotBox = (patchId: string) =>
-    visibleBox(
-      [...document.querySelectorAll<HTMLElement>('[data-patch-id]')].find(
-        (slot) => slot.dataset.patchId === patchId,
-      ) ?? null,
+  const slotElement = (patchId: string) =>
+    [...document.querySelectorAll<HTMLElement>('[data-patch-id]')].find(
+      (slot) => slot.dataset.patchId === patchId,
     )
+  const slotBox = (patchId: string) => visibleBox(slotElement(patchId) ?? null)
   const viewAreaBox = () => visibleBox(document.querySelector('[data-view-area]'))
   // Where the open editor was on screen as it closed, kept until the patch banks are back.
   const closingEditor = useRef<{ from: ReturnType<typeof viewAreaBox>; patchId: string } | null>(
@@ -252,7 +251,9 @@ function App() {
     const closing = closingEditor.current
     if (isEditorOpen || !closing) return
     closingEditor.current = null
-    zoomRects(closing.from, slotBox(closing.patchId))
+    const slot = slotElement(closing.patchId)
+    zoomRects(closing.from, visibleBox(slot ?? null))
+    slot?.querySelector('button')?.focus({ preventScroll: true })
   }, [isEditorOpen])
   useEditorHistoryEntry(
     isEditorOpen ? selectedPatchId : '',

@@ -70,6 +70,7 @@ export function makeLibrarianLibrary(overrides: Partial<Library> = {}): Library 
     namedBanks: [],
     namedBanksLoadFailed: false,
     namedBanksLoading: false,
+    reloadNamedBanks: vi.fn<Library['reloadNamedBanks']>(),
     patches: [],
     records: {},
     redo: vi.fn<Library['redo']>(),

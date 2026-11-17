@@ -34,6 +34,9 @@ export default {
     deleteAction: 'Preset löschen',
     downloadPreset: 'Preset herunterladen',
     downloadAll: 'Alle herunterladen',
+    downloading: 'Wird heruntergeladen…',
+    downloadBatches:
+      'FX-Presets als ZIP heruntergeladen. Entpacke sie und importiere dann jede JSON-Datei einzeln.',
     import: 'Importieren…',
     imported: '{{count, number}} FX-Preset importiert. Vorhandene Presets wurden behalten.',
     imported_other: '{{count, number}} FX-Presets importiert. Vorhandene Presets wurden behalten.',
@@ -69,6 +72,7 @@ export default {
     deleted: '„{{name}}“ gelöscht.',
     working: 'Wird gespeichert…',
     errors: {
+      download: 'Die FX-Presets konnten nicht heruntergeladen werden. Versuche es erneut.',
       load: 'FX-Presets konnten nicht gelesen werden. Versuche es erneut, ohne diesen Tab zu schließen.',
       write:
         'Der Browser konnte diese Änderung nicht speichern. Keine vorhandenen Daten wurden ersetzt.',

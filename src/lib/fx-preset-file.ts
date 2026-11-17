@@ -10,7 +10,8 @@ import {
 const fxPresetFileVersion = 2
 
 export const fxPresetFileAccept = '.json,application/json'
-export const fxPresetFileName = 'fm1-fx-presets.json'
+const fxPresetFileName = 'fm1-fx-presets.json'
+const fxPresetArchiveName = 'fm1-fx-presets.zip'
 export const maximumFxPresetFileSize = 1024 * 1024
 export const maximumFxPresetFilePresets = 1000
 
@@ -99,19 +100,77 @@ export function parseFxPresetFile(text: string): PortableFxPreset[] {
   return file.presets.map((preset) => readPortablePreset(preset, version))
 }
 
-export function makeFxPresetFile(presets: readonly FxLibraryPreset[]) {
+function serializePreset(preset: FxLibraryPreset) {
+  const readable = readStoredFxLibraryPreset(preset)
   return JSON.stringify({
-    format: 'fm1-fx-presets',
-    presets: presets.map((preset) => {
-      const readable = readStoredFxLibraryPreset(preset)
-      return {
-        effects: Array.from(readable.effects),
-        name: readable.name,
-        ...(readable.order ? { order: readable.order } : {}),
-      }
-    }),
-    version: fxPresetFileVersion,
+    effects: Array.from(readable.effects),
+    name: readable.name,
+    ...(readable.order ? { order: readable.order } : {}),
   })
+}
+
+function presetFileText(presets: readonly string[]) {
+  return `{"format":"fm1-fx-presets","presets":[${presets.join(',')}],"version":${fxPresetFileVersion}}`
+}
+
+export function makeFxPresetFile(presets: readonly FxLibraryPreset[]) {
+  return presetFileText(presets.map(serializePreset))
+}
+
+/** Bounded files of the newest version, in input order, each readable by the existing importer. */
+export function makeFxPresetFiles(presets: readonly FxLibraryPreset[]) {
+  const encoder = new TextEncoder()
+  const envelopeSize = encoder.encode(presetFileText([])).byteLength
+  const parts: string[] = []
+  let batch: string[] = []
+  let size = envelopeSize
+  for (const preset of presets) {
+    const text = serializePreset(preset)
+    const bytes = encoder.encode(text).byteLength
+    if (envelopeSize + bytes > maximumFxPresetFileSize) {
+      throw new FxPresetFileError('size', 'An FX preset cannot fit in a portable file.')
+    }
+    if (
+      batch.length &&
+      (batch.length === maximumFxPresetFilePresets || size + 1 + bytes > maximumFxPresetFileSize)
+    ) {
+      parts.push(presetFileText(batch))
+      batch = []
+      size = envelopeSize
+    }
+    size += bytes + (batch.length ? 1 : 0)
+    batch.push(text)
+  }
+  if (batch.length || !parts.length) parts.push(presetFileText(batch))
+  return parts.map((text, index) => ({
+    filename:
+      parts.length === 1
+        ? fxPresetFileName
+        : `fm1-fx-presets-${String(index + 1).padStart(3, '0')}.json`,
+    text,
+  }))
+}
+
+/** Packages large collections as individually importable files, loading ZIP support on demand. */
+export async function makeFxPresetDownload(presets: readonly FxLibraryPreset[]) {
+  const files = makeFxPresetFiles(presets)
+  if (files.length === 1) {
+    return {
+      blob: new Blob([files[0].text], { type: 'application/json' }),
+      filename: fxPresetFileName,
+      batched: false,
+    }
+  }
+  const { zipSync } = await import('fflate')
+  const encoder = new TextEncoder()
+  const archive = Object.fromEntries(
+    files.map(({ filename, text }) => [filename, encoder.encode(text)]),
+  )
+  return {
+    blob: new Blob([zipSync(archive)], { type: 'application/zip' }),
+    filename: fxPresetArchiveName,
+    batched: true,
+  }
 }
 
 export async function readFxPresetFile(file: Blob) {

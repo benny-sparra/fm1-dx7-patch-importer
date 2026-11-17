@@ -35,6 +35,9 @@ export default {
     deleteAction: 'Delete preset',
     downloadPreset: 'Download preset',
     downloadAll: 'Download all',
+    downloading: 'Downloading…',
+    downloadBatches:
+      'Downloaded FX presets as a ZIP. Extract it, then import each JSON file separately.',
     import: 'Import…',
     imported: 'Imported {{count, number}} FX preset. Existing presets were kept.',
     imported_other: 'Imported {{count, number}} FX presets. Existing presets were kept.',
@@ -67,6 +70,7 @@ export default {
     deleted: 'Deleted “{{name}}”.',
     working: 'Saving…',
     errors: {
+      download: 'FX presets could not be downloaded. Try again.',
       load: 'FX presets could not be read. Retry without closing this tab.',
       write: 'Browser storage could not save that change. Nothing stored was replaced.',
       conflict:

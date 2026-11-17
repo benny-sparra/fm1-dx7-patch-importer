@@ -1399,6 +1399,9 @@ export default {
     deleteConfirm: '要从此浏览器永久删除“{{name}}”吗？',
     loadConfirm: '要用“{{name}}”替换“{{bank}}”中的 32 个音色吗？',
     replaceAction: '替换音色',
+    conflict:
+      '此已保存音色库已在其他标签页中更改或删除。您输入的内容仍保留在这里。请重新加载已保存的音色库，然后重新打开其详细信息以查看最新版本。',
+    reload: '重新加载已保存的音色库',
     operationFailed: '已保存音色库的操作失败。',
     openFailed: '无法打开已保存的音色库。请重新加载页面后重试。',
     loadFailed: '无法从浏览器存储中加载已保存的音色库。',

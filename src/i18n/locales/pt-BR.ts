@@ -1532,6 +1532,9 @@ export default {
     deleteConfirm: 'Excluir “{{name}}” permanentemente deste navegador?',
     loadConfirm: 'Substituir os 32 sons de “{{bank}}” por “{{name}}”?',
     replaceAction: 'Substituir sons',
+    conflict:
+      'Este banco salvo foi alterado ou excluído em outra aba. Suas edições continuam aqui. Recarregue os bancos salvos e reabra os detalhes para conferir a versão mais recente.',
+    reload: 'Recarregar bancos salvos',
     operationFailed: 'A operação do banco salvo falhou.',
     openFailed: 'Não foi possível abrir os bancos salvos. Recarregue a página e tente novamente.',
     loadFailed: 'Não foi possível carregar os bancos salvos do armazenamento do navegador.',

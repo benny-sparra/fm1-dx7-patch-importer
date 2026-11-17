@@ -66,6 +66,7 @@ files when that is clearer.
 - Use Lucide icons and the existing components in `src/components/ui/` before adding new UI
   primitives.
 - Do not use dangerous lint autofixes. `npm run lint:fix` is the supported autofix command.
+- Keep generated local agent-tool metadata such as `.impeccable/` in `.prettierignore`.
 - Do not throw from React state updater functions. React runs them during render, so the caller's
   `try/catch` never sees the error. Work out the next state where the caller can catch a failure,
   then set it.
@@ -97,6 +98,13 @@ files when that is clearer.
   passes `saveStoredPatchLibrary` the revision (`savedAt`) this tab last loaded or wrote, and one
   readwrite transaction refuses it as a `conflict`, keeping the edits in memory, when the stored
   record has moved on or is a newer version. Readwrite transactions use strict durability.
+- Saved-bank creation uses `add`, never an upsert. Updates and deletes compare the complete
+  expected record inside the write transaction and refuse a changed, missing, damaged or newer
+  record as a conflict. Capture the record when an edit or confirmation opens; refreshing the list
+  must not silently change that action's target. Keep typed edits after failure and offer a reload.
+- Backup collection readers track accepted IDs in a separate local `Set` for each collection.
+  Validate each record before reserving its ID: the first readable copy wins in file order, and
+  every damaged copy is counted even when a readable copy already has that ID.
 - Cancellation, retry, disposal, and completions arriving after unmount are normal cases and require
   deterministic handling and tests.
 - Debounced saves must not lose recent edits: write any pending save immediately when the page is
@@ -168,6 +176,9 @@ open everything an earlier release could have saved.
 - Web MIDI requires a secure context; local HTTPS setup is provided by `npm run setup:https`.
 - Check DX7 voice data at every boundary: reject bytes above 7-bit in imported files and SysEx
   payload builders, and normalise stored voices on read.
+- `parseDx7BankArchive` frames `.syx` archives in one forward scan: F0 interrupts an incomplete
+  message and F7 closes it. Keep damaged banks in file order and leave checksum/seven-bit validation
+  to `parseDx7Bank`.
 - When MIDI chooses a port automatically, prefer a port named for the FM-1 (Linux lists
   `FM-1 MIDI 1`; macOS only `USB Composite Device`) or the SMK-37 (`SMK`), and among those one
   named Private, since only the SMK-37's `SMK-37 Pro-Private` answers the identity query, not
@@ -539,6 +550,10 @@ open everything an earlier release could have saved.
   preset reads as edited once its order differs from the FM1's too, and **Save** stores the
   FM1's order with the controls. One step, no history; it is
   built in the component, since `undoToastOptions` takes a patch-library snapshot.
+- Recall and Revert Undo expire on output, Effect channel, firmware or eligibility changes and
+  when the Effects view unmounts. Capture an effect-managed lifetime token in the toast and check
+  it before changing the rack or sending; returning to the same route never revives it. Storage-only
+  preset update/delete Undo keeps working after navigation.
 - Rename…, Duplicate, Download preset, and Delete… live only in a row's ⋮, Delete last in the
   danger colour; the list's own ⋮ (**FX preset actions**) holds Import… and Download all. The list
   is flat and A–Z: no folders, tags, or recently-used order. Below `md` the sidebar is replaced by
@@ -550,6 +565,12 @@ open everything an earlier release could have saved.
   the FM1 has given it, the effect order.
   Updating or deleting offers Undo; neither action, nor Undo, sends MIDI. Deleting a loaded preset
   leaves the rack unchanged as **Unsaved effects**.
+- FX **Download all** keeps a single JSON file, in the newest version with each preset's order,
+  when it fits the importer's 1,000-preset and 1 MiB UTF-8 limits. Larger collections use
+  numbered JSON files of the same version within both limits, packaged
+  with the existing lazy `fflate` ZIP dependency. Preserve every preset and the displayed order;
+  explain extraction and individual JSON imports in every locale. Do not cap the stored library
+  or add ZIP import.
 - The FX library has one owner: a panel handed a library by the page never opens a second one. FX
   writes share one queue (`serializeFxMutation`), so a backup can wait for the writes already
   started (`whenFxMutationsSettled`). A backup whose FX store cannot be read is still downloaded
@@ -1168,6 +1189,9 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   A patch that is gone by then leaves the patch banks showing. Every way of closing the editor
   removes the entry. Other view state, such as the selected bank, stays out of history
   and the URL: bank letters move when a bank is deleted and the library exists only in this browser.
+  Closing returns focus to the opening slot's button once the grid is mounted, including after
+  an editor chunk failed. Resolve the current element in the close layout effect and prevent
+  focus scrolling; a slot no longer rendered is a normal no-op.
 - Favourites are copies of sounds, kept in the workspace record and the backup file, so they
   outlive the slot they came from. A heart matches by `soundKey` from `src/lib/sound-key.ts`, the
   one source the search's duplicate hiding also uses, so every slot holding the same voice data,
@@ -1526,6 +1550,8 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
     jsdom cannot evaluate the media query.
   - A new error a user can hit gets a test that it reaches the UI as translated text, not a raw
     message.
+  - Fixtures also loaded by native Node, including `e2e/fake-midi.ts` for the CLS check, use
+    explicit `.ts` extensions on relative runtime imports.
   - A browser journey that needs MIDI installs the fake FM-1 from `e2e/fake-midi.ts` before the page
     loads and asserts the bytes it recorded. Wait for the editor to be live (its back button is
     enabled) before editing, or the edit resends the whole voice rather than one parameter.
@@ -1537,6 +1563,35 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
     once in its test, as `named-bank-library-dialog.test.tsx` does, so the focus cannot select the
     field part-way through typing.
 - Run a focused test while developing, then run the complete validation before handoff.
+- Cross-tab persistence journeys use two pages in one `BrowserContext`. Seed through the UI and
+  wait for committed IndexedDB data before opening both readers; assert the losing tab's draft
+  and the winner's whole stored snapshot. Demonstrate backup recovery before reloading unsaved
+  work. Read storage only from browser test code, wait with `expect.poll`, and never sleep for a save.
+- Backup recovery browser journeys seed and restore through file/UI actions, compare downloaded
+  contents and committed bytes, then reload a fresh context. Inject partial failure at native
+  IndexedDB's boundary: confirm saved-bank commits precede an FX abort, all FX rows roll back,
+  the workspace stays unchanged, and retry preserves edits and avoids duplicate records. Keep
+  portable fixtures free of app imports and check opaque VA/8-Bit bytes against captured fixtures.
+- Lazy-chunk recovery journeys resolve the target through the built manifest, prove it was not
+  loaded before activation, and count the actual intercepted 404s. Count document requests rather
+  than history events to verify the editor's one automatic retry. Check translated reload actions,
+  usable library controls, exact stored edits, post-reload opening and focus return. Only a module
+  fetch error naming that target may be expected; collect and fail on other page errors.
+- The browser MIDI fake matches complete identity, settings-order and live-FX requests, never a
+  vendor prefix. Use existing captured or independently packed reply fixtures; omit an automatic
+  reply to deliver it explicitly. Await the initial order exchange before clearing recorded
+  traffic, assert exact read frames and no writes/CCs, and control timeout tests with Playwright's
+  clock. A late reply after leaving Effects must change neither the rack nor its global toast.
+- Advisory FX touch journeys use native taps and `touchDrag` for swipes on both device profiles.
+  Seed named presets through UI import, require measurable list movement and verify scrolling or
+  row management never recalls a preset. Check sheet focus return and actual rack taps after it
+  closes. Live-read tests hold the fake reply to check loading focus/control locking, then deliver
+  the captured reply and assert the exact read without feedback. Keep these journeys advisory.
+- Multi-device MIDI journeys record each output separately, select ports through Settings and
+  verify the input of the same name. Disconnect/reconnect events reuse native port objects;
+  queued fake replies expire with that connection. A phrase releases held notes on the old route
+  and never resumes on another route or after panic. Check SMK bank refusal both identified and
+  unanswered; account for the bounded identity queries without filtering away forbidden traffic.
 
 ## Validation
 

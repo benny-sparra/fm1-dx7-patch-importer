@@ -82,9 +82,11 @@ vi.mock('@/routes/librarian-page', () => ({
   }) => (
     <>
       <p>Lit slot: {activePatchId || 'none'}</p>
-      <button onClick={() => onEditPatch({ id: 'patch-1' })} type="button">
-        Edit Piano
-      </button>
+      <div data-patch-id="patch-1">
+        <button onClick={() => onEditPatch({ id: 'patch-1' })} type="button">
+          Edit Piano
+        </button>
+      </div>
       <button onClick={() => onSelectPatch({ id: 'patch-1' })} type="button">
         Play Piano
       </button>
@@ -159,6 +161,7 @@ describe('App patch editor loading', () => {
     await user.click(screen.getByRole('button', { name: 'Back to library' }))
 
     expect(screen.getByRole('button', { name: 'Edit Piano' })).toBeTruthy()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Edit Piano' }))
     expect(consoleError).toHaveBeenCalled()
   })
 

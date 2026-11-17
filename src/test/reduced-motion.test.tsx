@@ -458,6 +458,7 @@ describe('reduced motion', () => {
           namedBanks: [bank],
           namedBanksLoadFailed: false,
           namedBanksLoading: false,
+          reloadNamedBanks: vi.fn(),
           updateNamedBankDetails: vi.fn(),
           workspaceBanks: ['A'],
         }}
