@@ -1,10 +1,12 @@
 import {
   assertOfficialOpenToken,
+  OfficialOpenReadError,
   officialOpenChecksum,
   officialOpenHeader,
   packSevenBitStream,
   parseOfficialOpenReply,
   type OfficialOpenLink,
+  type OfficialOpenReadProblem,
 } from './official-open-transfer'
 
 /**
@@ -87,22 +89,6 @@ export function makeOfficialOpenSlotNameRequest(token: number, slot: number) {
 /** Command 22: what this release can do, with no payload. */
 export function makeOfficialOpenCapabilitiesRequest(token: number) {
   return makeRequest(capabilitiesCommand, token)
-}
-
-export type OfficialOpenReadProblem =
-  'cancelled' | 'no-reply' | 'refused' | 'send-failed' | 'unexpected'
-
-/** A read that did not finish. `status` is the FM1's, when it refused. */
-export class OfficialOpenReadError extends Error {
-  readonly problem: OfficialOpenReadProblem
-  readonly status: number | undefined
-
-  constructor(problem: OfficialOpenReadProblem, message: string, status?: number) {
-    super(message)
-    this.name = 'OfficialOpenReadError'
-    this.problem = problem
-    this.status = status
-  }
 }
 
 type ReadOptions = {

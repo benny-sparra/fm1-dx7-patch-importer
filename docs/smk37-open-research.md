@@ -63,6 +63,9 @@ while the defaults hold.
 Since 2026-11-17 the editor treats SMK37 OPEN as Official Open: a patch goes as a single-voice
 dump to the note channel's track once command 0 shows it running DX7; edits go as whole voices;
 no bank, Program Change, or effect controller is sent. The page names the SMK-37 as the device.
+**Receive from the FM1…** reads a library bank or a DX7 track's patch into the library with
+commands 1, 2, and 6 (kinds 4 and 1), the reads approved for Official Open on 2026-10-20, which
+change nothing on the keyboard.
 
 ## Still to check on hardware
 
@@ -71,10 +74,10 @@ no bank, Program Change, or effect controller is sent. The page names the SMK-37
 3. A dump on channel 1 reaches track 1, and nothing reaches a 303 track.
 4. The ports SMK37 OPEN lists over USB, and whether the Private port is still the one that answers.
 5. A bank dump does nothing (the editor no longer sends one, so only a manual test).
+6. **Receive from the FM1…** reads each library group, its first patch matching program 1 of that
+   group on the keyboard, and a DX7 track's patch, edits included or as last saved.
 
 ## Later, with approval
 
-- Reading a library group (commands 1, 2, and 6 with kind 4), already approved as reads for
-  Official Open, would give the SMK-37 its first backup of stored voices.
 - Writing a library group (commands 3–5 with kind 4) would give **Send to SMK-37** a real bank
   destination, but writes Flash, so it needs the owner's approval recorded in AGENTS.md first.
