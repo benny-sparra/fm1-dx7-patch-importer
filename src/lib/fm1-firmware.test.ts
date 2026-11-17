@@ -107,6 +107,32 @@ describe('classifyFm1Firmware', () => {
     }
   })
 
+  it('counts every name SMK37 OPEN’s updater accepts as Official Open', () => {
+    for (const identity of [
+      'SMK-37 Pro_8000001',
+      'SMK-37 Elite_8000001',
+      'SMK-37 Pro_8000999',
+      'SMK37P_OPEN_001',
+      'SMK37E_OPEN_012',
+    ]) {
+      expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'official-open' })
+    }
+  })
+
+  it('leaves names close to SMK37 OPEN’s unidentified', () => {
+    for (const identity of [
+      'SMK-37 Pro_8001000',
+      'SMK-37 Pro_800001',
+      'SMK-37_8000001',
+      'MKE-P37_8000001',
+      'SMK37X_OPEN_001',
+      'SMK37P_OPEN_01',
+      'smk37p_open_001',
+    ]) {
+      expect(classifyFm1Firmware(identity)).toEqual({ identity, kind: 'unidentified' })
+    }
+  })
+
   it('counts the one name DX747 reports as DX747, not Official Open', () => {
     expect(classifyFm1Firmware('FM-1_8747747')).toEqual({
       identity: 'FM-1_8747747',
@@ -186,6 +212,8 @@ describe('fm1FirmwareRelease', () => {
     expect(fm1FirmwareRelease({ identity: 'FM-1_8000012', kind: 'official-open' })).toBe('V12')
     expect(fm1FirmwareRelease({ identity: 'FM-1_8000013', kind: 'official-open' })).toBe('V13')
     expect(fm1FirmwareRelease({ identity: 'FM-1_8000014', kind: 'official-open' })).toBe('V14')
+    expect(fm1FirmwareRelease({ identity: 'SMK-37 Pro_8000001', kind: 'official-open' })).toBe('V1')
+    expect(fm1FirmwareRelease({ identity: 'SMK37E_OPEN_012', kind: 'official-open' })).toBe('V12')
     expect(fm1FirmwareRelease({ identity: 'FM1_COMMUNITY_3', kind: 'official-open' })).toBe(
       'FM1_COMMUNITY_3',
     )
@@ -243,6 +271,10 @@ describe('fm1Device', () => {
       'SMK-37 Pro_714',
       'MKE-P37_714',
       'SMK-37_970',
+      'SMK-37 Pro_8000001',
+      'SMK-37 Elite_8000001',
+      'SMK37P_OPEN_001',
+      'SMK37E_OPEN_001',
     ]) {
       expect(fm1Device(classifyFm1Firmware(identity))).toBe('smk37')
     }

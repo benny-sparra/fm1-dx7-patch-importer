@@ -302,7 +302,7 @@ export function RootLayout({ children, compact = false, midi }: RootLayoutProps)
           {resolveFirmwareProfile(midi.firmware).capabilities.trackEngineRead ? (
             <ErrorBoundary>
               <Suspense fallback={null}>
-                <OfficialOpenTrackStatus midi={midi} />
+                <OfficialOpenTrackStatus midi={midi} smk37={isSmk37} />
               </Suspense>
             </ErrorBoundary>
           ) : null}

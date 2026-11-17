@@ -15,8 +15,7 @@ export default {
       '将 SELECT 转到 Replace 并按 SEL 保存这 32 个音色，或按 HOME 取消。它们还会永久替换该音色库的出厂预设。',
     bankFm1VaNote:
       '如果你的 FM1 运行 Baud Girl 的固件，它会改为询问“Replace Bank A?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Replace 并按 SEL。',
-    bankOfficialOpenNote:
-      'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此发送此音色库不会改变它的工程。',
+    bankOfficialOpenTitle: 'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此不会发送',
     bankSmk37Title: 'SMK-37 会把音色库保存到自己的预设上，因此不会发送',
     bankDx747Title: 'DX747 不通过 MIDI 接收音色库，因此不会发送',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
@@ -1168,7 +1167,7 @@ export default {
       'FM1 运行的是 M-VAVE 原厂固件（{{release}}）：八个 Voice，各自使用独立的通道，共用一个 FX 组。你试听的音色会进入它的编辑缓冲区。',
     officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
     officialOpenBadgeTitle:
-      'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
+      'M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
     dx747BadgeLabel: 'DX747 固件，{{release}}',
     dx747BadgeTitle:
       'FM1 运行的是 DX747（{{release}}）：最多八个声部，每个声部使用各自的通道。你点击或编辑的音色会发送到音符通道上的声部。它不接收音色库，编辑器也不会发送 Program Change 或效果控制。',
@@ -1469,6 +1468,11 @@ export default {
       '音轨 {{track}} 使用的是 {{engine}}，无法接收音色，因此没有发送任何内容。请在 FM1 上把音轨 {{track}} 设为 DX7，或选择使用 DX7 的音轨所在的音符通道。',
     unread:
       'FM1 没有告知音轨 {{track}} 使用哪种引擎，因此没有发送音色。请检查 FM1 是否已连接，然后重试。',
+    sentSmk37: '已将“{{name}}”发送到音轨 {{track}}。请在 SMK-37 上保存工程以保留它。',
+    notDx7Smk37:
+      '音轨 {{track}} 使用的是 {{engine}}，无法接收音色，因此没有发送任何内容。请在 SMK-37 上把音轨 {{track}} 设为 DX7，或选择使用 DX7 的音轨所在的音符通道。',
+    unreadSmk37:
+      'SMK-37 没有告知音轨 {{track}} 使用哪种引擎，因此没有发送音色。请检查 SMK-37 是否已连接，然后重试。',
   },
   attract: {
     pressAnyKey: '按任意键',

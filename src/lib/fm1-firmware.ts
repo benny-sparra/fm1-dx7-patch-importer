@@ -31,9 +31,13 @@ const feluccaOrSloopIdentity = 'FM-1_900'
 /**
  * M-VAVE's Official Open firmware names a release `FM-1_8` and six digits (`FM-1_8000012` is V12),
  * a community build `FM1_COMMUNITY_` and a number, and a development build `FM1_OFFICIAL_OPEN`, as
- * its updater matches them (docs/fm1-research.md, "Official Open: released source").
+ * its updater matches them (docs/fm1-research.md, "Official Open: released source"). Its port to
+ * the SMK-37, SMK37 OPEN, keeps the keyboard's model before the same number
+ * (`SMK-37 Pro_8000001` is V1), or names a build `SMK37P_OPEN_` or `SMK37E_OPEN_` and three digits,
+ * as its updater matches them (docs/smk37-open-research.md).
  */
-const officialOpenIdentity = /^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|FM-1_8(000\d{3}))$/
+const officialOpenIdentity =
+  /^(FM1_OFFICIAL_OPEN|FM1_COMMUNITY_\d+|(?:FM-1|SMK-37 Pro|SMK-37 Elite)_8(000\d{3})|SMK37[EP]_OPEN_(\d{3}))$/
 
 /**
  * DX747, Esben von Buchwald's multitimbral DX7 firmware built on Official Open, reports
@@ -54,9 +58,10 @@ const smk37Identity = /^(SMK-37 (Pro|Elite)|MKE-P37)_0\d\d$/
 
 /**
  * The SMK-37's models, before the identity's last underscore, whatever firmware follows it: the
- * stock app (`SMK-37 Pro_015`), Skiff (`SMK-37 Pro_714`), and NESynth (`SMK-37_970`) alike.
+ * stock app (`SMK-37 Pro_015`), Skiff (`SMK-37 Pro_714`), and NESynth (`SMK-37_970`) alike, and
+ * SMK37 OPEN's build names, which carry the model as their sixth letter (`SMK37P_OPEN_001`).
  */
-const smk37Model = /^(SMK-37(?: Pro| Elite)?|MKE-P37)_[^_]*$/
+const smk37Model = /^((SMK-37(?: Pro| Elite)?|MKE-P37)_[^_]*|SMK37[EP]_OPEN_\d{3})$/
 
 /**
  * The hardware that answered, apart from the firmware it runs: an SMK-37 whatever firmware it runs,
@@ -138,8 +143,8 @@ export function parseFm1IdentityReply(message: Uint8Array | readonly number[]) {
 /**
  * The firmware an identity names. Only an FM1 name numbered as M-VAVE's own releases counts as
  * M-VAVE's firmware, only one numbered as FM-1+VA's counts as FM-1+VA, releases after the tested
- * one included, and only one in the 900s counts as Felucca, SLOOP included. DX747's one name counts as DX747, Official Open's three
- * forms of name count as Official Open, and the SMK-37's stock releases as the SMK-37. Any other
+ * one included, and only one in the 900s counts as Felucca, SLOOP included. DX747's one name counts as DX747, Official Open's
+ * forms of name, its SMK-37 port's included, count as Official Open, and the SMK-37's stock releases as the SMK-37. Any other
  * name is unidentified, so the editor assumes no firmware's behaviour.
  */
 export function classifyFm1Firmware(identity: string): Fm1Firmware {
@@ -163,15 +168,15 @@ export function mayBeSloop(firmware: Fm1Firmware) {
 
 /**
  * The release as its maker names it. M-VAVE calls `FM-1_015` V15 and `FM-1_8000012` Official Open
- * V12, the SMK-37's `SMK-37 Pro_015` is its V15, and Felucca calls `FM-1_908` 0.8, while FM-1+VA's releases, Official Open's community and
+ * V12, as `SMK-37 Pro_8000001` is SMK37 OPEN V1, the SMK-37's `SMK-37 Pro_015` is its V15, and Felucca calls `FM-1_908` 0.8, while FM-1+VA's releases, Official Open's community and
  * development builds, DX747, whose name carries no release, and the `FM-1_900` that Felucca's development builds and SLOOP share, go by
  * the name the FM1 reports, such as `FM-1_089`.
  */
 export function fm1FirmwareRelease({ identity, kind }: NamedFm1Firmware) {
   if (kind === 'mvave' || kind === 'smk37') return `V${Number(identity.slice(-3))}`
   if (kind === 'official-open') {
-    const release = officialOpenIdentity.exec(identity)?.[2]
-    if (release) return `V${Number(release)}`
+    const [, , release, build] = officialOpenIdentity.exec(identity) ?? []
+    if (release ?? build) return `V${Number(release ?? build)}`
   }
   if (kind === 'felucca' && identity !== feluccaOrSloopIdentity) {
     return `${identity.at(-2)}.${identity.at(-1)}`

@@ -129,7 +129,7 @@ describe('useMidi firmware identification', () => {
     expect(result.current.firmware).toEqual({ identity: 'FM-1_8000012', kind: 'official-open' })
     expect(logMessages(result)).toContainEqual([
       'system',
-      "The FM1 runs M-VAVE's Official Open firmware FM-1_8000012, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no Program Change or effect controller is sent.",
+      "Firmware FM-1_8000012 is M-VAVE's Official Open, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no bank, Program Change, or effect controller is sent.",
     ])
   })
 

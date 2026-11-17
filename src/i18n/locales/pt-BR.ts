@@ -18,8 +18,7 @@ export default {
       'Gire SELECT até Replace e pressione SEL para salvar os 32 sons, ou pressione HOME para cancelar. Eles também substituem de forma permanente os presets de fábrica desse banco.',
     bankFm1VaNote:
       'Se o seu FM1 usa o firmware da Baud Girl, ele pergunta “Replace Bank A?” e começa no banco A. Gire ALGORITHM até o banco de destino, depois SELECT até Replace, e pressione SEL.',
-    bankOfficialOpenNote:
-      'O firmware Open da M-VAVE ignora bancos DX7, então enviar este banco não altera os projetos dele.',
+    bankOfficialOpenTitle: 'O firmware Open da M-VAVE ignora bancos DX7, então nenhum é enviado',
     bankSmk37Title: 'O SMK-37 salvaria um banco sobre seus presets, então nenhum é enviado',
     bankDx747Title: 'O DX747 não aceita bancos por MIDI, então nenhum é enviado',
     bankFeluccaNote:
@@ -1270,7 +1269,7 @@ export default {
       'O FM1 usa o firmware original da M-VAVE, {{release}}: oito Voices, cada uma no seu próprio canal, com um único grupo de FX compartilhado. Os sons que você toca vão para o buffer de edição dele.',
     officialOpenBadgeLabel: 'Firmware Open da M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'O FM1 usa o firmware Open da M-VAVE, {{release}}, uma groovebox de oito faixas. Um som em que você clica ou que edita vai para a faixa do canal de notas quando essa faixa usa DX7. Ele ignora bancos DX7, e os controles de efeito não enviam nada, porque ele os trataria como mudanças nas faixas.',
+      'Firmware Open da M-VAVE, {{release}}, uma groovebox de oito faixas. Um som em que você clica ou que edita vai para a faixa do canal de notas quando essa faixa usa DX7. Ele ignora bancos DX7, e os controles de efeito não enviam nada, porque ele os trataria como mudanças nas faixas.',
     dx747BadgeLabel: 'Firmware DX747, {{release}}',
     dx747BadgeTitle:
       'O FM1 usa o DX747, {{release}}: até oito partes, cada uma em seu próprio canal. Um som em que você clica ou que edita vai para a parte do canal de notas. Ele não aceita bancos, e o editor não envia Program Change nem controles de efeito.',
@@ -1613,6 +1612,12 @@ export default {
       'A faixa {{track}} usa {{engine}}, que não aceita um som, então nada foi enviado. Coloque a faixa {{track}} em DX7 no FM1 ou escolha o canal de notas de uma faixa que use DX7.',
     unread:
       'O FM1 não informou qual motor a faixa {{track}} usa, então o som não foi enviado. Verifique se o FM1 está conectado e tente de novo.',
+    sentSmk37:
+      '“{{name}}” enviado para a faixa {{track}}. Salve o projeto no SMK-37 para mantê-lo.',
+    notDx7Smk37:
+      'A faixa {{track}} usa {{engine}}, que não aceita um som, então nada foi enviado. Coloque a faixa {{track}} em DX7 no SMK-37 ou escolha o canal de notas de uma faixa que use DX7.',
+    unreadSmk37:
+      'O SMK-37 não informou qual motor a faixa {{track}} usa, então o som não foi enviado. Verifique se o SMK-37 está conectado e tente de novo.',
   },
   attract: {
     pressAnyKey: 'PRESSIONE QUALQUER TECLA',

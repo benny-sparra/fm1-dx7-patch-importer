@@ -13,5 +13,10 @@ export default {
       'Track {{track}} runs {{engine}}, which cannot take a patch, so nothing was sent. Set track {{track}} to DX7 on the FM1, or choose the note channel of a track that runs DX7.',
     unread:
       'The FM1 did not say which engine track {{track}} runs, so the patch was not sent. Check that the FM1 is connected, then try again.',
+    sentSmk37: 'Sent “{{name}}” to track {{track}}. Save the project on the SMK-37 to keep it.',
+    notDx7Smk37:
+      'Track {{track}} runs {{engine}}, which cannot take a patch, so nothing was sent. Set track {{track}} to DX7 on the SMK-37, or choose the note channel of a track that runs DX7.',
+    unreadSmk37:
+      'The SMK-37 did not say which engine track {{track}} runs, so the patch was not sent. Check that the SMK-37 is connected, then try again.',
   },
 }
