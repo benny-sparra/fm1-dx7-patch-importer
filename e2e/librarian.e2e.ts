@@ -2,7 +2,8 @@ import { expect, test, type Locator, type Page } from '@playwright/test'
 import { unzipSync } from 'fflate'
 import { readFile } from 'node:fs/promises'
 
-import { installFakeMidi, sentMidi } from './fake-midi'
+import { fakeMidiRequests, installFakeMidi, sentMidi } from './fake-midi'
+import { makeSettingsBlock, makeSettingsBlockReply } from '../src/test/v16-settings-replies'
 
 const factoryBank = 'public/dx7-banks/factory/rom1a.syx'
 
@@ -106,13 +107,22 @@ test('opens the lazy editor and returns to the patch library', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Patch banks' })).toBeVisible()
 })
 
-/** Effects exist only for firmware with a shared FX group, so the journey connects a V16 FM1. */
+/**
+ * Effects exist only for firmware with a shared FX group, so the journey connects a V16 FM1. It
+ * answers the effect order read, and the journey waits for that exchange, since an unanswered read
+ * is asked again 1.5 s later and would land in traffic a journey records afterwards.
+ */
 async function openEffects(page: Page) {
-  await installFakeMidi(page, { firmware: 'mvave-v16' })
+  await installFakeMidi(page, {
+    firmware: 'mvave-v16',
+    settingsReply: Array.from(makeSettingsBlockReply(makeSettingsBlock())),
+  })
   await openLibrarian(page)
   await page.getByText('MIDI offline', { exact: true }).locator('visible=true').first().click()
   await page.getByRole('button', { name: 'Effects', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Effects', level: 2 })).toBeVisible()
+  await expect.poll(() => sentMidi(page)).toContainEqual(fakeMidiRequests.effectOrder)
+  await expect(page.getByText('Reading the effect order from the FM1…')).toHaveCount(0)
 }
 
 for (const count of [1, 1001]) {
