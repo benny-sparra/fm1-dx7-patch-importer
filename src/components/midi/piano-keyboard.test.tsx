@@ -293,7 +293,8 @@ describe('PianoKeyboard dragging', () => {
     fireEvent.pointerDown(screen.getByTitle('Drag keyboard'), { clientX: 20, clientY: 20 })
     fireEvent.pointerMove(screen.getByTitle('Drag keyboard'), { clientX: 60, clientY: 90 })
 
-    expect(keyboardDialog()?.style.inset).toBe('auto')
+    expect(keyboardDialog()?.style.top).toBe('70px')
+    expect(keyboardDialog()?.style.left).toBe('40px')
   })
 
   // A name on an element with no role is not announced, and axe rejects it.
