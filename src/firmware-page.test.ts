@@ -319,7 +319,7 @@ describe('firmware page order', () => {
   it('puts an entry without a star count after the counted ones', async () => {
     const shown = await renderPage()
     await choose('Most starred')
-    expect(shown().slice(-2)).toEqual(['redacted', 'white-rabbit'])
+    expect(shown().slice(-2)).toEqual(['shrub', 'white-rabbit'])
   })
 
   it('returns to alphabetical order, with the watch list still after the cards', async () => {

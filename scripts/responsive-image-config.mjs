@@ -44,6 +44,7 @@ export const responsiveImageConfig = [
   { height: 855, source: 'firmware-jiant.webp', width: 720, widths: [460] },
   { height: 542, source: 'firmware-maku.webp', width: 542, widths: [460] },
   { height: 480, source: 'firmware-mocky.webp', width: 480, widths: [460] },
+  { height: 480, source: 'firmware-shrub.webp', width: 480, widths: [460] },
   { height: 480, source: 'firmware-obervave.webp', width: 480, widths: [460] },
   { height: 742, source: 'firmware-purplemonkey.webp', width: 960, widths: [460] },
   { height: 643, source: 'firmware-skiff.webp', width: 960, widths: [460] },
