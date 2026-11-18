@@ -15,8 +15,7 @@ export default {
       '将 SELECT 转到 Replace 并按 SEL 保存这 32 个音色，或按 HOME 取消。它们还会永久替换该音色库的出厂预设。',
     bankFm1VaNote:
       '如果你的 FM1 运行 Baud Girl 的固件，它会改为询问“Replace Bank A?”，并先停在音色库 A。转动 ALGORITHM 选择目标音色库，再将 SELECT 转到 Replace 并按 SEL。',
-    bankOfficialOpenNote:
-      'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此发送此音色库不会改变它的工程。',
+    bankOfficialOpenTitle: 'M-VAVE 的 Open 固件会忽略 DX7 音色库，因此不会发送',
     bankSmk37Title: 'SMK-37 会把音色库保存到自己的预设上，因此不会发送',
     bankDx747Title: 'DX747 不通过 MIDI 接收音色库，因此不会发送',
     bankFeluccaNote: 'Felucca 会忽略 DX7 音色库，因此发送此音色库不会改变它的预设。',
@@ -580,6 +579,8 @@ export default {
       listen: '在音色到达之前，请保持此步骤打开。',
       review: '单击音色即可在 FM1 上试听。在你替换之前，不会有任何更改。',
       destination: '请选择音色的去向。',
+      sourceRead: '请选择要从 {{device}} 读取的内容。读取不会改变它上面的任何东西。',
+      read: '请选择要读取的内容，然后选择“读取”。{{device}} 上不会有任何改变。',
     },
     sourceLegend: '发送方',
     sources: {
@@ -587,6 +588,10 @@ export default {
       fm1Hint: '通过 GLOBE → Export 发送的 32 音色音色库。',
       patch: '来自其他设备的一个音色',
       patchHint: '来自 Dexed、DX7 或其他编辑器。',
+      library: '资料库中的一个音色库',
+      libraryHint: '{{device}} DX7 资料库中的 32 个音色。',
+      track: '一条音轨的音色',
+      trackHint: '{{device}} 上一条 DX7 音轨使用的音色。',
     },
     stepsHeading: '步骤',
     steps: {
@@ -595,6 +600,10 @@ export default {
       fm1Export: '在 FM1 上打开 GLOBE，选择 Export，然后选择一个音色库。',
       patchConnect: '连接设备，或打开 Dexed 或其他编辑器，确保其 MIDI 输出能到达这台电脑。',
       patchSend: '从中以 DX7 单音色转储发送一个音色。',
+      readConnect: '用 USB 连接 {{device}} 并让 MIDI 上线，将它选为输出和输入。',
+      readNextBank: '选择“下一步”，选其资料库的四个音色库之一，再选择“读取”。',
+      readNextTrack: '选择“下一步”，选一条 DX7 音轨，再选择“读取”。',
+      readUnchanged: '编辑器只读取：{{device}} 上不会有任何改变。',
     },
     startFm1: '现在在 FM1 上打开 GLOBE，选择 Export，然后选择一个音色库。',
     startPatch: '现在以 DX7 单音色转储发送该音色。',
@@ -630,6 +639,27 @@ export default {
     patchWarning: '{{slot}}“{{patch}}”将被“{{received}}”替换，其 FM1 效果将恢复为默认值。',
     noBanks: '一个音色只能替换音色库中已有的音色。请先添加一个包含音色的音色库。',
     replace: '替换',
+    read: {
+      bankLegend: '要读取的资料库音色库',
+      bank: '音色库 {{number}}',
+      trackLegend: '要读取的音轨',
+      track: '音轨 {{track}}',
+      noDx7Tracks: '{{device}} 上没有音轨使用 DX7。请把一条音轨的引擎设为 DX7 以读取其音色。',
+      noPorts: '请将 {{device}} 选为 MIDI 输出和输入并允许 SysEx，才能从中读取。',
+      readBank: '读取音色库 {{number}}',
+      readTrack: '读取音轨 {{track}}',
+      reading: '正在读取…',
+      readBankDone: '已读取 32 个音色，第一个是“{{patch}}”。选择“下一步”试听。',
+      readVoiceDone: '已读取“{{patch}}”。选择“下一步”试听。',
+      tryAgain: '重试',
+      errors: {
+        noReply: '{{device}} 没有响应。请检查连接后重试。',
+        refused: '{{device}} 拒绝了读取。请重试。',
+        sendFailed: '无法向 {{device}} 发送请求。请检查其 MIDI 连接。',
+        unexpected: '{{device}} 发送的内容不是 DX7 音色或音色库。请重试。',
+        tracks: '无法读取 {{device}} 的音轨。',
+      },
+    },
   },
   bankFile: {
     legend: '此文件中的音色库',
@@ -1168,7 +1198,7 @@ export default {
       'FM1 运行的是 M-VAVE 原厂固件（{{release}}）：八个 Voice，各自使用独立的通道，共用一个 FX 组。你试听的音色会进入它的编辑缓冲区。',
     officialOpenBadgeLabel: 'M-VAVE Open 固件，{{release}}',
     officialOpenBadgeTitle:
-      'FM1 运行的是 M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
+      'M-VAVE 的 Open 固件（{{release}}），一台八轨 groovebox。你点击或编辑的音色会发送到音符通道上的音轨，前提是该音轨使用 DX7。它会忽略 DX7 音色库，效果控制也不会发送任何内容，因为它会把这些当作对音轨的更改。',
     dx747BadgeLabel: 'DX747 固件，{{release}}',
     dx747BadgeTitle:
       'FM1 运行的是 DX747（{{release}}）：最多八个声部，每个声部使用各自的通道。你点击或编辑的音色会发送到音符通道上的声部。它不接收音色库，编辑器也不会发送 Program Change 或效果控制。',
@@ -1400,6 +1430,9 @@ export default {
     deleteConfirm: '要从此浏览器永久删除“{{name}}”吗？',
     loadConfirm: '要用“{{name}}”替换“{{bank}}”中的 32 个音色吗？',
     replaceAction: '替换音色',
+    conflict:
+      '此已保存音色库已在其他标签页中更改或删除。您输入的内容仍保留在这里。请重新加载已保存的音色库，然后重新打开其详细信息以查看最新版本。',
+    reload: '重新加载已保存的音色库',
     operationFailed: '已保存音色库的操作失败。',
     openFailed: '无法打开已保存的音色库。请重新加载页面后重试。',
     loadFailed: '无法从浏览器存储中加载已保存的音色库。',
@@ -1469,6 +1502,11 @@ export default {
       '音轨 {{track}} 使用的是 {{engine}}，无法接收音色，因此没有发送任何内容。请在 FM1 上把音轨 {{track}} 设为 DX7，或选择使用 DX7 的音轨所在的音符通道。',
     unread:
       'FM1 没有告知音轨 {{track}} 使用哪种引擎，因此没有发送音色。请检查 FM1 是否已连接，然后重试。',
+    sentSmk37: '已将“{{name}}”发送到音轨 {{track}}。请在 SMK-37 上保存工程以保留它。',
+    notDx7Smk37:
+      '音轨 {{track}} 使用的是 {{engine}}，无法接收音色，因此没有发送任何内容。请在 SMK-37 上把音轨 {{track}} 设为 DX7，或选择使用 DX7 的音轨所在的音符通道。',
+    unreadSmk37:
+      'SMK-37 没有告知音轨 {{track}} 使用哪种引擎，因此没有发送音色。请检查 SMK-37 是否已连接，然后重试。',
   },
   attract: {
     pressAnyKey: '按任意键',

@@ -1,16 +1,18 @@
-import type { Input, MessageEvent, Output } from 'webmidi'
+import type { Input, Output } from 'webmidi'
 
 import { makeDx7SingleVoicePayload, makeYamahaSysexMessage, type Dx7Voice } from '@/lib/dx7'
 import type { MidiLogEntry } from '@/lib/midi'
-import { midiActivity } from '@/lib/midi-activity'
 import type { MidiTransferQueue } from '@/lib/midi-transfer-queue'
+import { makeOfficialOpenLink, takeOfficialOpenToken } from '@/lib/official-open-link'
 import {
   makeOfficialOpenInfoRequest,
+  OfficialOpenReadError,
   officialOpenTrackForChannel,
   parseOfficialOpenInfoReply,
   type OfficialOpenEngine,
   type OfficialOpenInfo,
   type OfficialOpenLink,
+  type OfficialOpenReadProblem,
 } from '@/lib/official-open-transfer'
 
 /**
@@ -33,18 +35,6 @@ export type OfficialOpenTrackDelivery =
   | { type: 'cancelled' }
   /** The dump could not be built or sent. */
   | { type: 'failed' }
-
-type InfoReadProblem = 'cancelled' | 'no-reply' | 'refused' | 'send-failed' | 'unexpected'
-
-class OfficialOpenReadError extends Error {
-  readonly problem: InfoReadProblem
-
-  constructor(problem: InfoReadProblem, message: string) {
-    super(message)
-    this.name = 'OfficialOpenReadError'
-    this.problem = problem
-  }
-}
 
 type InfoReadOptions = {
   /** How many times to send the request before giving up. */
@@ -80,7 +70,7 @@ export function readOfficialOpenInfo(
       signal?.removeEventListener('abort', cancel)
       outcome()
     }
-    const fail = (problem: InfoReadProblem, message: string) =>
+    const fail = (problem: OfficialOpenReadProblem, message: string) =>
       finish(() => reject(new OfficialOpenReadError(problem, message)))
 
     function cancel() {
@@ -119,16 +109,6 @@ export function readOfficialOpenInfo(
     stopListening = link.listen(hear)
     ask()
   })
-}
-
-// Official Open keeps the last request and answers the same bytes again with the reply it kept,
-// so each read takes a token the last page load is unlikely to have used.
-let nextToken = 1 + Math.floor(Math.random() * 0x3fff)
-
-function takeToken() {
-  const token = nextToken
-  nextToken = (nextToken % 0x3fff) + 1
-  return token
 }
 
 /** Engine names as the FM1 shows them, for the MIDI log. */
@@ -187,18 +167,9 @@ export async function sendVoiceToOfficialOpenTrack({
     return { type: 'failed' }
   }
 
-  const link: OfficialOpenLink = {
-    listen: (hear) => {
-      const handle = (event: MessageEvent) => hear(event.data)
-      input?.addListener('midimessage', handle)
-      return () => input?.removeListener('midimessage', handle)
-    },
-    send: (request) => {
-      output.send(request)
-      midiActivity.signal('out')
-      log('out', 'Asked the FM1 which engine each track runs.', request)
-    },
-  }
+  const link = makeOfficialOpenLink(input, output, (request) =>
+    log('out', 'Asked the FM1 which engine each track runs.', request),
+  )
 
   let delivery: OfficialOpenTrackDelivery = { type: 'cancelled' }
   try {
@@ -210,7 +181,7 @@ export async function sendVoiceToOfficialOpenTrack({
       }
       let info: OfficialOpenInfo
       try {
-        info = await readOfficialOpenInfo(link, takeToken(), { signal })
+        info = await readOfficialOpenInfo(link, takeOfficialOpenToken(), { signal })
       } catch (caughtError) {
         const cancelled =
           caughtError instanceof OfficialOpenReadError && caughtError.problem === 'cancelled'

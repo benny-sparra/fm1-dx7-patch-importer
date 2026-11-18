@@ -124,6 +124,8 @@ export default {
       review:
         'Click a patch to hear it on the FM1. Your library stays as it is until you replace it.',
       destination: 'Choose where the patches go.',
+      sourceRead: 'Choose what to read from the {{device}}. Reading changes nothing on it.',
+      read: 'Choose what to read, then Read. Nothing on the {{device}} changes.',
     },
     sourceLegend: 'What is sending',
     sources: {
@@ -131,6 +133,10 @@ export default {
       fm1Hint: 'A bank of 32 patches, sent with GLOBE → Export.',
       patch: 'One patch from another device',
       patchHint: 'From Dexed, a DX7, or another editor.',
+      library: 'A bank of its library',
+      libraryHint: '32 patches from the {{device}}’s DX7 library.',
+      track: 'A track’s patch',
+      trackHint: 'The patch a DX7 track on the {{device}} plays.',
     },
     stepsHeading: 'Steps',
     steps: {
@@ -140,6 +146,11 @@ export default {
       patchConnect:
         'Connect the device, or open Dexed or the other editor, with its MIDI output reaching this computer.',
       patchSend: 'Send one patch from it as a DX7 single-voice dump.',
+      readConnect:
+        'Connect the {{device}} with USB and switch MIDI online, with it as the output and input.',
+      readNextBank: 'Choose Next, pick one of its four library banks, and choose Read.',
+      readNextTrack: 'Choose Next, pick a DX7 track, and choose Read.',
+      readUnchanged: 'The editor only reads: nothing on the {{device}} changes.',
     },
     startFm1: 'Now open GLOBE on the FM1, choose Export, and pick a bank.',
     startPatch: 'Now send the patch as a DX7 single-voice dump.',
@@ -179,6 +190,29 @@ export default {
       '{{slot}} “{{patch}}” will be replaced by “{{received}}”, and its FM1 effects reset to their defaults.',
     noBanks: 'A patch can only replace one already in a bank. Add a bank with patches first.',
     replace: 'Replace',
+    read: {
+      bankLegend: 'Library bank to read',
+      bank: 'Bank {{number}}',
+      trackLegend: 'Track to read',
+      track: 'Track {{track}}',
+      noDx7Tracks:
+        'No track on the {{device}} runs DX7. Set a track’s engine to DX7 to read its patch.',
+      noPorts:
+        'Choose the {{device}} as the MIDI output and input, with SysEx allowed, to read from it.',
+      readBank: 'Read bank {{number}}',
+      readTrack: 'Read track {{track}}',
+      reading: 'Reading…',
+      readBankDone: 'Read 32 patches, starting with “{{patch}}”. Choose Next to hear them.',
+      readVoiceDone: 'Read “{{patch}}”. Choose Next to hear it.',
+      tryAgain: 'Try again',
+      errors: {
+        noReply: 'The {{device}} did not answer. Check its connection, then try again.',
+        refused: 'The {{device}} refused the read. Try again.',
+        sendFailed: 'The read could not be sent to the {{device}}. Check its MIDI connection.',
+        unexpected: 'What the {{device}} sent was not a DX7 patch or bank. Try again.',
+        tracks: 'The {{device}}’s tracks could not be read.',
+      },
+    },
   },
   bankFile: {
     legend: 'Banks in this file',
@@ -383,6 +417,9 @@ export default {
     deleteConfirm: 'Permanently delete “{{name}}” from this browser?',
     loadConfirm: 'Replace the 32 patches in “{{bank}}” with “{{name}}”?',
     replaceAction: 'Replace patches',
+    conflict:
+      'This saved bank changed or was deleted in another tab. Your edits are kept here. Reload saved banks, then reopen its details to review the latest version.',
+    reload: 'Reload saved banks',
     operationFailed: 'The saved-bank operation failed.',
     loadFailed: 'Saved banks could not be loaded from browser storage.',
     damagedBanks:

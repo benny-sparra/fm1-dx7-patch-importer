@@ -11,8 +11,15 @@ import type { PatchLibrary } from '@/hooks/use-patch-library'
 import { setLocale } from '@/i18n'
 import { parseDx7Bank, updateDx7VoiceName, type Dx7Voice } from '@/lib/dx7'
 import { makeDx7VoiceFile } from '@/lib/dx7-voice-file'
+import { MidiLogStore } from '@/lib/midi-log-store'
+import {
+  officialOpenChecksum,
+  officialOpenHeader,
+  packSevenBitStream,
+} from '@/lib/official-open-transfer'
 import { makeDemoVoices, type PatchLibrarySnapshot } from '@/lib/patch-library'
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
+import { answerFromOfficialOpenCapture } from '@/test/official-open-v14-capture'
 import { translatePageText } from '@/test/page-translator'
 import { stockV16BankExport, stockV16BankExportNames } from '@/test/stock-v16-bank-export'
 
@@ -69,14 +76,15 @@ function renderWizard({
   voices?: ReceiveLibrary['voices']
 } = {}) {
   const ports = makeFakeFm1Ports()
-  const { inputs, selectedInputId } = makeFakeFm1Devices(ports)
   const midi: ReceiveMidi = {
+    ...makeFakeFm1Devices(ports),
     connectMidi: vi.fn<ReceiveMidi['connectMidi']>(),
     error: null,
-    inputs,
+    firmware: { identity: 'FM-1_016', kind: 'mvave' },
     isConnecting: false,
+    logStore: new MidiLogStore([]),
     midiAccess: true,
-    selectedInputId,
+    queueEffectOrder: vi.fn<ReceiveMidi['queueEffectOrder']>(async (run) => run()),
     setSelectedInputId: vi.fn<ReceiveMidi['setSelectedInputId']>(),
     sysexAvailable: true,
     ...midiOverrides,
@@ -507,5 +515,108 @@ describe('ReceiveFromFm1Dialog', () => {
     expect(document.querySelector('.receive-ladder')).toBeNull()
     expect(status().textContent).toContain('Listening on')
     vi.useRealTimers()
+  })
+})
+
+describe('ReceiveFromFm1Dialog reading from Official Open', () => {
+  const v14 = { identity: 'FM-1_8000014', kind: 'official-open' } as const
+  const sourceNames = () =>
+    screen.getAllByRole('radio').map((radio) => radio.getAttribute('aria-label'))
+
+  it('offers a library bank, a track, or a patch from another device, not Bank Export', () => {
+    renderWizard({ midi: { firmware: v14 } })
+
+    expect(sourceNames()).toEqual([
+      'A bank of its library',
+      'A track’s patch',
+      'One patch from another device',
+    ])
+    expect(
+      screen.getByRole<HTMLInputElement>('radio', { name: 'A bank of its library' }).checked,
+    ).toBe(true)
+  })
+
+  it('reads a library bank with reads alone and puts it in the chosen bank', async () => {
+    const { library, ports, user } = renderWizard({ midi: { firmware: v14 } })
+    const commands = answerFromOfficialOpenCapture(ports)
+
+    await user.click(nextButton())
+    await user.click(screen.getByRole('radio', { name: 'Bank 2' }))
+    await user.click(screen.getByRole('button', { name: 'Read bank 2' }))
+    await screen.findByText('Read 32 patches, starting with “GUITAR 1”. Choose Next to hear them.')
+    // Begin, 64 chunks, and the cancel that frees the buffer: nothing that writes.
+    expect(commands).toEqual([1, ...Array<number>(64).fill(2), 6])
+
+    await user.click(nextButton())
+    await user.click(nextButton())
+    await user.click(screen.getByRole('button', { name: 'Replace' }))
+    expect(library.importBank).toHaveBeenCalledWith(
+      'B',
+      expect.arrayContaining([
+        expect.objectContaining({ name: expect.stringMatching(/^GUITAR 1/) }),
+      ]),
+    )
+  })
+
+  it('reads a DX7 track’s patch into the slot that opened it, and offers no other engine', async () => {
+    const { library, ports, user } = renderWizard({
+      initialSlot: 3,
+      initialSource: 'patch',
+      midi: { firmware: v14 },
+    })
+    answerFromOfficialOpenCapture(ports)
+    // A slot takes one patch, so no bank is offered.
+    expect(sourceNames()).toEqual(['A track’s patch', 'One patch from another device'])
+
+    await user.click(nextButton())
+    const track1 = await screen.findByRole<HTMLInputElement>('radio', { name: /Track 1/ })
+    expect(track1.checked).toBe(true)
+    expect(screen.getByRole<HTMLInputElement>('radio', { name: /Track 2 303/ }).disabled).toBe(true)
+    await user.click(screen.getByRole('radio', { name: /Track 4/ }))
+    await user.click(screen.getByRole('button', { name: 'Read track 4' }))
+    await screen.findByText('Read “SOFT BRASS”. Choose Next to hear it.')
+
+    await user.click(nextButton())
+    await user.click(nextButton())
+    await user.click(screen.getByRole('button', { name: 'Replace' }))
+    expect(library.replaceVoice).toHaveBeenCalledWith(
+      'B',
+      3,
+      expect.objectContaining({ name: expect.stringMatching(/^SOFT BRASS/) }),
+    )
+  })
+
+  it('names the SMK-37 and reads its library on SMK37 OPEN', () => {
+    renderWizard({ midi: { firmware: { identity: 'SMK-37 Pro_8000001', kind: 'official-open' } } })
+
+    const library = screen.getByRole<HTMLInputElement>('radio', { name: 'A bank of its library' })
+    expect(library.checked).toBe(true)
+    screen.getByText('32 patches from the SMK-37’s DX7 library.')
+  })
+
+  it('explains a read the device refuses in words', async () => {
+    const { ports, user } = renderWizard({ midi: { firmware: v14 } })
+    ports.output.send.mockImplementation((request) => {
+      const body = [...officialOpenHeader.slice(1), request[5] | 0x40, request[6], request[7]]
+      body.push(...packSevenBitStream([64 + 3]))
+      ports.input.receive([0xf0, ...body, officialOpenChecksum(body), 0xf7])
+    })
+
+    await user.click(nextButton())
+    await user.click(screen.getByRole('button', { name: 'Read bank 1' }))
+    await screen.findByText('The FM1 refused the read. Try again.')
+    expect(nextButton().disabled).toBe(true)
+  })
+
+  it('names each track in German', async () => {
+    await setLocale('de')
+    const { ports, user } = renderWizard({ midi: { firmware: v14 } })
+    answerFromOfficialOpenCapture(ports)
+
+    await user.click(screen.getByRole('radio', { name: 'Der Sound einer Spur' }))
+    await user.click(screen.getByRole('button', { name: 'Weiter' }))
+    const track4 = await screen.findByRole<HTMLInputElement>('radio', { name: /Spur 4 DX7/ })
+    expect(track4.disabled).toBe(false)
+    screen.getByRole('button', { name: 'Spur 1 lesen' })
   })
 })

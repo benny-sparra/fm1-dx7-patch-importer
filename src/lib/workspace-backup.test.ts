@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { dx7PackedVoiceSize, updateDx7VoiceName } from '@/lib/dx7'
 import { makeDefaultFm1Effects, normalizeFm1Effects } from '@/lib/fm1-effects'
@@ -28,6 +28,7 @@ import {
   virtualAnalogVoiceBeyondDx7Ranges,
 } from '@/test/fm1-va-virtual-analog'
 import { slotVoice } from '@/test/slot-voice'
+import { completeRecoveryBackup } from '@/test/workspace-recovery-backup'
 
 // A voice and its effects exactly as version 1 wrote them. The voice's first 118 bytes count up
 // from 0 to 99 and round again, and its name is "BACKUP 1".
@@ -299,6 +300,30 @@ function problemOf(action: () => unknown) {
 }
 
 describe('workspace backup', () => {
+  it('keeps the browser recovery fixture aligned with captured opaque engine bytes', () => {
+    const fixture = completeRecoveryBackup()
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+    expect(
+      JSON.parse(
+        makeWorkspaceBackup(backup.workspace, backup.savedBanks, fixture.savedAt, backup.fxPresets),
+      ),
+    ).toEqual(fixture)
+    expect(backup.damagedSavedBankCount).toBe(0)
+    expect(backup.damagedFxPresetCount).toBe(0)
+    expect(backup.workspace.virtualAnalog['bank-A-2']).toEqual(virtualAnalogVoiceBeyondDx7Ranges())
+    expect(backup.workspace.records['bank-A-2']).toEqual(capturedVirtualAnalogRecord())
+    expect(backup.workspace.eightBit['bank-A-3']).toEqual(capturedEightBitVoice())
+    expect(backup.workspace.records['bank-A-3']).toEqual(capturedEightBitRecord())
+    expect(backup.savedBanks[0].slots[1]).toMatchObject({
+      virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
+      record: capturedVirtualAnalogRecord(),
+    })
+    expect(backup.savedBanks[0].slots[2]).toMatchObject({
+      eightBit: capturedEightBitVoice(),
+      record: capturedEightBitRecord(),
+    })
+  })
+
   it('reads a version 1 backup as that version wrote it', () => {
     const backup = parseWorkspaceBackup(JSON.stringify(versionOneFixture()))
 
@@ -758,5 +783,164 @@ describe('workspace backup', () => {
     const backup = parseWorkspaceBackup(makeWorkspaceBackup(edited, [], '2026-09-21T13:03:00Z'))
 
     expect(backup.workspace.voices[voiceId('A', 1)].name).toBe('RENAMED')
+  })
+})
+
+/** Counts collection predicate visits while preserving native some semantics and parser results. */
+function countCollectionVisits(action: () => ReturnType<typeof parseWorkspaceBackup>) {
+  let visits = 0
+  const some = Array.prototype.some
+  const spy = vi.spyOn(Array.prototype, 'some').mockImplementation(function (
+    this: unknown[],
+    predicate,
+    thisArg,
+  ) {
+    return some.call(this, (value, index, array) => {
+      visits += 1
+      return predicate.call(thisArg, value, index, array)
+    })
+  })
+  try {
+    return { backup: action(), visits }
+  } finally {
+    spy.mockRestore()
+  }
+}
+
+describe('backup duplicate filtering', () => {
+  it('bounds collection visits for 128 distinct FX presets', () => {
+    const fixture = versionSixFixture()
+    const [preset] = fixture.fxPresets
+    fixture.savedBanks = []
+    fixture.fxPresets = Array.from({ length: 128 }, (_, index) => ({
+      ...preset,
+      id: `fx-${index}`,
+    }))
+    const text = JSON.stringify(fixture)
+
+    const { backup, visits } = countCollectionVisits(() => parseWorkspaceBackup(text))
+
+    expect(backup.fxPresets).toHaveLength(128)
+    expect(visits).toBeLessThanOrEqual(1_024)
+  })
+
+  it('bounds collection visits for 128 distinct saved banks', () => {
+    const fixture = versionOneFixture({
+      savedBanks: Array.from({ length: 128 }, (_, index) => savedBankFixture(`bank-${index}`)),
+    })
+    const text = JSON.stringify(fixture)
+
+    const { backup, visits } = countCollectionVisits(() => parseWorkspaceBackup(text))
+
+    expect(backup.savedBanks).toHaveLength(128)
+    // Includes the 32-slot validation of every bank, with room for other linear checks.
+    expect(visits).toBeLessThanOrEqual(8_192)
+  })
+
+  it('keeps the first readable FX copy and the original file order', () => {
+    const fixture = versionSixFixture()
+    const [preset] = fixture.fxPresets
+    fixture.fxPresets = [
+      { ...preset, id: 'z-first' },
+      preset,
+      { ...preset, name: 'Later copy', effects: fixtureEffects },
+      { ...preset, id: 'a-last' },
+    ]
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.fxPresets?.map(({ id }) => id)).toEqual(['z-first', 'fx-backup-1', 'a-last'])
+    expect(backup.fxPresets?.[1].name).toBe('Live room')
+    expect(backup.fxPresets?.[1].effects).toEqual(new Uint8Array(24).fill(1))
+    expect(backup.damagedFxPresetCount).toBe(0)
+  })
+
+  it('does not let a damaged FX copy reserve the ID of a later readable one', () => {
+    const fixture = versionSixFixture()
+    const [preset] = fixture.fxPresets
+    fixture.fxPresets = [{ ...preset, effects: 'invalid!' }, preset]
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.fxPresets?.map(({ id }) => id)).toEqual(['fx-backup-1'])
+    expect(backup.fxPresets?.[0].effects).toEqual(new Uint8Array(24).fill(1))
+    expect(backup.damagedFxPresetCount).toBe(1)
+  })
+
+  it('counts a damaged FX copy even when a readable copy already has its ID', () => {
+    const fixture = versionSixFixture()
+    const [preset] = fixture.fxPresets
+    fixture.fxPresets = [preset, { ...preset, effects: 'invalid!' }]
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.fxPresets?.map(({ id }) => id)).toEqual(['fx-backup-1'])
+    expect(backup.fxPresets?.[0].name).toBe('Live room')
+    expect(backup.damagedFxPresetCount).toBe(1)
+  })
+
+  it('keeps the first readable saved bank and the original file order', () => {
+    const bank = savedBankFixture('same')
+    const fixture = versionOneFixture({
+      savedBanks: [
+        savedBankFixture('z-first'),
+        bank,
+        {
+          ...bank,
+          name: 'Later copy',
+          description: 'Different content',
+          slots: bank.slots.map((slot) => ({
+            ...slot,
+            effects: btoa(String.fromCharCode(...new Uint8Array(24))),
+          })),
+        },
+        savedBankFixture('a-last'),
+      ],
+    })
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.savedBanks.map(({ id }) => id)).toEqual(['z-first', 'same', 'a-last'])
+    expect(backup.savedBanks[1]).toMatchObject({
+      name: 'Live pads',
+      description: 'Pads for the live set',
+    })
+    expect(backup.savedBanks[1].slots[0].effects).toEqual(
+      Uint8Array.of(1, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+    )
+    expect(backup.damagedSavedBankCount).toBe(0)
+  })
+
+  it('does not let a damaged saved bank reserve the ID of a later readable one', () => {
+    const bank = savedBankFixture('same')
+    const fixture = versionOneFixture({ savedBanks: [{ ...bank, slots: [] }, bank] })
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.savedBanks.map(({ id }) => id)).toEqual(['same'])
+    expect(backup.savedBanks[0].name).toBe('Live pads')
+    expect(backup.damagedSavedBankCount).toBe(1)
+  })
+
+  it('counts a damaged saved bank even when a readable copy already has its ID', () => {
+    const bank = savedBankFixture('same')
+    const fixture = versionOneFixture({ savedBanks: [bank, { ...bank, slots: [] }] })
+    const backup = parseWorkspaceBackup(JSON.stringify(fixture))
+
+    expect(backup.savedBanks.map(({ id }) => id)).toEqual(['same'])
+    expect(backup.savedBanks[0].name).toBe('Live pads')
+    expect(backup.damagedSavedBankCount).toBe(1)
+  })
+
+  it('keeps the two collections independent across repeated parses, including prototype-like IDs', () => {
+    const fixture = versionSixFixture()
+    const [preset] = fixture.fxPresets
+    fixture.savedBanks = [savedBankFixture('__proto__'), savedBankFixture('constructor')]
+    fixture.fxPresets = [
+      { ...preset, id: '__proto__' },
+      { ...preset, id: 'constructor' },
+    ]
+    const text = JSON.stringify(fixture)
+    const first = parseWorkspaceBackup(text)
+    const second = parseWorkspaceBackup(text)
+
+    expect(first.savedBanks.map(({ id }) => id)).toEqual(['__proto__', 'constructor'])
+    expect(first.fxPresets?.map(({ id }) => id)).toEqual(['__proto__', 'constructor'])
+    expect(second).toEqual(first)
   })
 })

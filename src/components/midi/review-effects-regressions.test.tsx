@@ -1,14 +1,20 @@
 // @vitest-environment jsdom
-import { act, cleanup, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, renderHook, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 
-import { V16EffectsPanel } from '@/components/midi/v16-effects-panel'
+import { V16EffectsPanel, type V16EffectsMidi } from '@/components/midi/v16-effects-panel'
 import type { FxLibrary } from '@/hooks/use-fx-library'
 import { useMidi } from '@/hooks/use-midi'
 import { setLocale } from '@/i18n'
 import { createFxLibraryPreset } from '@/lib/fx-library-preset'
-import { resetV16EffectsForTests, setV16Effects } from '@/lib/v16-effects'
+import {
+  getV16Effects,
+  getV16EffectsLastSent,
+  getV16EffectsPresetId,
+  resetV16EffectsForTests,
+  setV16Effects,
+} from '@/lib/v16-effects'
 import { fxTableOffset, makeSettingsBlockReadRequest } from '@/lib/v16-settings-block'
 import { makeSettingsBlockReply } from '@/test/v16-settings-replies'
 import { makeFakeFm1Ports, mvaveV16IdentityReply } from '@/test/fake-fm1-midi'
@@ -178,4 +184,204 @@ it('serialises an effect edit after an in-flight order read and write on the MID
   act(() => ports.input.receive(pendingReply!))
   await waitFor(() => expect(hardwareFilter).toBe(0))
   expect(events).toEqual(['write', 'cc'])
+})
+
+// Keep the toast provider mounted when the Effects view is left, as the application does.
+async function setupRecallUndo() {
+  const first = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
+  const second = makeFakeFm1Ports({ reply: mvaveV16IdentityReply })
+  // A hardware reply arrives after send returns, rather than reentering the identity query.
+  first.output.send.mockImplementation(() => {
+    queueMicrotask(() => first.input.receive(mvaveV16IdentityReply))
+  })
+  second.output.send.mockImplementation(() => {
+    queueMicrotask(() => second.input.receive(mvaveV16IdentityReply))
+  })
+  second.input.id = 'second-in'
+  second.output.id = 'second-out'
+  second.input.name = 'Second FM-1'
+  second.output.name = 'Second FM-1'
+  webMidi.inputs = [first.input, second.input]
+  webMidi.outputs = [first.output, second.output]
+  const hook = renderHook(() => useMidi())
+  await act(() => hook.result.current.connectMidi())
+  await waitFor(() => expect(hook.result.current.firmware).toMatchObject({ kind: 'mvave' }))
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+  const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+  const preset = createFxLibraryPreset({
+    effects: new Uint8Array(24).fill(1),
+    id: 'stage',
+    name: 'Stage room',
+    now: '2026-11-07T12:00:00.000Z',
+  })
+  const library: FxLibrary = {
+    damagedCount: 0,
+    delete: vi.fn(),
+    duplicate: vi.fn(),
+    importPresets: vi.fn(),
+    loadError: null,
+    pending: false,
+    presets: [preset],
+    reload: vi.fn(),
+    rename: vi.fn(),
+    restorePresets: vi.fn(),
+    save: vi.fn(),
+    status: 'ready',
+    update: vi.fn(),
+  }
+  const panel = (overrides: Partial<V16EffectsMidi> = {}) => (
+    <V16EffectsPanel
+      fxLibrary={library}
+      midi={{ ...hook.result.current, sysexAvailable: false, ...overrides }}
+    />
+  )
+  const view = renderWithToasts(panel())
+  const refresh = (overrides: Partial<V16EffectsMidi> = {}) => view.rerender(panel(overrides))
+  const before = getV16Effects().slice()
+  await user.click(screen.getByRole('button', { name: 'Stage room' }))
+  await act(() => vi.advanceTimersByTimeAsync(1_000))
+  expect(first.output.sendControlChange).toHaveBeenCalledTimes(24)
+  expect(first.output.sendControlChange).toHaveBeenLastCalledWith(93, 1, { channels: 2 })
+  return { before, first, second, hook, view, refresh, user }
+}
+
+type RecallUndoSetup = Awaited<ReturnType<typeof setupRecallUndo>>
+
+it.each([
+  {
+    name: 'selecting another output',
+    change: async ({ hook, refresh }: RecallUndoSetup) => {
+      act(() => hook.result.current.setSelectedOutputId('second-out'))
+      refresh()
+    },
+  },
+  {
+    name: 'changing the Effect channel',
+    change: async ({ hook, refresh }: RecallUndoSetup) => {
+      act(() => hook.result.current.setEffectChannel(3))
+      refresh()
+    },
+  },
+  {
+    name: 'going offline',
+    change: async ({ hook, refresh }: RecallUndoSetup) => {
+      await act(() => hook.result.current.disconnectMidi())
+      refresh()
+    },
+  },
+  {
+    name: 'losing the output while route metadata stays the same',
+    change: async ({ refresh }: RecallUndoSetup) => {
+      refresh({ hasMidiOutput: false })
+    },
+  },
+  {
+    name: 'changing firmware while still eligible',
+    change: async ({ refresh }: RecallUndoSetup) => {
+      refresh({ firmware: { kind: 'mvave', identity: 'FM-1_017' } })
+    },
+  },
+  {
+    name: 'losing shared FX eligibility',
+    change: async ({ refresh }: RecallUndoSetup) => {
+      refresh({ firmware: { kind: 'mvave', identity: 'FM-1_015' } })
+    },
+  },
+  {
+    name: 'leaving the Effects view',
+    change: async ({ view }: RecallUndoSetup) => {
+      view.rerender(<div>Patches</div>)
+    },
+  },
+  {
+    name: 'leaving and reopening the Effects view',
+    change: async ({ view, refresh }: RecallUndoSetup) => {
+      view.rerender(<div>Patches</div>)
+      refresh()
+    },
+  },
+  {
+    name: 'switching away and back to the same output',
+    change: async ({ hook, refresh }: RecallUndoSetup) => {
+      act(() => hook.result.current.setSelectedOutputId('second-out'))
+      refresh()
+      act(() => hook.result.current.setSelectedOutputId('fm1-out'))
+      refresh()
+    },
+  },
+  {
+    name: 'disconnecting and reconnecting the same ports',
+    change: async ({ hook, refresh }: RecallUndoSetup) => {
+      await act(() => hook.result.current.disconnectMidi())
+      refresh()
+      await act(() => hook.result.current.connectMidi())
+      refresh()
+    },
+  },
+])(
+  'expires recall Undo after $name without changing the rack or sending bytes',
+  async ({ change }) => {
+    const context = await setupRecallUndo()
+    await change(context)
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+    vi.clearAllMocks()
+    const lastSent = getV16EffectsLastSent()
+
+    await context.user.click(screen.getByRole('button', { name: 'Undo' }))
+    // Drain a complete fake transfer, so a delayed batch cannot escape the assertion.
+    await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+    expect(context.first.output.sendControlChange).not.toHaveBeenCalled()
+    expect(context.second.output.sendControlChange).not.toHaveBeenCalled()
+    expect(context.first.output.send).not.toHaveBeenCalled()
+    expect(context.second.output.send).not.toHaveBeenCalled()
+    expect(context.first.output.sendSysex).not.toHaveBeenCalled()
+    expect(context.second.output.sendSysex).not.toHaveBeenCalled()
+    expect(context.first.output.sendProgramChange).not.toHaveBeenCalled()
+    expect(context.second.output.sendProgramChange).not.toHaveBeenCalled()
+    expect(getV16Effects()).toEqual(new Uint8Array(24).fill(1))
+    expect(getV16EffectsPresetId()).toBe('stage')
+    expect(getV16EffectsLastSent()).toEqual(lastSent)
+  },
+)
+
+it('keeps recall Undo live across ordinary rerenders and note-channel changes', async () => {
+  const { before, first, second, hook, refresh, user } = await setupRecallUndo()
+  act(() => hook.result.current.setChannel(3))
+  refresh({ firmware: { kind: 'mvave', identity: 'FM-1_016' } })
+  vi.clearAllMocks()
+
+  await user.click(screen.getByRole('button', { name: 'Undo' }))
+  await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+  expect(getV16Effects()).toEqual(before)
+  expect(getV16EffectsPresetId()).toBe('')
+  expect(first.output.sendControlChange).toHaveBeenCalledTimes(24)
+  expect(first.output.sendControlChange).toHaveBeenNthCalledWith(1, 70, 0, { channels: 2 })
+  expect(first.output.sendControlChange).toHaveBeenLastCalledWith(93, 0, { channels: 2 })
+  expect(second.output.sendControlChange).not.toHaveBeenCalled()
+  expect(getV16EffectsLastSent()?.effects).toEqual(before)
+})
+
+it('expires Revert Undo when the Effect channel changes', async () => {
+  const { hook, first, second, refresh, user } = await setupRecallUndo()
+  const edited = getV16Effects().slice()
+  edited[1] = 2
+  act(() => {
+    setV16Effects(edited)
+  })
+  await user.click(screen.getByRole('button', { name: 'Revert' }))
+  await act(() => vi.advanceTimersByTimeAsync(1_000))
+  act(() => hook.result.current.setEffectChannel(3))
+  refresh()
+  vi.clearAllMocks()
+  const revertedToast = screen.getByText('Reverted “Stage room”.').closest('[role="status"]')
+  if (!(revertedToast instanceof HTMLElement)) throw new Error('Missing Revert notification')
+
+  await user.click(within(revertedToast).getByRole('button', { name: 'Undo' }))
+  await act(() => vi.advanceTimersByTimeAsync(1_000))
+
+  expect(getV16Effects()).toEqual(new Uint8Array(24).fill(1))
+  expect(first.output.sendControlChange).not.toHaveBeenCalled()
+  expect(second.output.sendControlChange).not.toHaveBeenCalled()
 })

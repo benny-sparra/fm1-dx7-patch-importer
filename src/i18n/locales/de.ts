@@ -18,8 +18,8 @@ export default {
       'Drehe SELECT auf Replace und drücke SEL, um die 32 Sounds zu speichern, oder brich mit HOME ab. Sie ersetzen auch die Werkspresets dieser Bank dauerhaft.',
     bankFm1VaNote:
       'Läuft auf deinem FM1 die Firmware von Baud Girl, fragt er stattdessen „Replace Bank A?“ und beginnt bei Bank A. Drehe ALGORITHM auf die Zielbank, dann SELECT auf Replace, und drücke SEL.',
-    bankOfficialOpenNote:
-      'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, das Senden dieser Bank ändert ihre Projekte also nicht.',
+    bankOfficialOpenTitle:
+      'Die Open-Firmware von M-VAVE ignoriert DX7-Bänke, deshalb wird keine gesendet',
     bankSmk37Title:
       'Das SMK-37 würde eine Bank über seine Presets speichern, deshalb wird keine gesendet',
     bankDx747Title: 'DX747 nimmt keine Bank über MIDI an, deshalb wird keine gesendet',
@@ -658,6 +658,8 @@ export default {
       review:
         'Klicke auf einen Sound, um ihn auf dem FM1 zu hören. Deine Bibliothek bleibt, wie sie ist, bis du etwas ersetzt.',
       destination: 'Wähle, wohin die Sounds kommen.',
+      sourceRead: 'Wähle, was vom {{device}} gelesen wird. Das Lesen ändert nichts daran.',
+      read: 'Wähle, was gelesen wird, und dann Lesen. Am {{device}} ändert sich nichts.',
     },
     sourceLegend: 'Was sendet',
     sources: {
@@ -665,6 +667,10 @@ export default {
       fm1Hint: 'Eine Bank mit 32 Sounds, gesendet über GLOBE → Export.',
       patch: 'Ein Sound von einem anderen Gerät',
       patchHint: 'Aus Dexed, einem DX7 oder einem anderen Editor.',
+      library: 'Eine Bank seiner Bibliothek',
+      libraryHint: '32 Sounds aus der DX7-Bibliothek des {{device}}.',
+      track: 'Der Sound einer Spur',
+      trackHint: 'Der Sound, den eine DX7-Spur des {{device}} spielt.',
     },
     stepsHeading: 'Schritte',
     steps: {
@@ -674,6 +680,11 @@ export default {
       patchConnect:
         'Verbinde das Gerät oder öffne Dexed bzw. den anderen Editor, sodass sein MIDI-Ausgang diesen Computer erreicht.',
       patchSend: 'Sende von dort einen Sound als DX7-Single-Voice-Dump.',
+      readConnect:
+        'Verbinde das {{device}} per USB und schalte MIDI online, mit ihm als Ausgang und Eingang.',
+      readNextBank: 'Wähle Weiter, dann eine der vier Bänke seiner Bibliothek und Lesen.',
+      readNextTrack: 'Wähle Weiter, dann eine DX7-Spur und Lesen.',
+      readUnchanged: 'Der Editor liest nur: Am {{device}} ändert sich nichts.',
     },
     startFm1: 'Öffne jetzt GLOBE auf dem FM1, wähle Export und dann eine Bank.',
     startPatch: 'Sende jetzt den Sound als DX7-Single-Voice-Dump.',
@@ -716,6 +727,32 @@ export default {
     noBanks:
       'Ein Sound kann nur einen ersetzen, der schon in einer Bank ist. Füge zuerst eine Bank mit Sounds hinzu.',
     replace: 'Ersetzen',
+    read: {
+      bankLegend: 'Zu lesende Bank der Bibliothek',
+      bank: 'Bank {{number}}',
+      trackLegend: 'Zu lesende Spur',
+      track: 'Spur {{track}}',
+      noDx7Tracks:
+        'Keine Spur des {{device}} nutzt DX7. Stelle die Engine einer Spur auf DX7, um ihren Sound zu lesen.',
+      noPorts:
+        'Wähle das {{device}} als MIDI-Ausgang und -Eingang, mit erlaubtem SysEx, um davon zu lesen.',
+      readBank: 'Bank {{number}} lesen',
+      readTrack: 'Spur {{track}} lesen',
+      reading: 'Wird gelesen…',
+      readBankDone: '32 Sounds gelesen, beginnend mit „{{patch}}“. Wähle Weiter, um sie anzuhören.',
+      readVoiceDone: '„{{patch}}“ gelesen. Wähle Weiter, um ihn anzuhören.',
+      tryAgain: 'Erneut versuchen',
+      errors: {
+        noReply:
+          'Das {{device}} hat nicht geantwortet. Prüfe die Verbindung und versuche es erneut.',
+        refused: 'Das {{device}} hat das Lesen abgelehnt. Versuche es erneut.',
+        sendFailed:
+          'Die Anfrage konnte nicht an das {{device}} gesendet werden. Prüfe seine MIDI-Verbindung.',
+        unexpected:
+          'Was das {{device}} gesendet hat, ist weder ein DX7-Sound noch eine DX7-Bank. Versuche es erneut.',
+        tracks: 'Die Spuren des {{device}} konnten nicht gelesen werden.',
+      },
+    },
   },
   bankFile: {
     legend: 'Bänke in dieser Datei',
@@ -1304,7 +1341,7 @@ export default {
       'Auf dem FM1 läuft die eigene Firmware von M-VAVE, {{release}}: acht Voices, jede auf einem eigenen Kanal, mit einer gemeinsamen FX-Gruppe. Sounds, die du anspielst, gehen in seinen Bearbeitungspuffer.',
     officialOpenBadgeLabel: 'Open-Firmware von M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'Auf dem FM1 läuft die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
+      'Die Open-Firmware von M-VAVE, {{release}}, eine Groovebox mit acht Spuren. Ein Sound, den du anklickst oder bearbeitest, geht an die Spur auf dem Notenkanal, wenn diese Spur DX7 spielt. DX7-Bänke ignoriert sie, und die Effektregler senden nichts, da sie diese als Änderungen an ihren Spuren verstehen würde.',
     dx747BadgeLabel: 'DX747-Firmware, {{release}}',
     dx747BadgeTitle:
       'Auf dem FM1 läuft DX747, {{release}}: bis zu acht Parts, jeder auf einem eigenen Kanal. Ein Sound, den du anklickst oder bearbeitest, geht an den Part auf dem Notenkanal. Banken nimmt die Firmware nicht an, und der Editor sendet weder Program Change noch Effektregler.',
@@ -1571,6 +1608,9 @@ export default {
     deleteConfirm: '„{{name}}“ dauerhaft aus diesem Browser löschen?',
     loadConfirm: 'Die 32 Sounds in „{{bank}}“ durch „{{name}}“ ersetzen?',
     replaceAction: 'Sounds ersetzen',
+    conflict:
+      'Diese gespeicherte Bank wurde in einem anderen Tab geändert oder gelöscht. Deine Eingaben bleiben hier erhalten. Lade die gespeicherten Bänke neu und öffne dann die Details erneut, um den aktuellen Stand zu prüfen.',
+    reload: 'Gespeicherte Bänke neu laden',
     operationFailed: 'Der Vorgang für die gespeicherte Bank ist fehlgeschlagen.',
     openFailed:
       'Die gespeicherten Bänke konnten nicht geöffnet werden. Lade die Seite neu und versuche es erneut.',
@@ -1654,6 +1694,12 @@ export default {
       'Spur {{track}} spielt {{engine}} und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur {{track}} am FM1 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
     unread:
       'Der FM1 hat nicht gemeldet, welche Engine Spur {{track}} spielt, deshalb wurde der Sound nicht gesendet. Prüfe, ob der FM1 verbunden ist, und versuche es dann erneut.',
+    sentSmk37:
+      '„{{name}}“ an Spur {{track}} gesendet. Speichere das Projekt auf dem SMK-37, um ihn zu behalten.',
+    notDx7Smk37:
+      'Spur {{track}} spielt {{engine}} und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur {{track}} am SMK-37 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
+    unreadSmk37:
+      'Das SMK-37 hat nicht gemeldet, welche Engine Spur {{track}} spielt, deshalb wurde der Sound nicht gesendet. Prüfe, ob das SMK-37 verbunden ist, und versuche es dann erneut.',
   },
   attract: {
     pressAnyKey: 'BELIEBIGE TASTE DRÜCKEN',
