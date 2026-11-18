@@ -22,6 +22,7 @@ export type LoadNamedBankDialogProps = NamedBankDialogProps<
     | 'namedBanks'
     | 'namedBanksLoadFailed'
     | 'namedBanksLoading'
+    | 'reloadNamedBanks'
     | 'updateNamedBankDetails'
     | 'workspaceBanks'
   >

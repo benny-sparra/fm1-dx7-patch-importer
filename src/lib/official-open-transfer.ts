@@ -24,6 +24,22 @@ export type OfficialOpenLink = {
   send: (message: Uint8Array) => void
 }
 
+export type OfficialOpenReadProblem =
+  'cancelled' | 'no-reply' | 'refused' | 'send-failed' | 'unexpected'
+
+/** A read that did not finish. `status` is the FM1's, when it refused. */
+export class OfficialOpenReadError extends Error {
+  readonly problem: OfficialOpenReadProblem
+  readonly status: number | undefined
+
+  constructor(problem: OfficialOpenReadProblem, message: string, status?: number) {
+    super(message)
+    this.name = 'OfficialOpenReadError'
+    this.problem = problem
+    this.status = status
+  }
+}
+
 const officialOpenTrackCount = 8
 
 /** A request's 14-bit token, which the reply echoes. */

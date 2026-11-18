@@ -15,10 +15,10 @@ afterEach(async () => {
   await setLocale('en-GB')
 })
 
-function renderStatus(midi: Midi) {
+function renderStatus(midi: Midi, smk37 = false) {
   return render(
     <ToastProvider>
-      <OfficialOpenTrackStatus midi={midi} />
+      <OfficialOpenTrackStatus midi={midi} smk37={smk37} />
     </ToastProvider>,
   )
 }
@@ -93,6 +93,47 @@ describe('OfficialOpenTrackStatus', () => {
 
     expect(screen.getByRole('status').textContent).toBe(
       'Spur 2 spielt 808 und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur 2 am FM1 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
+    )
+  })
+
+  it('names the SMK-37 rather than the FM1 when Official Open runs on it', () => {
+    renderStatus(sent(true), true)
+
+    expect(
+      screen.getByText('Sent “E.PIANO 1” to track 3. Save the project on the SMK-37 to keep it.'),
+    ).toBeTruthy()
+  })
+
+  it('tells an SMK-37 to set the track to DX7 on the SMK-37, in German', async () => {
+    await setLocale('de')
+
+    renderStatus(
+      {
+        channel: 2,
+        trackDelivery: {
+          announce: true,
+          delivery: { channel: 2, engine: '808', track: 2, type: 'not-dx7' },
+        },
+      },
+      true,
+    )
+
+    expect(screen.getByRole('status').textContent).toBe(
+      'Spur 2 spielt 808 und kann keinen Sound aufnehmen, deshalb wurde nichts gesendet. Stelle Spur 2 am SMK-37 auf DX7, oder wähle den Notenkanal einer Spur, die DX7 spielt.',
+    )
+  })
+
+  it('says when the SMK-37 did not answer which engine the track runs', () => {
+    renderStatus(
+      {
+        channel: 4,
+        trackDelivery: { announce: true, delivery: { channel: 4, track: 4, type: 'unread' } },
+      },
+      true,
+    )
+
+    expect(screen.getByRole('status').textContent).toMatch(
+      /^The SMK-37 did not say which engine track 4 runs.+Check that the SMK-37 is connected/,
     )
   })
 

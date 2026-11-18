@@ -11,12 +11,15 @@ import type { ReactElement } from 'react'
 import { ToastProvider } from '@/components/ui/toast'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { unzipSync } from 'fflate'
 
 import { FxPresetLibrary } from '@/components/midi/fx-preset-library'
 import type { V16EffectsMidi } from '@/components/midi/v16-effects-panel'
 import { useFxLibrary, type FxLibrary } from '@/hooks/use-fx-library'
 import { setLocale } from '@/i18n'
 import { installFakeIndexedDb } from '@/test/fake-indexed-db'
+import { downloadFile } from '@/lib/download-file'
+import { parseFxPresetFile } from '@/lib/fx-preset-file'
 import { listStoredFxLibraryPresets, updateStoredFxLibraryPreset } from '@/lib/fx-library-storage'
 import {
   createFxLibraryPreset,
@@ -29,6 +32,8 @@ import {
   resetV16EffectsForTests,
   setV16Effects,
 } from '@/lib/v16-effects'
+
+vi.mock('@/lib/download-file', () => ({ downloadFile: vi.fn() }))
 
 function render(ui: ReactElement) {
   return renderTesting(ui, { wrapper: ToastProvider })
@@ -48,6 +53,7 @@ beforeAll(async () => {
 beforeEach(() => {
   localStorage.clear()
   resetV16EffectsForTests()
+  vi.mocked(downloadFile).mockReset()
 })
 
 afterEach(() => {
@@ -108,7 +114,111 @@ function setup(library = makeLibrary(), midi = makeMidi()) {
   return { library, midi }
 }
 
+function blobBytes(blob: Blob): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error ?? new Error('Could not read the download.'))
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(new Uint8Array(reader.result))
+      else reject(new Error('Expected binary file contents.'))
+    }
+    reader.readAsArrayBuffer(blob)
+  })
+}
+
 describe('FX preset library', () => {
+  it.each(['Download all', 'Download preset'])(
+    '%s downloads an importable JSON file for one preset without changing the library or MIDI',
+    async (action) => {
+      const user = userEvent.setup()
+      const { library, midi } = setup()
+      await user.click(
+        screen.getByRole('button', {
+          name: action === 'Download all' ? 'FX preset actions' : 'Actions for Stage room',
+        }),
+      )
+      await user.click(screen.getByRole('menuitem', { name: action }))
+
+      await waitFor(() => expect(downloadFile).toHaveBeenCalledTimes(1))
+      const [blob, filename] = vi.mocked(downloadFile).mock.calls[0]
+      expect(filename).toBe('fm1-fx-presets.json')
+      expect(blob.type).toBe('application/json')
+      expect(parseFxPresetFile(new TextDecoder().decode(await blobBytes(blob)))).toEqual([
+        { effects: preset.effects, name: preset.name },
+      ])
+      expect(screen.queryByText(/Extract it/)).toBeNull()
+      expect(library.presets).toEqual([preset])
+      expect(library.update).not.toHaveBeenCalled()
+      expect(library.importPresets).not.toHaveBeenCalled()
+      expect(midi.sendSharedEffectSettings).not.toHaveBeenCalled()
+      expect(getV16Effects()).toEqual(new Uint8Array(24))
+    },
+  )
+
+  it('downloads the whole large collection despite a search, with translated ZIP instructions', async () => {
+    await setLocale('fr')
+    try {
+      const user = userEvent.setup()
+      const presets = Array.from({ length: 1001 }, (_, index) => ({
+        ...preset,
+        id: `fx-${index}`,
+        name: `Preset ${String(index).padStart(4, '0')}`,
+      }))
+      const library = makeLibrary({ presets: presets.toReversed() })
+      const midi = makeMidi()
+      render(
+        <FxPresetLibrary
+          fxLibrary={library}
+          midi={midi}
+          onSearchChange={vi.fn()}
+          onSendingChange={vi.fn()}
+          search="no match"
+        />,
+      )
+      await user.click(screen.getByRole('button', { name: 'Actions sur les presets FX' }))
+      await user.click(screen.getByRole('menuitem', { name: 'Tout télécharger' }))
+
+      await waitFor(() => expect(downloadFile).toHaveBeenCalledTimes(1))
+      const [blob, filename] = vi.mocked(downloadFile).mock.calls[0]
+      expect(filename).toBe('fm1-fx-presets.zip')
+      const files = unzipSync(await blobBytes(blob))
+      expect(Object.keys(files)).toEqual(['fm1-fx-presets-001.json', 'fm1-fx-presets-002.json'])
+      expect(
+        Object.values(files).flatMap((bytes) => parseFxPresetFile(new TextDecoder().decode(bytes))),
+      ).toEqual(presets.map(({ effects, name }) => ({ effects, name })))
+      expect(screen.getByRole('region', { name: 'Actions terminées' }).textContent).toContain(
+        'Presets FX téléchargés dans un ZIP. Extrayez-le, puis importez chaque fichier JSON séparément.',
+      )
+      expect(library.presets).toEqual(presets.toReversed())
+      expect(midi.sendSharedEffectSettings).not.toHaveBeenCalled()
+    } finally {
+      await setLocale('en-GB')
+    }
+  })
+
+  it('reports a failed download and allows a retry without changing stored presets', async () => {
+    const user = userEvent.setup()
+    const { library } = setup()
+    vi.mocked(downloadFile).mockImplementationOnce(() => {
+      throw new Error('Download failed')
+    })
+    const download = async () => {
+      await user.click(screen.getByRole('button', { name: 'FX preset actions' }))
+      await user.click(screen.getByRole('menuitem', { name: 'Download all' }))
+    }
+    await download()
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'FX presets could not be downloaded. Try again.',
+    )
+
+    await download()
+
+    await waitFor(() => expect(downloadFile).toHaveBeenCalledTimes(2))
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(library.presets).toEqual([preset])
+    expect(library.update).not.toHaveBeenCalled()
+  })
+
   it('loads a preset on double-click while offline without sending MIDI', async () => {
     const user = userEvent.setup()
     const send = vi.fn()
@@ -668,6 +778,57 @@ async function createPreset(user: ReturnType<typeof userEvent.setup>, name: stri
 
 describe('FX preset working rack and persisted management', () => {
   beforeEach(() => installFakeIndexedDb())
+
+  it('keeps storage-only update Undo working after leaving the view', async () => {
+    const user = userEvent.setup()
+    const view = render(<LiveLibrary />)
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'New FX preset…' }).getAttribute('aria-disabled'),
+      ).toBe('false'),
+    )
+    await createPreset(user, 'Stage')
+    const edited = getV16Effects().slice()
+    edited[1] = 2
+    act(() => {
+      setV16Effects(edited)
+    })
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await screen.findByText('Updated “Stage” from the current effects.')
+    expect((await listStoredFxLibraryPresets()).presets[0].effects[1]).toBe(2)
+    view.rerender(<div>Patches</div>)
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await screen.findByText('Restored “Stage”.')
+
+    expect((await listStoredFxLibraryPresets()).presets[0].effects[1]).toBe(0)
+    expect(getV16Effects()).toEqual(edited)
+  })
+
+  it('keeps storage-only delete Undo working after leaving the view', async () => {
+    const user = userEvent.setup()
+    const view = render(<LiveLibrary />)
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'New FX preset…' }).getAttribute('aria-disabled'),
+      ).toBe('false'),
+    )
+    await createPreset(user, 'Stage')
+    const before = await listStoredFxLibraryPresets()
+    const effects = getV16Effects().slice()
+    await user.click(screen.getByRole('button', { name: 'Actions for Stage' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Delete…' }))
+    await user.click(screen.getByRole('button', { name: 'Delete preset' }))
+    await screen.findByText('Deleted “Stage”.')
+    expect((await listStoredFxLibraryPresets()).presets).toEqual([])
+    view.rerender(<div>Patches</div>)
+
+    await user.click(screen.getByRole('button', { name: 'Undo' }))
+    await screen.findByText('Restored “Stage”.')
+
+    expect((await listStoredFxLibraryPresets()).presets).toEqual(before.presets)
+    expect(getV16Effects()).toEqual(effects)
+  })
 
   it('updates the loaded preset and replaces the editing area when another preset is clicked', async () => {
     const user = userEvent.setup()

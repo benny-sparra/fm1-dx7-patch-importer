@@ -126,7 +126,7 @@ function firmwareLogMessage(firmware: Fm1Firmware) {
     case 'smk37':
       return `Firmware ${firmware.identity} stores a single-patch dump over the selected preset, so patches are sent as parameter changes instead.`
     case 'official-open':
-      return `The FM1 runs M-VAVE's Official Open firmware ${firmware.identity}, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no Program Change or effect controller is sent.`
+      return `Firmware ${firmware.identity} is M-VAVE's Official Open, an eight-track groovebox. Patches go to the note channel's track once it says that track runs DX7, and no bank, Program Change, or effect controller is sent.`
     case 'dx747':
       return `The FM1 runs DX747 firmware ${firmware.identity}. Patches go to the part on the note channel, and nothing is sent to a channel no part has. No bank, Program Change, or effect controller is sent.`
     case 'felucca':

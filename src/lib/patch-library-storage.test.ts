@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { createNamedBank } from '@/lib/named-bank'
+import { createNamedBank, renameNamedBank, type NamedBank } from '@/lib/named-bank'
 import { makeDefaultFm1Effects } from '@/lib/fm1-effects'
 import { emptyPatchLibrary, importVoices, makeDemoVoices } from '@/lib/patch-library'
 import { capturedEightBitRecord, capturedEightBitVoice } from '@/test/fm1-va-eight-bit'
@@ -10,9 +10,11 @@ import {
 } from '@/test/fm1-va-virtual-analog'
 import {
   addStoredNamedBank,
+  deleteStoredNamedBank,
   listStoredNamedBanks,
   loadStoredPatchLibrary,
   saveStoredNamedBank,
+  runTransaction,
   saveStoredPatchLibrary,
 } from '@/lib/patch-library-storage'
 import { installFakeIndexedDb } from '@/test/fake-indexed-db'
@@ -632,17 +634,17 @@ describe('saveStoredPatchLibrary', () => {
       name: 'My bank',
       now: '2026-08-13T12:00:00.000Z',
     })
-    const saving = saveStoredNamedBank(bank)
+    const saving = addStoredNamedBank(bank)
 
     await openDatabase(fake.openRequest)
     fake.writeRequest.onsuccess?.()
     fake.transaction.oncomplete?.()
 
-    await expect(saving).resolves.toBe('current')
+    await expect(saving).resolves.toBe(true)
     expect(fake.database.transaction).toHaveBeenCalledWith('named-banks', 'readwrite', {
       durability: 'strict',
     })
-    expect(fake.put).toHaveBeenCalledWith(bank)
+    expect(fake.add).toHaveBeenCalledWith(bank)
   })
 })
 
@@ -1185,5 +1187,320 @@ describe('saveStoredPatchLibrary across two tabs', () => {
     await expect(saveStoredPatchLibrary(renamed('Older'), revision)).rejects.toMatchObject({
       code: 'conflict',
     })
+  })
+})
+
+describe('saved-bank stale-tab protection', () => {
+  const now = '2026-11-07T12:00:00.000Z'
+  function makeBank() {
+    return createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      id: 'shared-bank',
+      name: 'Original',
+      description: 'Original description',
+      now,
+    })
+  }
+
+  it('preserves the first tab’s metadata when a stale second tab saves in the same millisecond', async () => {
+    installFakeIndexedDb()
+    await saveStoredNamedBank(makeBank(), null)
+    const first = (await listStoredNamedBanks()).banks[0]
+    const second = (await listStoredNamedBanks()).banks[0]
+    await saveStoredNamedBank(renameNamedBank(first, 'First tab', first.description, now), first)
+    await expect(
+      saveStoredNamedBank(
+        renameNamedBank(second, second.name, 'Second tab description', now),
+        second,
+      ),
+    ).rejects.toMatchObject({ code: 'conflict' })
+    expect((await listStoredNamedBanks()).banks[0].name).toBe('First tab')
+  })
+
+  it('does not resurrect a bank deleted after another tab loaded it', async () => {
+    installFakeIndexedDb()
+    await saveStoredNamedBank(makeBank(), null)
+    const stale = (await listStoredNamedBanks()).banks[0]
+    await deleteStoredNamedBank(stale)
+    await expect(
+      saveStoredNamedBank(renameNamedBank(stale, 'Resurrected', stale.description, now), stale),
+    ).rejects.toMatchObject({ code: 'conflict' })
+    expect((await listStoredNamedBanks()).banks).toHaveLength(0)
+  })
+
+  it('refuses a stale delete after a same-millisecond update', async () => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    await saveStoredNamedBank(original, null)
+    const updated = renameNamedBank(original, 'First tab', 'New description', now)
+    await saveStoredNamedBank(updated, original)
+    await expect(deleteStoredNamedBank(original)).rejects.toMatchObject({ code: 'conflict' })
+    expect((await listStoredNamedBanks()).banks).toEqual([updated])
+  })
+
+  it('refuses a delete when the bank is already missing', async () => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    await saveStoredNamedBank(original, null)
+    await deleteStoredNamedBank(original)
+    await expect(deleteStoredNamedBank(original)).rejects.toMatchObject({ code: 'conflict' })
+    expect((await listStoredNamedBanks()).banks).toEqual([])
+  })
+
+  it('refuses an ID collision on creation without replacing the existing bank', async () => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    await saveStoredNamedBank(original, null)
+    await expect(
+      saveStoredNamedBank({ ...original, name: 'Collision' }, null),
+    ).rejects.toMatchObject({ code: 'conflict' })
+    expect((await listStoredNamedBanks()).banks).toEqual([original])
+  })
+
+  it.each([
+    ['damaged', { slots: [] }],
+    ['future-version', { version: 99 }],
+  ])(
+    'keeps a %s record unchanged when a stale tab updates or deletes it',
+    async (_label, change) => {
+      installFakeIndexedDb()
+      const original = makeBank()
+      const unreadable = { ...original, ...change }
+      await runTransaction('named-banks', 'readwrite', (store) => store.put(unreadable))
+      await expect(
+        saveStoredNamedBank({ ...original, name: 'Stale edit' }, original),
+      ).rejects.toMatchObject({ code: 'conflict' })
+      await expect(deleteStoredNamedBank(original)).rejects.toMatchObject({ code: 'conflict' })
+      await expect(saveStoredNamedBank(original, null)).rejects.toMatchObject({ code: 'conflict' })
+      expect(
+        await runTransaction('named-banks', 'readonly', (store) => store.get(original.id)),
+      ).toEqual(unreadable)
+    },
+  )
+
+  it.each([1, 2, 3, 4] as const)(
+    'updates and deletes a bank stored by version %s',
+    async (version) => {
+      installFakeIndexedDb()
+      const original = { ...makeBank(), version }
+      await runTransaction('named-banks', 'readwrite', (store) => store.put(original))
+      const loaded = (await listStoredNamedBanks()).banks[0]
+      const updated = renameNamedBank(loaded, 'Updated legacy bank', '', now)
+      await saveStoredNamedBank(updated, loaded)
+      expect((await listStoredNamedBanks()).banks).toEqual([updated])
+      await deleteStoredNamedBank(updated)
+      expect((await listStoredNamedBanks()).banks).toEqual([])
+    },
+  )
+
+  it('compares a legacy high-bit voice as it was normalised on read', async () => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    const slot = original.slots[0]
+    if (!('voice' in slot)) throw new Error('Expected a DX7 fixture')
+    slot.voice.data[3] = 128
+    await runTransaction('named-banks', 'readwrite', (store) => store.put(original))
+    const loaded = (await listStoredNamedBanks()).banks[0]
+    const updated = renameNamedBank(loaded, 'Updated', '', now)
+    await saveStoredNamedBank(updated, loaded)
+    expect((await listStoredNamedBanks()).banks).toEqual([updated])
+  })
+
+  it('allows only one of two competing updates of the same expected record', async () => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    await saveStoredNamedBank(original, null)
+    const updated = { ...original, name: 'First tab' }
+    const first = saveStoredNamedBank(updated, original)
+    const second = saveStoredNamedBank({ ...original, name: 'Second tab' }, original)
+    const results = await Promise.allSettled([first, second])
+    expect(results[0].status).toBe('fulfilled')
+    expect(results[1]).toMatchObject({ status: 'rejected', reason: { code: 'conflict' } })
+    expect((await listStoredNamedBanks()).banks).toEqual([updated])
+  })
+
+  it.each([
+    {
+      name: 'name',
+      change: (bank: NamedBank) => {
+        bank.name = 'Changed'
+      },
+    },
+    {
+      name: 'description',
+      change: (bank: NamedBank) => {
+        bank.description = 'Changed'
+      },
+    },
+    {
+      name: 'creation time',
+      change: (bank: NamedBank) => {
+        bank.createdAt = '2026-11-08T12:00:00.000Z'
+      },
+    },
+    {
+      name: 'update time',
+      change: (bank: NamedBank) => {
+        bank.updatedAt = '2026-11-08T12:00:00.000Z'
+      },
+    },
+    {
+      name: 'version',
+      change: (bank: NamedBank) => {
+        bank.version = 3
+      },
+    },
+    {
+      name: 'effect bytes',
+      change: (bank: NamedBank) => {
+        bank.slots[0].effects[1] = 1
+      },
+    },
+    {
+      name: 'record bytes',
+      change: (bank: NamedBank) => {
+        bank.slots[0].record![0] = 1
+      },
+    },
+    {
+      name: 'record presence',
+      change: (bank: NamedBank) => {
+        const slot = bank.slots[0]
+        if (!('voice' in slot)) throw new Error('Expected DX7 fixture')
+        delete slot.record
+      },
+    },
+    {
+      name: 'DX7 bytes',
+      change: (bank: NamedBank) => {
+        const slot = bank.slots[0]
+        if (!('voice' in slot)) throw new Error('Expected DX7 fixture')
+        slot.voice.data[0] = 1
+      },
+    },
+    {
+      name: 'voice name',
+      change: (bank: NamedBank) => {
+        const slot = bank.slots[0]
+        if (!('voice' in slot)) throw new Error('Expected DX7 fixture')
+        slot.voice.name = 'Changed'
+      },
+    },
+    {
+      name: 'engine',
+      change: (bank: NamedBank) => {
+        bank.slots[0] = {
+          effects: makeDefaultFm1Effects(),
+          record: capturedVirtualAnalogRecord(),
+          slot: 1,
+          virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
+        }
+      },
+    },
+  ])('refuses update and delete after another tab changes $name', async ({ change }) => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    original.slots[0].record = new Uint8Array(59)
+    await saveStoredNamedBank(original, null)
+    const changed = (await listStoredNamedBanks()).banks[0]
+    change(changed)
+    await runTransaction('named-banks', 'readwrite', (store) => store.put(changed))
+    await expect(
+      saveStoredNamedBank({ ...original, description: 'Stale edit' }, original),
+    ).rejects.toMatchObject({ code: 'conflict' })
+    await expect(deleteStoredNamedBank(original)).rejects.toMatchObject({ code: 'conflict' })
+    expect((await listStoredNamedBanks()).banks).toEqual([changed])
+  })
+
+  it.each([
+    {
+      name: 'Virtual Analog',
+      slot: {
+        effects: makeDefaultFm1Effects(),
+        record: capturedVirtualAnalogRecord(),
+        slot: 1,
+        virtualAnalog: virtualAnalogVoiceBeyondDx7Ranges(),
+      },
+      changed: {
+        effects: makeDefaultFm1Effects(),
+        record: capturedVirtualAnalogRecord(),
+        slot: 1,
+        virtualAnalog: new Uint8Array(128),
+      },
+    },
+    {
+      name: '8-Bit',
+      slot: {
+        effects: makeDefaultFm1Effects(),
+        record: capturedEightBitRecord(),
+        slot: 1,
+        eightBit: capturedEightBitVoice(),
+      },
+      changed: {
+        effects: makeDefaultFm1Effects(),
+        record: capturedEightBitRecord(),
+        slot: 1,
+        eightBit: new Uint8Array(128),
+      },
+    },
+  ])(
+    'compares all $name voice bytes before updating or deleting',
+    async ({ slot, changed: changedSlot }) => {
+      installFakeIndexedDb()
+      const original = makeBank()
+      original.slots[0] = slot
+      await saveStoredNamedBank(original, null)
+      const changed = { ...original, slots: [changedSlot, ...original.slots.slice(1)] }
+      await saveStoredNamedBank(changed, original)
+      await expect(
+        saveStoredNamedBank({ ...original, name: 'Stale edit' }, original),
+      ).rejects.toMatchObject({ code: 'conflict' })
+      await expect(deleteStoredNamedBank(original)).rejects.toMatchObject({ code: 'conflict' })
+      expect((await listStoredNamedBanks()).banks).toEqual([changed])
+    },
+  )
+
+  it('matches the full record independently of object property order', async () => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    const reordered = {
+      version: original.version,
+      updatedAt: original.updatedAt,
+      slots: original.slots,
+      name: original.name,
+      id: original.id,
+      description: original.description,
+      createdAt: original.createdAt,
+    }
+    await runTransaction('named-banks', 'readwrite', (store) => store.put(reordered))
+    const updated = renameNamedBank(original, 'Updated', '', now)
+    await saveStoredNamedBank(updated, original)
+    expect((await listStoredNamedBanks()).banks).toEqual([updated])
+  })
+
+  it('distinguishes VA from 8-Bit even when all their voice and record bytes match', async () => {
+    installFakeIndexedDb()
+    const original = makeBank()
+    original.slots[0] = {
+      effects: new Uint8Array(24),
+      record: new Uint8Array(59),
+      slot: 1,
+      virtualAnalog: new Uint8Array(128),
+    }
+    await saveStoredNamedBank(original, null)
+    const changed = {
+      ...original,
+      slots: [
+        {
+          effects: new Uint8Array(24),
+          record: new Uint8Array(59),
+          slot: 1,
+          eightBit: new Uint8Array(128),
+        },
+        ...original.slots.slice(1),
+      ],
+    }
+    await saveStoredNamedBank(changed, original)
+    await expect(deleteStoredNamedBank(original)).rejects.toMatchObject({ code: 'conflict' })
+    expect((await listStoredNamedBanks()).banks).toEqual([changed])
   })
 })

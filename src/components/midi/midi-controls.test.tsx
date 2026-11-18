@@ -336,9 +336,25 @@ describe('MidiFirmwareBadge', () => {
 
     expect(screen.getByText('M-VAVE Open firmware, V12')).toBeTruthy()
     expect(container.textContent).toContain('M-VAVEOPENV12')
-    expect(
-      screen.getByTitle(/^The FM1 runs M-VAVE’s Open firmware, V12, an eight-track/),
-    ).toBeTruthy()
+    expect(screen.getByTitle(/^M-VAVE’s Open firmware, V12, an eight-track/)).toBeTruthy()
+  })
+
+  it('names SMK37 OPEN as M-VAVE’s Official Open with its release', () => {
+    const { container } = render(
+      <MidiFirmwareBadge
+        midi={{
+          firmware: { identity: 'SMK-37 Pro_8000001', kind: 'official-open' },
+          isConnecting: false,
+          midiAccess: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByText('M-VAVE Open firmware, V1')).toBeTruthy()
+    expect(container.textContent).toContain('M-VAVEOPENV1')
+    expect(screen.getByTitle(/^M-VAVE’s Open firmware, V1, an eight-track/).title).not.toMatch(
+      /FM1/,
+    )
   })
 
   it('names DX747 as its maker’s firmware, with the name it reports', () => {

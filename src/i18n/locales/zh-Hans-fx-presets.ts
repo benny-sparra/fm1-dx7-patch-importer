@@ -33,6 +33,8 @@ export default {
     deleteAction: '删除预设',
     downloadPreset: '下载预设',
     downloadAll: '全部下载',
+    downloading: '正在下载…',
+    downloadBatches: 'FX 预设已下载为 ZIP 文件。请先解压，再逐个导入 JSON 文件。',
     import: '导入…',
     imported: '已导入 {{count, number}} 个 FX 预设。现有预设已保留。',
     imported_other: '已导入 {{count, number}} 个 FX 预设。现有预设已保留。',
@@ -62,6 +64,7 @@ export default {
     deleted: '已删除“{{name}}”。',
     working: '正在保存…',
     errors: {
+      download: '无法下载 FX 预设。请重试。',
       load: '无法读取 FX 预设。请在不关闭此标签页的情况下重试。',
       write: '浏览器存储无法保存此更改。没有替换任何现有数据。',
       conflict: '此预设已在另一个标签页中更改。请重新加载列表，或将当前效果保存为新预设。',

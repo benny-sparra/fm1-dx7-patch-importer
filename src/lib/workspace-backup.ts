@@ -521,6 +521,7 @@ function readSavedBank(value: unknown, version: number): NamedBank | null {
  */
 function readBackupFxPresets(value: unknown, version: number) {
   const presets: FxLibraryPreset[] = []
+  const acceptedIds = new Set<string>()
   let damagedCount = 0
   for (const entry of Array.isArray(value) ? value : []) {
     try {
@@ -530,8 +531,11 @@ function readBackupFxPresets(value: unknown, version: number) {
         effects: decodeBase64(entry.effects),
         version: version >= 7 ? 2 : 1,
       })
-      // A preset listed twice is kept once, as the first copy.
-      if (!presets.some(({ id }) => id === preset.id)) presets.push(preset)
+      // A preset listed twice is kept once, as the first readable copy.
+      if (!acceptedIds.has(preset.id)) {
+        acceptedIds.add(preset.id)
+        presets.push(preset)
+      }
     } catch {
       damagedCount += 1
     }
@@ -566,12 +570,16 @@ export function parseWorkspaceBackup(text: string): WorkspaceBackup {
 
   const workspace = readWorkspace(file.workspace, file.version)
   const savedBanks: NamedBank[] = []
+  const acceptedIds = new Set<string>()
   let damagedSavedBankCount = 0
   for (const entry of Array.isArray(file.savedBanks) ? file.savedBanks : []) {
     const bank = readSavedBank(entry, file.version)
     if (!bank) damagedSavedBankCount += 1
-    // A bank listed twice is kept once, as the first copy.
-    else if (!savedBanks.some(({ id }) => id === bank.id)) savedBanks.push(bank)
+    // A bank listed twice is kept once, as the first readable copy.
+    else if (!acceptedIds.has(bank.id)) {
+      acceptedIds.add(bank.id)
+      savedBanks.push(bank)
+    }
   }
 
   const hasFxPresets = file.version >= 6

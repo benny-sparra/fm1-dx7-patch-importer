@@ -521,13 +521,7 @@ export async function listStoredNamedBanks() {
   let damagedCount = 0
   for (const record of records) {
     try {
-      validateNamedBank(record)
-      // Mask any voice byte above seven bits, as the workspace does, so a bank an earlier release
-      // stored unmasked loads, sends, and backs up like any other. The record is a fresh copy.
-      for (const slot of record.slots) {
-        if ('voice' in slot) slot.voice = normalizeStoredDx7Voice(slot.voice) ?? slot.voice
-      }
-      banks.push(record)
+      banks.push(readStoredNamedBank(record))
     } catch {
       damagedCount += 1
     }
@@ -536,15 +530,95 @@ export async function listStoredNamedBanks() {
   return { banks, damagedCount }
 }
 
-export async function saveStoredNamedBank(bank: NamedBank) {
-  validateNamedBank(bank)
-  try {
-    return await runTransaction<IDBValidKey>(namedBankStoreName, 'readwrite', (store) =>
-      store.put(bank),
-    )
-  } catch (error) {
-    throw asStorageError(error, 'write-failed', 'The bank could not be saved.')
+/** Normalises a fresh storage copy identically for listing and expected-record comparisons. */
+function readStoredNamedBank(record: unknown) {
+  validateNamedBank(record)
+  for (const slot of record.slots) {
+    if ('voice' in slot) slot.voice = normalizeStoredDx7Voice(slot.voice) ?? slot.voice
   }
+  return record
+}
+
+function namedBankConflict() {
+  return new PatchLibraryStorageError('conflict', 'The saved bank changed in another tab.')
+}
+
+/** An exact, ordered representation of the known record, independent of object property order. */
+function namedBankSnapshot(bank: NamedBank) {
+  return JSON.stringify([
+    bank.id,
+    bank.version,
+    bank.name,
+    bank.description,
+    bank.createdAt,
+    bank.updatedAt,
+    bank.slots.map((slot) => [
+      slot.slot,
+      slot.effects,
+      slot.record,
+      'voice' in slot
+        ? ['dx7', slot.voice.name, slot.voice.data]
+        : 'virtualAnalog' in slot
+          ? ['va', slot.virtualAnalog]
+          : ['8bit', slot.eightBit],
+    ]),
+  ])
+}
+
+/** Creates without overwriting, or checks and mutates in one strict readwrite transaction. */
+async function mutateStoredNamedBank(expected: NamedBank | null, replacement: NamedBank | null) {
+  if (expected === null) {
+    if (!replacement) throw new Error('A new saved bank is required.')
+    if (!(await addStoredNamedBank(replacement))) throw namedBankConflict()
+    return
+  }
+  validateNamedBank(expected)
+  if (replacement) {
+    validateNamedBank(replacement)
+    if (replacement.id !== expected.id) throw new Error('A saved bank update cannot change its ID.')
+  }
+  const expectedSnapshot = namedBankSnapshot(expected)
+  let conflict = false
+  let writeError: unknown
+  try {
+    await runTransaction<unknown>(namedBankStoreName, 'readwrite', (store, transaction) => {
+      const read = store.get(expected.id)
+      read.onsuccess = () => {
+        let matches = false
+        try {
+          matches = namedBankSnapshot(readStoredNamedBank(read.result)) === expectedSnapshot
+        } catch {
+          // A missing, damaged or newer record never belongs to this stale action.
+        }
+        if (!matches) {
+          conflict = true
+          transaction.abort()
+          return
+        }
+        try {
+          if (replacement) store.put(replacement)
+          else store.delete(expected.id)
+        } catch (error) {
+          writeError = error
+          transaction.abort()
+        }
+      }
+      return read
+    })
+  } catch (error) {
+    if (conflict) throw namedBankConflict()
+    throw asStorageError(
+      writeError ?? error,
+      'write-failed',
+      'The saved bank could not be changed.',
+    )
+  }
+}
+
+/** Creates with `null`, or replaces only the complete record the caller loaded. Never upserts. */
+export async function saveStoredNamedBank(bank: NamedBank, expected: NamedBank | null) {
+  await mutateStoredNamedBank(expected, bank)
+  return bank.id
 }
 
 /**
@@ -562,13 +636,6 @@ export async function addStoredNamedBank(bank: NamedBank) {
   }
 }
 
-export async function deleteStoredNamedBank(id: string) {
-  if (!id) throw new Error('A saved bank ID is required.')
-  try {
-    return await runTransaction<undefined>(namedBankStoreName, 'readwrite', (store) =>
-      store.delete(id),
-    )
-  } catch (error) {
-    throw asStorageError(error, 'write-failed', 'The bank could not be deleted.')
-  }
+export function deleteStoredNamedBank(expected: NamedBank) {
+  return mutateStoredNamedBank(expected, null)
 }

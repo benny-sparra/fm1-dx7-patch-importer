@@ -66,6 +66,7 @@ files when that is clearer.
 - Use Lucide icons and the existing components in `src/components/ui/` before adding new UI
   primitives.
 - Do not use dangerous lint autofixes. `npm run lint:fix` is the supported autofix command.
+- Keep generated local agent-tool metadata such as `.impeccable/` in `.prettierignore`.
 - Do not throw from React state updater functions. React runs them during render, so the caller's
   `try/catch` never sees the error. Work out the next state where the caller can catch a failure,
   then set it.
@@ -97,6 +98,13 @@ files when that is clearer.
   passes `saveStoredPatchLibrary` the revision (`savedAt`) this tab last loaded or wrote, and one
   readwrite transaction refuses it as a `conflict`, keeping the edits in memory, when the stored
   record has moved on or is a newer version. Readwrite transactions use strict durability.
+- Saved-bank creation uses `add`, never an upsert. Updates and deletes compare the complete
+  expected record inside the write transaction and refuse a changed, missing, damaged or newer
+  record as a conflict. Capture the record when an edit or confirmation opens; refreshing the list
+  must not silently change that action's target. Keep typed edits after failure and offer a reload.
+- Backup collection readers track accepted IDs in a separate local `Set` for each collection.
+  Validate each record before reserving its ID: the first readable copy wins in file order, and
+  every damaged copy is counted even when a readable copy already has that ID.
 - Cancellation, retry, disposal, and completions arriving after unmount are normal cases and require
   deterministic handling and tests.
 - Debounced saves must not lose recent edits: write any pending save immediately when the page is
@@ -168,6 +176,9 @@ open everything an earlier release could have saved.
 - Web MIDI requires a secure context; local HTTPS setup is provided by `npm run setup:https`.
 - Check DX7 voice data at every boundary: reject bytes above 7-bit in imported files and SysEx
   payload builders, and normalise stored voices on read.
+- `parseDx7BankArchive` frames `.syx` archives in one forward scan: F0 interrupts an incomplete
+  message and F7 closes it. Keep damaged banks in file order and leave checksum/seven-bit validation
+  to `parseDx7Bank`.
 - When MIDI chooses a port automatically, prefer a port named for the FM-1 (Linux lists
   `FM-1 MIDI 1`; macOS only `USB Composite Device`) or the SMK-37 (`SMK`), and among those one
   named Private, since only the SMK-37's `SMK-37 Pro-Private` answers the identity query, not
@@ -196,7 +207,14 @@ open everything an earlier release could have saved.
   (`useDx7VoiceReceiver`), and `Dx7VoiceReceiver` joins a dump split across messages, ignores
   everything but a Yamaha bulk dump, such as Dexed's parameter changes, and checks it with
   `parseDx7VoiceFile` or, for a bank such as a stock FM1 on V16 sends from GLOBE → Export (one
-  4104-byte bulk dump, confirmed 2026-10-23), `parseDx7Bank`. Its screens are the source, each
+  4104-byte bulk dump, confirmed 2026-10-23), `parseDx7Bank`. On Official Open and SMK37 OPEN,
+  whose profile lists `trackVoiceRead`, the source screen offers **A bank of its library** (where
+  `libraryBankRead` allows, never from a slot) and **A track's patch** in place of V16's Export,
+  and a reading screen (`OfficialOpenReadScreen`) takes the listening screen's place: it reads the
+  track engines with command 0 as it opens, lets only a DX7 track be chosen, and sends one
+  approved read (commands 1, 2, and 6) per click of **Read**, through `useOfficialOpenReader`,
+  cancelled by a port change or by leaving the screen. That is the only thing the wizard sends,
+  and nothing it sends changes the device. Its screens are the source, each
   with its own steps; listening, which switches MIDI online and chooses the input monitor there;
   review, to audition what arrived; and the destination, with the replace warning, **Replace**,
   and Undo. Bank Export sends over USB only, and without a USB host the FM1 shows **Receive
@@ -218,7 +236,10 @@ open everything an earlier release could have saved.
   MIDI is switched off, rather than matching it by port identity. FM-1+VA is `FM-1_020` to `FM-1_899`, and Felucca, which names
   release X.Y `FM-1_9XY`, is `FM-1_900` to `FM-1_999`. M-VAVE's Official Open is
   `FM-1_8` and six digits (`FM-1_8000012` is V12), `FM1_COMMUNITY_` and a number, or
-  `FM1_OFFICIAL_OPEN`, the names its updater accepts. M-VAVE's SMK-37 keyboard, on the FM1's
+  `FM1_OFFICIAL_OPEN`, the names its updater accepts; its SMK-37 port, SMK37 OPEN, is
+  `SMK-37 Pro_8` or `SMK-37 Elite_8` and six digits (`SMK-37 Pro_8000001` is V1), or
+  `SMK37P_OPEN_` or `SMK37E_OPEN_` and three digits, the names its updater accepts
+  (`docs/smk37-open-research.md`). M-VAVE's SMK-37 keyboard, on the FM1's
   chip and engines, answers in the same format with its model before the underscore: its own
   firmware is `SMK-37 Pro_`, `SMK-37 Elite_`, or `MKE-P37_` and a release from `000` to `099`
   (`SMK-37 Pro_015` is its V15, not the FM1's). A port of FM-1 firmware to it keeps the model and
@@ -253,10 +274,25 @@ open everything an earlier release could have saved.
   neither `programChanges` nor `effectControllers`: a slot click selects no program there, and the
   effects send nothing. Every other family lists both from release 0, which counts for a firmware
   not yet identified too. The badge, the firmware setting, and the bank instructions say so.
+  It drops any SysEx over 192 bytes, so a bank did nothing on the FM1, and its profile leaves out
+  `bankDumps`: **Send to FM1** opens the title-only dialog saying it ignores banks.
+- SMK37 OPEN (M-VAVE's port of Official Open to the SMK-37, V01 read 2026-11-17,
+  `docs/smk37-open-research.md`) runs Official Open's transfer code and engines unchanged, so it is
+  the `official-open` family on the `smk37` device, and the editor sends it what it sends Official
+  Open on the FM1, the dump and command 0, and nothing else (the owner's go-ahead, 2026-11-17).
+  Its badge and setting are Official Open's, which name no device; the track notices name the
+  SMK-37 (`OfficialOpenTrackStatus`'s `smk37`). This is Likely, from source, and **Needs hardware
+  test**. Its tracks' input channels can be changed on the keyboard (**IN CH**), which command 0
+  does not report, so a dump goes to the track a channel reaches only while the defaults hold.
+  Its reads (commands 1, 2, and 6), approved for Official Open on 2026-10-20, fill the receive
+  wizard's track and library reads; its own releases count from V01 and every one has the DX7
+  library, so its profile (`smk37OpenProfile`) lists `libraryBankRead` from release 0.
+  Its writes to the DX7 library (commands 3–5 with kind 4) stay **Dangerous / excluded**.
 - The device and its firmware are separate axes (the owner, 2026-11-03: stock, Official Open,
   and Baud Girl's firmware should each run on the FM1 and the SMK-37). `fm1Device` reads the
   device from the identity's model, the text before its last underscore (`SMK-37 Pro`,
-  `SMK-37 Elite`, `MKE-P37`, `SMK-37`), whatever number follows, so an SMK-37 on a community port
+  `SMK-37 Elite`, `MKE-P37`, `SMK-37`), whatever number follows, or from SMK37 OPEN's build
+  names (`SMK37P_OPEN_001`), so an SMK-37 on a community port
   such as Skiff (`SMK-37 Pro_714`) is still an SMK-37. What the page shows of the hardware, its
   name in the title and on Send, its photo, and its finishes, follows the device; what the editor
   sends follows the firmware's profile, and the `smk37` family is the SMK-37's stock firmware.
@@ -275,7 +311,8 @@ open everything an earlier release could have saved.
   `danger` that it cannot be undone, and only then sends one single-voice dump through
   `useSmk37PresetWrite`, a lazy hook outside `useMidi` that takes its turn on the transfer
   queue through `queueEffectOrder`, so the entry pays nothing for it. Another release gets it only after its own
-  run. Every other family but DX747 lists `bankDumps`, so only the SMK-37 and DX747 are refused a bank.
+  run. Every other family but DX747 and Official Open lists `bankDumps`, so only the SMK-37,
+  DX747, and Official Open are refused a bank.
   `sendsBankTo` (in the profile module) also refuses a bank to an output named `SMK` while the
   firmware is checking or unidentified, since an input on another device leaves the SMK-37
   unanswered. `useMidi.sendBank` returns `unsupported` without sending, and **Send to FM1** opens
@@ -523,6 +560,10 @@ open everything an earlier release could have saved.
   preset reads as edited once its order differs from the FM1's too, and **Save** stores the
   FM1's order with the controls. One step, no history; it is
   built in the component, since `undoToastOptions` takes a patch-library snapshot.
+- Recall and Revert Undo expire on output, Effect channel, firmware or eligibility changes and
+  when the Effects view unmounts. Capture an effect-managed lifetime token in the toast and check
+  it before changing the rack or sending; returning to the same route never revives it. Storage-only
+  preset update/delete Undo keeps working after navigation.
 - Rename…, Duplicate, Download preset, and Delete… live only in a row's ⋮, Delete last in the
   danger colour; the list's own ⋮ (**FX preset actions**) holds Import… and Download all. The list
   is flat and A–Z: no folders, tags, or recently-used order. Below `md` the sidebar is replaced by
@@ -534,6 +575,12 @@ open everything an earlier release could have saved.
   the FM1 has given it, the effect order.
   Updating or deleting offers Undo; neither action, nor Undo, sends MIDI. Deleting a loaded preset
   leaves the rack unchanged as **Unsaved effects**.
+- FX **Download all** keeps a single JSON file, in the newest version with each preset's order,
+  when it fits the importer's 1,000-preset and 1 MiB UTF-8 limits. Larger collections use
+  numbered JSON files of the same version within both limits, packaged
+  with the existing lazy `fflate` ZIP dependency. Preserve every preset and the displayed order;
+  explain extraction and individual JSON imports in every locale. Do not cap the stored library
+  or add ZIP import.
 - The FX library has one owner: a panel handed a library by the page never opens a second one. FX
   writes share one queue (`serializeFxMutation`), so a backup can wait for the writes already
   started (`whenFxMutationsSettled`). A backup whose FX store cannot be read is still downloaded
@@ -622,7 +669,7 @@ open everything an earlier release could have saved.
 - Preserve the existing user-intent boundaries: Patch Editor via `React.lazy`, with the Virtual
   Analog editor in its chunk (`loadVirtualAnalogEditorPage`: a chunk of its own made Rolldown split
   the code both editors share out of the entry, costing 1.5 KiB), WebMidi on connection,
-  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the SMK-37 write dialog when **Write to SMK-37…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the SMK-37 header photos (`src/lib/smk37-colorway-images.ts`) when an SMK-37 is identified, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, the page's idle decoration (`src/lib/retro-motion.ts`) once the page goes idle, attract mode (`src/lib/attract-mode.ts`, with its string) once the page has sat untouched for three minutes, and
+  `fflate` on bulk export, the saved-bank dialogs when a bank menu opens them, the copy dialog when **Copy to…** opens it, the replace dialog and single-voice file code when **Import patch…** or **Download patch** uses them, the receive wizard, with the dump reader and its listener and the Official Open reads, when **Receive patch…** or **Receive from the FM1…** opens it, the one-preset file code (`src/lib/fm1-va-preset-download.ts`) when **Download patch** saves a Virtual Analog or 8-Bit patch, the change-to-FM dialog, with the Init voice, when **Change to FM…** opens it, the SMK-37 write dialog when **Write to SMK-37…** opens it, the add-bank dialog when **Add new bank…** opens it, the backup format and restore dialog when **Download backup** or **Restore from backup…** uses them, the FM-1+VA preset file reader, the preset read, and their dialog when **Read presets from the FM1…** or **Import Baud Girl presets…** opens it, the preset write and its dialog when **Write patches to the FM1…** opens it, the FM-1+VA header photos when the FM1 is identified as running FM-1+VA, the SMK-37 header photos (`src/lib/smk37-colorway-images.ts`) when an SMK-37 is identified, the Official Open track send when a patch is first sent to it and the track status, with its strings (`src/i18n/locales/en-GB-official-open.ts`), when the FM1 is identified as running it, the DX7 bank import dialog, with its bank picker, when **Import DX7 bank…** opens it, the duplicate patches dialog and the comparison it runs when **Find duplicate patches…** opens it, and the bank file reader, which splits a file joining several banks, when a bank file is chosen, the piano keyboard dialog, with the audition phrases, their player, and its strings, when **Keyboard** opens it, the MIDI log, with its download, when **MIDI log** opens it, the shared patch dialog, with the share link codec, when a `#p=` link opens it or **Copy share link** makes one, the help guide when its **?** button opens it or a first visit opens it itself, the editor's British English help with the Patch Editor, the saved-bank and catalog search results and the catalog's patch names on the first search, locale resources by locale, Sentry on production monitoring startup, the page's idle decoration (`src/lib/retro-motion.ts`) once the page goes idle, attract mode (`src/lib/attract-mode.ts`, with its string) once the page has sat untouched for three minutes, and
   factory data only for first-run/recovery or explicit restoration.
 - Keep the application shell, `RootLayout`, `LibrarianPage`, patch grid, bank selector, persistence
   status, and essential MIDI controls eager.
@@ -683,13 +730,13 @@ open everything an earlier release could have saved.
 npm run build`, since `resolveSentryRelease` puts it in the entry. A local build without one
   read 25 B of headroom where CI's was 13 B over.
 - Vite's manifest is used by `npm run bundle:check` to follow all transitive static JavaScript imports.
-  Dynamic imports are excluded. Do not weaken or bypass the 171 KiB gzip budget; raising it needs
+  Dynamic imports are excluded. Do not weaken or bypass the 172 KiB gzip budget; raising it needs
   explicit approval, as the drag-to-bank copy's raise from 148 KiB, workspace backup's raise from
   149 KiB, React 19.3's raise from 151 KiB, the FM-1+VA header photos' raise from 162 KiB,
   reading FM-1+VA presets from the FM1's raise from 163 KiB, Vite 8.3.2's raise from 164 KiB,
   the sweep's accessibility fixes' raise from 165 KiB, and sending patches to Official Open's DX7
   tracks' raise from 166 KiB (approved 2026-10-16), the patch menu's headings' raise from
-  167 KiB (approved 2026-10-21), i18next 26.7's raise from 169 KiB (approved 2026-11-09, about 1.8 KiB), and the SMK-37's raise from 168 KiB (approved 2026-11-03: its
+  167 KiB (approved 2026-10-21), i18next 26.7's raise from 169 KiB (approved 2026-11-09, about 1.8 KiB), the review fixes' raise from 171 KiB (approved 2026-11-17: the saved-bank expected-record checks in `patch-library-storage.ts`, about 260 B, the saved banks' guarded reload in `usePatchLibrary`, about 60 B, and the editor's focus return to its slot in `App`, about 40 B; loading the check on demand cost 155 B more, as Rolldown split shared code out of the entry), and the SMK-37's raise from 168 KiB (approved 2026-11-03: its
   family, badge, bank guard, port and input choice, and the device name in the title and on
   Send, about 400 B) had. That send costs about 380 B in the entry:
   its branch and state in `useMidi`, the track status's lazy mount in `RootLayout`, two profile
@@ -1152,6 +1199,9 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   A patch that is gone by then leaves the patch banks showing. Every way of closing the editor
   removes the entry. Other view state, such as the selected bank, stays out of history
   and the URL: bank letters move when a bank is deleted and the library exists only in this browser.
+  Closing returns focus to the opening slot's button once the grid is mounted, including after
+  an editor chunk failed. Resolve the current element in the close layout effect and prevent
+  focus scrolling; a slot no longer rendered is a normal no-op.
 - Favourites are copies of sounds, kept in the workspace record and the backup file, so they
   outlive the slot they came from. A heart matches by `soundKey` from `src/lib/sound-key.ts`, the
   one source the search's duplicate hiding also uses, so every slot holding the same voice data,
@@ -1510,6 +1560,8 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
     jsdom cannot evaluate the media query.
   - A new error a user can hit gets a test that it reaches the UI as translated text, not a raw
     message.
+  - Fixtures also loaded by native Node, including `e2e/fake-midi.ts` for the CLS check, use
+    explicit `.ts` extensions on relative runtime imports.
   - A browser journey that needs MIDI installs the fake FM-1 from `e2e/fake-midi.ts` before the page
     loads and asserts the bytes it recorded. Wait for the editor to be live (its back button is
     enabled) before editing, or the edit resends the whole voice rather than one parameter.
@@ -1521,6 +1573,35 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
     once in its test, as `named-bank-library-dialog.test.tsx` does, so the focus cannot select the
     field part-way through typing.
 - Run a focused test while developing, then run the complete validation before handoff.
+- Cross-tab persistence journeys use two pages in one `BrowserContext`. Seed through the UI and
+  wait for committed IndexedDB data before opening both readers; assert the losing tab's draft
+  and the winner's whole stored snapshot. Demonstrate backup recovery before reloading unsaved
+  work. Read storage only from browser test code, wait with `expect.poll`, and never sleep for a save.
+- Backup recovery browser journeys seed and restore through file/UI actions, compare downloaded
+  contents and committed bytes, then reload a fresh context. Inject partial failure at native
+  IndexedDB's boundary: confirm saved-bank commits precede an FX abort, all FX rows roll back,
+  the workspace stays unchanged, and retry preserves edits and avoids duplicate records. Keep
+  portable fixtures free of app imports and check opaque VA/8-Bit bytes against captured fixtures.
+- Lazy-chunk recovery journeys resolve the target through the built manifest, prove it was not
+  loaded before activation, and count the actual intercepted 404s. Count document requests rather
+  than history events to verify the editor's one automatic retry. Check translated reload actions,
+  usable library controls, exact stored edits, post-reload opening and focus return. Only a module
+  fetch error naming that target may be expected; collect and fail on other page errors.
+- The browser MIDI fake matches complete identity, settings-order and live-FX requests, never a
+  vendor prefix. Use existing captured or independently packed reply fixtures; omit an automatic
+  reply to deliver it explicitly. Await the initial order exchange before clearing recorded
+  traffic, assert exact read frames and no writes/CCs, and control timeout tests with Playwright's
+  clock. A late reply after leaving Effects must change neither the rack nor its global toast.
+- Advisory FX touch journeys use native taps and `touchDrag` for swipes on both device profiles.
+  Seed named presets through UI import, require measurable list movement and verify scrolling or
+  row management never recalls a preset. Check sheet focus return and actual rack taps after it
+  closes. Live-read tests hold the fake reply to check loading focus/control locking, then deliver
+  the captured reply and assert the exact read without feedback. Keep these journeys advisory.
+- Multi-device MIDI journeys record each output separately, select ports through Settings and
+  verify the input of the same name. Disconnect/reconnect events reuse native port objects;
+  queued fake replies expire with that connection. A phrase releases held notes on the old route
+  and never resumes on another route or after panic. Check SMK bank refusal both identified and
+  unanswered; account for the bounded identity queries without filtering away forbidden traffic.
 
 ## Validation
 

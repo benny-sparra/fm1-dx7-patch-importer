@@ -19,8 +19,8 @@ export default {
       'Tournez SELECT jusqu’à Replace et appuyez sur SEL pour enregistrer les 32 sons, ou appuyez sur HOME pour annuler. Ils remplacent aussi définitivement les presets d’usine de cette banque.',
     bankFm1VaNote:
       'Si votre FM1 utilise le firmware de Baud Girl, il demande plutôt « Replace Bank A? » et commence sur la banque A. Tournez ALGORITHM jusqu’à la banque de destination, puis SELECT jusqu’à Replace, et appuyez sur SEL.',
-    bankOfficialOpenNote:
-      'Le firmware Open de M-VAVE ignore les banques DX7, donc envoyer cette banque ne modifie pas ses projets.',
+    bankOfficialOpenTitle:
+      'Le firmware Open de M-VAVE ignore les banques DX7, donc aucune n’est envoyée',
     bankSmk37Title:
       'Le SMK-37 enregistrerait une banque par-dessus ses presets, donc aucune n’est envoyée',
     bankDx747Title: 'DX747 n’accepte pas de banque par MIDI, donc aucune n’est envoyée',
@@ -651,6 +651,8 @@ export default {
       review:
         'Cliquez sur un son pour l’écouter sur le FM1. Votre bibliothèque reste telle quelle tant que vous ne remplacez rien.',
       destination: 'Choisissez où vont les sons.',
+      sourceRead: 'Choisissez ce qu’il faut lire sur le {{device}}. La lecture n’y change rien.',
+      read: 'Choisissez ce qu’il faut lire, puis Lire. Rien ne change sur le {{device}}.',
     },
     sourceLegend: 'Ce qui envoie',
     sources: {
@@ -658,6 +660,10 @@ export default {
       fm1Hint: 'Une banque de 32 sons, envoyée avec GLOBE → Export.',
       patch: 'Un son depuis un autre appareil',
       patchHint: 'Depuis Dexed, un DX7 ou un autre éditeur.',
+      library: 'Une banque de sa bibliothèque',
+      libraryHint: '32 sons de la bibliothèque DX7 du {{device}}.',
+      track: 'Le son d’une piste',
+      trackHint: 'Le son que joue une piste DX7 du {{device}}.',
     },
     stepsHeading: 'Étapes',
     steps: {
@@ -667,6 +673,11 @@ export default {
       patchConnect:
         'Reliez l’appareil, ou ouvrez Dexed ou l’autre éditeur, avec sa sortie MIDI qui atteint cet ordinateur.',
       patchSend: 'Envoyez-en un son sous forme de dump DX7 d’une seule voix.',
+      readConnect:
+        'Branchez le {{device}} en USB et activez le MIDI, avec lui en sortie et en entrée.',
+      readNextBank: 'Choisissez Suivant, une des quatre banques de sa bibliothèque, puis Lire.',
+      readNextTrack: 'Choisissez Suivant, une piste DX7, puis Lire.',
+      readUnchanged: 'L’éditeur ne fait que lire : rien ne change sur le {{device}}.',
     },
     startFm1: 'Ouvrez maintenant GLOBE sur le FM1, choisissez Export puis une banque.',
     startPatch: 'Envoyez maintenant le son sous forme de dump DX7 d’une seule voix.',
@@ -709,6 +720,30 @@ export default {
     noBanks:
       'Un son ne peut remplacer qu’un son déjà présent dans une banque. Ajoutez d’abord une banque avec des sons.',
     replace: 'Remplacer',
+    read: {
+      bankLegend: 'Banque de la bibliothèque à lire',
+      bank: 'Banque {{number}}',
+      trackLegend: 'Piste à lire',
+      track: 'Piste {{track}}',
+      noDx7Tracks:
+        'Aucune piste du {{device}} n’utilise DX7. Réglez le moteur d’une piste sur DX7 pour lire son son.',
+      noPorts:
+        'Choisissez le {{device}} comme sortie et entrée MIDI, avec SysEx autorisé, pour y lire.',
+      readBank: 'Lire la banque {{number}}',
+      readTrack: 'Lire la piste {{track}}',
+      reading: 'Lecture…',
+      readBankDone:
+        '32 sons lus, à commencer par « {{patch}} ». Choisissez Suivant pour les écouter.',
+      readVoiceDone: '« {{patch}} » lu. Choisissez Suivant pour l’écouter.',
+      tryAgain: 'Réessayer',
+      errors: {
+        noReply: 'Le {{device}} n’a pas répondu. Vérifiez la connexion, puis réessayez.',
+        refused: 'Le {{device}} a refusé la lecture. Réessayez.',
+        sendFailed: 'La demande n’a pas pu être envoyée au {{device}}. Vérifiez sa connexion MIDI.',
+        unexpected: 'Ce que le {{device}} a envoyé n’est ni un son ni une banque DX7. Réessayez.',
+        tracks: 'Les pistes du {{device}} n’ont pas pu être lues.',
+      },
+    },
   },
   bankFile: {
     legend: 'Banques de ce fichier',
@@ -1289,7 +1324,7 @@ export default {
       'Le FM1 utilise le firmware d’origine de M-VAVE, {{release}} : huit Voices, chacune sur son propre canal, avec un seul groupe FX partagé. Les sons que vous jouez vont dans son tampon d’édition.',
     officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'Le FM1 utilise le firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
+      'Firmware Open de M-VAVE, {{release}}, une groovebox à huit pistes. Un son sur lequel vous cliquez ou que vous modifiez va à la piste du canal des notes quand cette piste utilise DX7. Il ignore les banques DX7, et les commandes d’effets n’envoient rien, car il les prendrait pour des modifications de ses pistes.',
     dx747BadgeLabel: 'Firmware DX747, {{release}}',
     dx747BadgeTitle:
       'Le FM1 utilise DX747, {{release}} : jusqu’à huit parties, chacune sur son propre canal. Un son sur lequel vous cliquez ou que vous modifiez va à la partie du canal des notes. Il n’accepte aucune banque, et l’éditeur n’envoie ni Program Change ni commandes d’effets.',
@@ -1551,6 +1586,9 @@ export default {
     deleteConfirm: 'Supprimer définitivement « {{name}} » de ce navigateur ?',
     loadConfirm: 'Remplacer les 32 sons de « {{bank}} » par « {{name}} » ?',
     replaceAction: 'Remplacer les sons',
+    conflict:
+      'Cette banque enregistrée a été modifiée ou supprimée dans un autre onglet. Vos modifications sont conservées ici. Rechargez les banques enregistrées, puis rouvrez ses détails pour consulter la dernière version.',
+    reload: 'Recharger les banques enregistrées',
     operationFailed: 'L’opération sur la banque enregistrée a échoué.',
     openFailed: 'Impossible d’ouvrir les banques enregistrées. Rechargez la page et réessayez.',
     loadFailed: 'Impossible de charger les banques enregistrées depuis le stockage du navigateur.',
@@ -1632,6 +1670,12 @@ export default {
       'La piste {{track}} utilise {{engine}}, qui ne peut pas recevoir de son, donc rien n’a été envoyé. Réglez la piste {{track}} sur DX7 sur le FM1, ou choisissez le canal des notes d’une piste qui utilise DX7.',
     unread:
       'Le FM1 n’a pas indiqué quel moteur utilise la piste {{track}}, donc le son n’a pas été envoyé. Vérifiez que le FM1 est connecté, puis réessayez.',
+    sentSmk37:
+      '« {{name}} » envoyé à la piste {{track}}. Enregistrez le projet sur le SMK-37 pour le conserver.',
+    notDx7Smk37:
+      'La piste {{track}} utilise {{engine}}, qui ne peut pas recevoir de son, donc rien n’a été envoyé. Réglez la piste {{track}} sur DX7 sur le SMK-37, ou choisissez le canal des notes d’une piste qui utilise DX7.',
+    unreadSmk37:
+      'Le SMK-37 n’a pas indiqué quel moteur utilise la piste {{track}}, donc le son n’a pas été envoyé. Vérifiez que le SMK-37 est connecté, puis réessayez.',
   },
   attract: {
     pressAnyKey: 'APPUYEZ SUR UNE TOUCHE',

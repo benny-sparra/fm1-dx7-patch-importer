@@ -575,3 +575,49 @@ describe('usePatchLibrary restoring a backup', () => {
     expect(hook.result.current.canUndo).toBe(false)
   })
 })
+
+describe('usePatchLibrary reloading saved banks', () => {
+  it('keeps the newest reload when an earlier read finishes later', async () => {
+    const hook = await renderLoadedLibrary()
+    let finishOldRead: ((result: { banks: NamedBank[]; damagedCount: number }) => void) | undefined
+    storage.listStoredNamedBanks.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishOldRead = resolve
+        }),
+    )
+    storage.listStoredNamedBanks.mockResolvedValueOnce({ banks: [], damagedCount: 1 })
+    let oldRead: Promise<void> | undefined
+    act(() => {
+      oldRead = hook.result.current.reloadNamedBanks()
+    })
+    await act(() => hook.result.current.reloadNamedBanks())
+    await act(async () => {
+      finishOldRead?.({ banks: [], damagedCount: 0 })
+      await oldRead
+    })
+    expect(hook.result.current.hasDamagedNamedBanks).toBe(true)
+    expect(hook.result.current.namedBanksLoading).toBe(false)
+  })
+
+  it('retains readable banks after a failed reload and permits retry', async () => {
+    const bank = createNamedBank(importVoices(emptyPatchLibrary(), 'A', makeDemoVoices()), 'A', {
+      id: 'saved',
+      name: 'Saved',
+      description: '',
+      now: '2026-11-08T12:00:00.000Z',
+    })
+    storage.listStoredNamedBanks.mockResolvedValueOnce({ banks: [bank], damagedCount: 0 })
+    const hook = await renderLoadedLibrary()
+    storage.listStoredNamedBanks.mockRejectedValueOnce(new Error('Read failed'))
+    await act(async () => {
+      await expect(hook.result.current.reloadNamedBanks()).rejects.toThrow('Read failed')
+    })
+    expect(hook.result.current.namedBanks).toEqual([bank])
+    expect(hook.result.current.namedBanksLoadFailed).toBe(true)
+    storage.listStoredNamedBanks.mockResolvedValueOnce({ banks: [], damagedCount: 0 })
+    await act(() => hook.result.current.reloadNamedBanks())
+    expect(hook.result.current.namedBanks).toEqual([])
+    expect(hook.result.current.namedBanksLoadFailed).toBe(false)
+  })
+})

@@ -34,6 +34,9 @@ export default {
     deleteAction: 'Supprimer le preset',
     downloadPreset: 'Télécharger le preset',
     downloadAll: 'Tout télécharger',
+    downloading: 'Téléchargement…',
+    downloadBatches:
+      'Presets FX téléchargés dans un ZIP. Extrayez-le, puis importez chaque fichier JSON séparément.',
     import: 'Importer…',
     imported: '{{count, number}} preset FX importé. Les presets existants ont été conservés.',
     imported_other:
@@ -69,6 +72,7 @@ export default {
     deleted: '« {{name}} » supprimé.',
     working: 'Enregistrement…',
     errors: {
+      download: 'Impossible de télécharger les presets FX. Réessayez.',
       load: 'Impossible de lire les presets FX. Réessayez sans fermer cet onglet.',
       write:
         'Le stockage du navigateur n’a pas pu enregistrer cette modification. Aucun preset existant n’a été remplacé.',

@@ -54,9 +54,8 @@ import {
 import { FxLibraryPresetConflictError } from '@/lib/fx-library-storage'
 import {
   fxPresetFileAccept,
-  fxPresetFileName,
   FxPresetFileError,
-  makeFxPresetFile,
+  makeFxPresetDownload,
   readFxPresetFile,
 } from '@/lib/fx-preset-file'
 import { positionMenuBeside, scrollTopShowing } from '@/lib/menu-beside'
@@ -102,13 +101,6 @@ type Props = {
   search: string
 }
 
-function downloadPresets(presets: readonly FxLibraryPreset[]) {
-  downloadFile(
-    new Blob([makeFxPresetFile(presets)], { type: 'application/json' }),
-    fxPresetFileName,
-  )
-}
-
 /** The named FX presets beside the live rack: a list to load from and the actions on the rack. */
 export function FxPresetLibrary({
   children,
@@ -136,6 +128,8 @@ export function FxPresetLibrary({
   const [conflict, setConflict] = useState(false)
   const [sending, setSending] = useState(false)
   const [working, setWorking] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const downloadInFlight = useRef(false)
   // A load that changed only the rack, because the FM1 could not take it, and one that failed.
   const [loadedOnly, setLoadedOnly] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -145,6 +139,7 @@ export function FxPresetLibrary({
   const mutationInFlight = useRef(false)
   const sendInFlight = useRef(false)
   const sendAbort = useRef<AbortController | null>(null)
+  const recallLifetime = useRef<AbortSignal | null>(null)
   const saveCapture = useRef<{ effects: Uint8Array; order: readonly number[] | null } | null>(null)
   const loaded = fxLibrary.presets.find((preset) => preset.id === loadedId)
   const chainOrder = effectOrder?.order ?? null
@@ -177,7 +172,7 @@ export function FxPresetLibrary({
   const readOffered = Boolean(
     liveRead && resolveFirmwareProfile(midi.firmware).capabilities.liveEffectsRead,
   )
-  const busy = sending || working || readingLive || fxLibrary.pending
+  const busy = sending || working || downloading || readingLive || fxLibrary.pending
   const unavailable = busy || fxLibrary.status !== 'ready'
   const blocked = busy || mode !== null
   const notReached = loadedOnly && !eligible ? (sharedEffects ? 'offline' : 'ineligible') : null
@@ -187,6 +182,13 @@ export function FxPresetLibrary({
   }, [mode])
 
   useEffect(() => onSendingChange(sending), [onSendingChange, sending])
+
+  useEffect(() => {
+    // Toasts outlive the view. A recall Undo belongs only to this uninterrupted FX route.
+    const lifetime = new AbortController()
+    recallLifetime.current = lifetime.signal
+    return () => lifetime.abort()
+  }, [eligible, route])
 
   // Recall, Undo, Revert and saving all change the loaded preset; its lit row stays in sight.
   useEffect(() => {
@@ -208,6 +210,24 @@ export function FxPresetLibrary({
     },
     [onSendingChange],
   )
+
+  const downloadPresets = async (presets: readonly FxLibraryPreset[]) => {
+    if (downloadInFlight.current) return
+    downloadInFlight.current = true
+    setDownloading(true)
+    setError('')
+    setConflict(false)
+    try {
+      const result = await makeFxPresetDownload(presets)
+      downloadFile(result.blob, result.filename)
+      if (result.batched) toast.info(t('fxPresets.downloadBatches'))
+    } catch {
+      setError(t('fxPresets.errors.download'))
+    } finally {
+      downloadInFlight.current = false
+      setDownloading(false)
+    }
+  }
 
   const run = async (operation: () => Promise<unknown>) => {
     if (mutationInFlight.current) return false
@@ -328,6 +348,7 @@ export function FxPresetLibrary({
     message = t('fxPresets.loaded', { name: preset.name }),
   ) => {
     if (sendInFlight.current || mutationInFlight.current) return
+    const lifetime = recallLifetime.current
     const before = { effects: current.slice(), id: loadedId, order: chainOrder?.slice() }
     const changed =
       preset.id !== loadedId || !bytesEqual(preset.effects, current) || orderDiffers(preset)
@@ -336,7 +357,10 @@ export function FxPresetLibrary({
       toast.success(message, {
         action: {
           label: t('toasts.undo'),
-          onAction: () => void recall(before.effects, before.id, true, before.order),
+          onAction: () => {
+            if (!lifetime || lifetime.aborted) return
+            void recall(before.effects, before.id, true, before.order)
+          },
         },
       })
     }
@@ -443,10 +467,10 @@ export function FxPresetLibrary({
           onSelect: () => importInput.current?.click(),
         },
         {
-          label: t('fxPresets.downloadAll'),
+          label: t(downloading ? 'fxPresets.downloading' : 'fxPresets.downloadAll'),
           Icon: Download,
-          disabled: !ordered.length || sending,
-          onSelect: () => downloadPresets(ordered),
+          disabled: !ordered.length || busy,
+          onSelect: () => void downloadPresets(ordered),
         },
       ]}
     />
@@ -556,7 +580,7 @@ export function FxPresetLibrary({
                       label: t('fxPresets.downloadPreset'),
                       Icon: Download,
                       disabled: busy,
-                      onSelect: () => downloadPresets([preset]),
+                      onSelect: () => void downloadPresets([preset]),
                     },
                     {
                       label: t('fxPresets.delete'),
@@ -752,6 +776,8 @@ export function FxPresetLibrary({
             <span className="sr-only">{t('fxPresets.sending')}</span>
           ) : readingLive ? (
             <span className="sr-only">{t('fxPresets.reading')}</span>
+          ) : downloading ? (
+            <span className="sr-only">{t('fxPresets.downloading')}</span>
           ) : notReached ? (
             <div className="px-2 pt-2">
               <InfoNotice>
