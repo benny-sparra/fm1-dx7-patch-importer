@@ -5,18 +5,7 @@ import { promisify } from 'node:util'
 // patched release. It stops matching, and the audit fails, when the advisory's range changes, the
 // package publishes a version after `checkedLatestVersion`, or the review date passes. Remove the
 // entry once a fix ships, then run `npm run lockfile:refresh`.
-export const auditAllowlist = [
-  {
-    advisory: 'GHSA-fc5q-39xc-vjpf',
-    packageName: 'picomatch',
-    range: '<=4.0.7',
-    checkedLatestVersion: '4.0.7',
-    reviewBy: '2027-02-17',
-    reason:
-      'Development tooling only: Vite, Vitest, knip, tinyglobby, and fdir take picomatch 4, and ' +
-      'micromatch keeps 2.3.2. No patched release exists. Approved 2026-11-17.',
-  },
-]
+export const auditAllowlist = []
 
 const blockingSeverities = new Set(['high', 'critical'])
 
