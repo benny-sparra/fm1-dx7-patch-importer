@@ -6,13 +6,13 @@ import {
   makeOfficialOpenCapabilitiesRequest,
   makeOfficialOpenReadChunkRequest,
   makeOfficialOpenSlotNameRequest,
-  OfficialOpenReadError,
   officialOpenCrc32,
   readOfficialOpenCapabilities,
   readOfficialOpenExport,
   readOfficialOpenSlotName,
 } from './official-open-read'
 import {
+  OfficialOpenReadError,
   officialOpenChecksum,
   officialOpenHeader,
   packSevenBitStream,

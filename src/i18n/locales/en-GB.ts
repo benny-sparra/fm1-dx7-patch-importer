@@ -13,8 +13,7 @@ export default {
       'Turn SELECT to Replace and press SEL to store the 32 patches, or press HOME to cancel. They also replace that bank’s factory presets permanently.',
     bankFm1VaNote:
       'If your FM1 runs Baud Girl’s firmware, it asks “Replace Bank A?” instead, starting on bank A. Turn ALGORITHM to the destination bank, then turn SELECT to Replace and press SEL.',
-    bankOfficialOpenNote:
-      'M-VAVE’s Open firmware ignores DX7 banks, so sending this bank does not change its projects.',
+    bankOfficialOpenTitle: 'M-VAVE’s Open firmware ignores DX7 banks, so none is sent',
     bankSmk37Title: 'The SMK-37 would save a bank over its presets, so none is sent',
     bankDx747Title: 'DX747 takes no bank over MIDI, so none is sent',
     bankFeluccaNote: 'Felucca ignores DX7 banks, so sending this bank does not change its presets.',
@@ -310,7 +309,7 @@ export default {
       'The FM1 runs M-VAVE’s own firmware, {{release}}: eight Voices, each on its own channel, sharing one FX group. Patches you play go to its edit buffer.',
     officialOpenBadgeLabel: 'M-VAVE Open firmware, {{release}}',
     officialOpenBadgeTitle:
-      'The FM1 runs M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. A patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',
+      'M-VAVE’s Open firmware, {{release}}, an eight-track groovebox. A patch you click or edit goes to the track on the note channel when that track runs DX7. It ignores DX7 banks, and the effect controls send nothing, since it would take them as changes to its tracks.',
     dx747BadgeLabel: 'DX747 firmware, {{release}}',
     dx747BadgeTitle:
       'The FM1 runs DX747, {{release}}: up to eight parts, each on its own channel. A patch you click or edit goes to the part on the note channel. It takes no bank, and the editor sends no Program Change or effect controls.',

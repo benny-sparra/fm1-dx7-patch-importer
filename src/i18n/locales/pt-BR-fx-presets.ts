@@ -35,6 +35,9 @@ export default {
     deleteAction: 'Excluir preset',
     downloadPreset: 'Baixar preset',
     downloadAll: 'Baixar todos',
+    downloading: 'Baixando…',
+    downloadBatches:
+      'Presets de FX baixados em um ZIP. Extraia-o e importe cada arquivo JSON separadamente.',
     import: 'Importar…',
     imported: '{{count, number}} preset de FX importado. Os presets existentes foram mantidos.',
     imported_other:
@@ -69,6 +72,7 @@ export default {
     deleted: '“{{name}}” excluído.',
     working: 'Salvando…',
     errors: {
+      download: 'Não foi possível baixar os presets de FX. Tente novamente.',
       load: 'Não foi possível ler os presets de FX. Tente novamente sem fechar esta aba.',
       write:
         'O armazenamento do navegador não conseguiu salvar a alteração. Nenhum dado existente foi substituído.',

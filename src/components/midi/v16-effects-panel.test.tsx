@@ -24,7 +24,7 @@ import {
 import { makeFakeFm1Devices, makeFakeFm1Ports } from '@/test/fake-fm1-midi'
 import { capturedReply, sentRack } from '@/test/v16-live-effects-captures'
 import { frame, table } from '@/test/v16-live-effects-replies'
-import { makeSettingsBlockReply } from '@/test/v16-settings-replies'
+import { makeSettingsBlock as makeBlock, makeSettingsBlockReply } from '@/test/v16-settings-replies'
 
 beforeAll(async () => {
   await setLocale('en-GB')
@@ -122,16 +122,6 @@ describe('V16 effects panel', () => {
     expect(help).toContain('“Read from FM1” brings the FM1’s current effects')
   })
 })
-
-function makeBlock(order = [2, 0, 1, 3, 5, 4]) {
-  const bytes = Array.from({ length: 176 }, () => 0)
-  bytes[0] = 0x0e
-  ;[...order, 6, 7, 8].forEach((effect, entry) => {
-    bytes[fxTableOffset + entry * 3] = effect
-    bytes[fxTableOffset + entry * 3 + 1] = 1
-  })
-  return bytes
-}
 
 const isRead = (data: Uint8Array) => {
   const request = makeSettingsBlockReadRequest()

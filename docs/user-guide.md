@@ -115,10 +115,16 @@ phone the list opens from the name in the title strip, and choosing a preset clo
 between Patches and Effects keeps the selected FX preset and any unsaved edits. Saving, renaming,
 duplicating, deleting, Undo, searching, importing and downloading send no MIDI. **FX preset
 actions** (the **⋮** by the search field) has **Import…** and **Download all**, which writes
-`fm1-fx-presets.json`; Import adds valid presets with new identities and keeps everything already
-present.
+`fm1-fx-presets.json` when the collection fits one import file. Larger collections download as
+`fm1-fx-presets.zip`, containing numbered JSON files of at most 1,000 presets and 1 MiB each.
+Extract the ZIP, then use **Import…** for each JSON file separately. Import adds valid presets
+with new identities and keeps everything already present.
 
-Click a preset to load it; **Undo** in the toast puts the previous effects and order back and sends them too. If the load cannot reach the FM1, because MIDI is offline, the notice
+Click a preset to load it; **Undo** in the toast puts the previous effects and order back and sends
+them too. Undo for loading or reverting a preset expires when you leave Effects, change the MIDI
+output, Effect channel or firmware, or MIDI goes offline. Returning to the same route does not
+revive it. Undo for saving or deleting a preset still works after leaving Effects.
+If the load cannot reach the FM1, because MIDI is offline, the notice
 under the strip says so, and it replaces only the browser’s current Effects controls; it is not
 sent later when MIDI reconnects. With an identified M-VAVE V16 online, the click also sends all 24
 controls once to the shared FX group and, when the preset holds an effect order different from
@@ -166,9 +172,16 @@ track runs DX7: before each patch the app asks the FM1 which engine every track 
 runs another engine, or the note channel reaches no track, nothing is sent and the app says how to
 fix it: set the track to DX7 on the FM1, or choose the note channel of a DX7 track. Save the
 project on the FM1 to keep a patch. In the editor each change is sent when you let go of the
-control, so the FM1's own undo steps match the editor's. Official Open ignores DX7 banks, and the
-app sends it no Program Change and no effect controls, which it would take as changes to its
-tracks.
+control, so the FM1's own undo steps match the editor's. Official Open ignores DX7 banks, so
+**Send to FM1** sends none and says why, and the app sends it no Program Change and no effect
+controls, which it would take as changes to its tracks.
+
+Official Open runs on the SMK-37 too, as M-VAVE's SMK37 OPEN, and the app treats it the same way:
+it names it **M-VAVE OPEN** with its release, such as V1, and sends a patch to the track on the
+note channel once that track runs DX7. Tracks listen on channels 1 to 7 and 10 until you change a
+track's **IN CH** on the keyboard; the app cannot see that setting, so keep a track on its own
+channel to send it patches. This support was built from SMK37 OPEN's source and has not been run
+on an SMK-37 yet.
 
 DX747, Esben von Buchwald's eight-part multitimbral DX7 firmware, is named **DX747** with the name it
 reports, since that name carries no release. Each of its parts listens on its own MIDI channel, so a
@@ -186,7 +199,8 @@ changes, an unsaved edit that selecting another preset discards. The SMK-37 save
 bank dump over its stored presets, and has no way to back them up, so **Send to SMK-37** sends no
 bank and says why, and neither does a port named SMK-37 whose firmware has not answered. It
 ignores Program Change and the effect controls, so the editor hides the effects; the patch keeps
-them. A port of another FM1 firmware to the SMK-37 shows as **Not identified**.
+them. A port of another FM1 firmware to the SMK-37, apart from M-VAVE's SMK37 OPEN, shows as
+**Not identified**.
 
 To keep a patch on the SMK-37, select the preset to replace on its synth screen, where **BANK A**
 to **BANK D** shows, then choose **Write to SMK-37…** in the patch's ⋮ menu. The SMK-37 cannot
@@ -317,12 +331,14 @@ A slot's **⋮** menu lists **Edit** first, then the items that move a patch in 
 
 **Receive over MIDI…**, in the **Import patch…** dialog's footer, takes a patch sent over MIDI instead of from a file, such as one Dexed, a DX7, or another editor sends as a single-voice dump. It opens **Receive patches**, which also opens from **Receive from the FM1…** in a bank's menu and in **Library actions**, and takes you through one step at a time with **Back** and **Next**:
 
+On M-VAVE's Official Open, on the FM1 or the SMK-37 (SMK37 OPEN), the app reads instead of listening: the first step offers **A bank of its library**, one of the four banks of 32 patches the firmware stores, and **A track's patch**, the patch a DX7 track plays, beside one patch from another device. The next step lists the library banks, or the eight tracks with their engines, where only a DX7 track can be chosen; press **Read** and the app asks the device for it with read requests that change nothing on it. Review and **Where it goes** follow as below. From a slot's menu only a track or another device is offered.
+
 1. **What is sending:** an FM1 on M-VAVE's V16, which sends a bank of 32 patches with **GLOBE → Export**, or one patch from another device. Each comes with its own short steps. From a slot's menu it starts on one patch; from a bank's menu or **Library actions**, on the FM1.
 2. **Listening:** the app listens on the input monitor while this step shows, and says which input it is. If MIDI is offline, switch it online here; if no input is chosen, choose it here. Then start the transfer: on the FM1, choose **GLOBE → Export** and a bank, connected by USB, since Export sends over USB only. If the FM1 says **Receive Timeout**, start Export again while this step is open. The step says what arrived; send another and it takes that one instead. Notes, controllers, and every other message are ignored, and a dump that is not a DX7 patch or bank, or that arrives damaged, is explained with how to send it again.
 3. **Review:** click a received patch to hear it on the FM1, through the edit buffer with the default FM1 effects. For a bank, the app says how many received patches differ from the bank they would replace, and marks each with a dot, so you can see whether replacing it loses anything; it compares the voices alone, since an Export carries no FM1 effects.
 4. **Where it goes:** a bank replaces the bank you choose, and a patch the slot you choose, which starts on the slot or bank the dialog was opened from. A warning names what will be replaced. Nothing in your library changes until you press **Replace**, or **Import bank** for an empty bank, and the notification offers **Undo**.
 
-The app sends nothing to the FM1 or the other device, either to start a transfer or while it listens. Received patches carry no FM1 effects, so they come in with the defaults. Receiving needs SysEx access, as sending does. Earlier stock firmware cannot send its stored patches.
+Apart from Official Open's reads, the app sends nothing to the FM1 or the other device, either to start a transfer or while it listens. Received patches carry no FM1 effects, so they come in with the defaults. Receiving needs SysEx access, as sending does. Earlier stock firmware cannot send its stored patches.
 
 **Copy share link** in a slot's **⋮** menu copies a link to the patch, such as
 `https://fm1-editor.com/#p=AQAA…`, to paste into a chat, forum, or email. The link opens the site
@@ -346,6 +362,11 @@ release of the editor asks you to reload, which fetches that release and opens i
 To tidy banks after importing archives, choose **Find duplicate patches…** from the menu in the patch-bank header. It lists the patches in your loaded banks whose voice settings match, grouped together, even when a copy has another name. FM1 effects and FM-1+VA preset settings are not compared, and a group says when its copies' effects or preset settings differ. Virtual Analogue presets are grouped with identical Virtual Analogue presets only, and 8-Bit presets with 8-Bit ones. Choose a patch in the list to go to its bank and play it, as clicking its slot does. The list only reads your library: delete or replace a copy yourself, from its bank.
 
 Each bank's menu also offers **Save bank…**, which keeps a named copy of its 32 patches and their FM1 effects in this browser, and **Load bank…**, which lists your saved banks. From that list you can load one into the bank, edit its name and description, make a copy, download it as a `.syx` file, or delete it. Loading into a bank that already has patches asks first. If a bank is empty, you can load the built-in demo bank instead.
+
+If another tab changes or deletes a saved bank while you are editing or confirming its deletion,
+the action stops and explains the conflict. Your typed name and description stay in the form.
+Choose **Reload saved banks**, then reopen the bank's details to review its latest version before
+trying again. A failed reload keeps the list already shown and offers another try.
 
 ### Favourites
 
@@ -539,4 +560,4 @@ bank takes a single-bank file at once, and asks which bank only when the file ho
 Single-voice dumps, which **Import patch…** and **Receive over MIDI…** read, and banks using another SysEx format are not
 accepted.
 
-The browser library is the source of truth. Only M-VAVE's V16 sends a stored bank back, through its Export and **Receive from the FM1…** (see [M-VAVE and Baud Girl firmware](#m-vave-and-baud-girl-firmware)); earlier stock firmware cannot, and Baud Girl's firmware is read with **Read presets from the FM1…**. Download a backup regularly (see [Backing up your library](#backing-up-your-library)).
+The browser library is the source of truth. Only M-VAVE's V16 sends a stored bank back, through its Export and **Receive from the FM1…** (see [M-VAVE and Baud Girl firmware](#m-vave-and-baud-girl-firmware)), and **Receive from the FM1…** reads Official Open's library banks, on the FM1 from V14 and on the SMK-37's SMK37 OPEN; earlier stock firmware cannot, and Baud Girl's firmware is read with **Read presets from the FM1…**. Download a backup regularly (see [Backing up your library](#backing-up-your-library)).

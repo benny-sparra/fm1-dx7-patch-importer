@@ -120,10 +120,15 @@ const openDialogs = {
       midi={{
         connectMidi: vi.fn(),
         error: null,
+        firmware: { kind: 'checking' },
         inputs: [],
         isConnecting: false,
+        logStore: new MidiLogStore([]),
         midiAccess: false,
+        outputs: [],
+        queueEffectOrder: vi.fn(),
         selectedInputId: '',
+        selectedOutputId: '',
         setSelectedInputId: vi.fn(),
         sysexAvailable: false,
       }}

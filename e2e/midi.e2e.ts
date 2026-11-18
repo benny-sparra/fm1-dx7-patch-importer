@@ -1,11 +1,23 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { installFakeMidi, receiveMidi, sentMidi, sentSysex } from './fake-midi'
+import {
+  clearSentMidi,
+  fakeMidiRequests,
+  installFakeMidi,
+  receiveMidi,
+  sentMidi,
+  sentSysex,
+  setMidiDeviceConnected,
+} from './fake-midi'
 
 // A DX7 single-voice dump is F0 43 0n 00 01 1B, 155 voice bytes, a checksum and F7.
 const singleVoiceDumpLength = 163
 // A 32-voice bank dump is F0 43 0n 09 20 00, 4,096 packed voice bytes, a checksum and F7.
 const bankDumpLength = 4104
+
+test.beforeEach(async ({ page }) => {
+  await page.route('https://**/*', (route) => route.abort())
+})
 
 async function openLibrarian(page: Page) {
   await page.goto('/')
@@ -28,6 +40,289 @@ async function switchMidiOn(page: Page) {
 
 function slotButtons(page: Page) {
   return page.getByRole('button', { name: /^Send .+ to FM1$/ })
+}
+
+test('the fake exposes two independent MIDI port pairs', async ({ page }) => {
+  await installFakeMidi(page, {
+    devices: [
+      { id: 'fm1', portName: 'FM-1 A' },
+      { id: 'second', portName: 'FM-1 B' },
+    ],
+  })
+  await page.goto('about:blank')
+  const ports = await page.evaluate(async () => {
+    const access = await navigator.requestMIDIAccess({ sysex: true })
+    return { inputs: [...access.inputs.keys()], outputs: [...access.outputs.keys()] }
+  })
+
+  expect(ports).toEqual({
+    inputs: ['fm1-input', 'second-input'],
+    outputs: ['fm1-output', 'second-output'],
+  })
+})
+
+test('the fake isolates device traffic and drops pending replies across disconnect while reusing ports', async ({
+  page,
+}) => {
+  await installFakeMidi(page, {
+    devices: [
+      { id: 'fm1', portName: 'FM-1 A' },
+      { id: 'second', portName: 'FM-1 B' },
+    ],
+  })
+  await page.goto('about:blank')
+  await page.clock.install({ time: new Date('2026-11-09T12:00:00Z') })
+  await page.clock.pauseAt(new Date('2026-11-09T12:00:01Z'))
+  const probe = await page.evaluateHandle(async (request) => {
+    const access = await navigator.requestMIDIAccess({ sysex: true })
+    const inputA = access.inputs.get('fm1-input')
+    const inputB = access.inputs.get('second-input')
+    const outputB = access.outputs.get('second-output')
+    if (!inputA || !inputB || !outputB) throw new Error('Missing fake ports.')
+    const receivedA: number[][] = []
+    const receivedB: number[][] = []
+    const changes: string[] = []
+    inputA.onmidimessage = (event) => receivedA.push(Array.from(event.data ?? []))
+    inputB.onmidimessage = (event) => receivedB.push(Array.from(event.data ?? []))
+    access.onstatechange = (event) => changes.push(`${event.port?.id}:${event.port?.state}`)
+    outputB.send(request)
+    return { access, inputB, outputB, receivedA, receivedB, changes }
+  }, fakeMidiRequests.identity)
+
+  await setMidiDeviceConnected(page, 'second', false)
+  await page.clock.runFor(1)
+  expect(await probe.evaluate((state) => state.receivedB)).toEqual([])
+  await receiveMidi(page, [0x90, 67, 92], 'second')
+  expect(await probe.evaluate((state) => state.receivedB)).toEqual([])
+  await setMidiDeviceConnected(page, 'second', true)
+  await setMidiDeviceConnected(page, 'second', true)
+  expect(
+    await probe.evaluate(
+      (state) =>
+        state.access.outputs.get('second-output') === state.outputB &&
+        state.access.inputs.get('second-input') === state.inputB,
+    ),
+  ).toBe(true)
+  expect(await probe.evaluate((state) => state.changes)).toEqual([
+    'second-input:disconnected',
+    'second-output:disconnected',
+    'second-input:connected',
+    'second-output:connected',
+  ])
+  await receiveMidi(page, [0x90, 67, 92], 'second')
+  expect(await probe.evaluate((state) => state.receivedA)).toEqual([])
+  expect(await probe.evaluate((state) => state.receivedB)).toEqual([[0x90, 67, 92]])
+  await probe.evaluate((state, request) => state.outputB.send(request), fakeMidiRequests.identity)
+  await setMidiDeviceConnected(page, 'second', false)
+  await setMidiDeviceConnected(page, 'second', true)
+  await page.clock.runFor(1)
+  expect(await probe.evaluate((state) => state.receivedB)).toEqual([[0x90, 67, 92]])
+  await clearSentMidi(page)
+  await page.evaluate(async () => {
+    const access = await navigator.requestMIDIAccess({ sysex: true })
+    access.outputs.get('fm1-output')?.send([0x90, 60, 90])
+    access.outputs.get('second-output')?.send([0x91, 67, 92])
+  })
+  expect(await sentMidi(page, 'fm1')).toEqual([[0x90, 60, 90]])
+  expect(await sentMidi(page, 'second')).toEqual([[0x91, 67, 92]])
+  expect(await sentMidi(page)).toEqual([
+    [0x90, 60, 90],
+    [0x91, 67, 92],
+  ])
+  await clearSentMidi(page)
+  expect(await sentMidi(page)).toEqual([])
+  expect(await sentMidi(page, 'fm1')).toEqual([])
+  expect(await sentMidi(page, 'second')).toEqual([])
+  await probe.dispose()
+})
+
+const padNoteOns = [
+  [0x90, 53, 72],
+  [0x90, 57, 72],
+  [0x90, 60, 72],
+  [0x90, 64, 72],
+]
+const padNoteOffs = [
+  [0x80, 53, 0],
+  [0x80, 57, 0],
+  [0x80, 60, 0],
+  [0x80, 64, 0],
+]
+
+async function chooseOutput(page: Page, output: string, input: string) {
+  const settings = page.getByLabel('Settings', { exact: true }).locator('visible=true').first()
+  await settings.click()
+  await page.getByRole('combobox', { name: 'Output', exact: true }).selectOption(output)
+  await expect(page.getByRole('combobox', { name: 'Input monitor', exact: true })).toHaveValue(
+    input,
+  )
+  await settings.click()
+}
+
+async function startPadPhrase(page: Page) {
+  await page.route('https://**/*', (route) => route.abort())
+  await installFakeMidi(page, {
+    devices: [
+      { id: 'fm1', portName: 'FM-1 A' },
+      { id: 'second', portName: 'FM-1 B' },
+    ],
+  })
+  await openLibrarian(page)
+  await switchMidiOn(page)
+  await expect.poll(() => sentMidi(page, 'fm1')).toEqual([fakeMidiRequests.identity])
+  expect(await sentMidi(page, 'second')).toEqual([])
+  await page.getByRole('button', { name: 'Keyboard', exact: true }).first().click()
+  const keyboard = page.getByRole('dialog', { name: 'Piano keyboard' })
+  await keyboard.getByRole('combobox', { name: 'Phrase', exact: true }).selectOption('pad')
+  await page.clock.install({ time: new Date('2026-11-09T12:00:00Z') })
+  await page.clock.pauseAt(new Date('2026-11-09T12:00:01Z'))
+  await clearSentMidi(page)
+  await keyboard.getByRole('button', { name: 'Play the phrase', exact: true }).click()
+  await page.clock.runFor(1)
+  await expect.poll(() => sentMidi(page, 'fm1')).toEqual(padNoteOns)
+  await expect(keyboard.getByRole('button', { name: 'Stop the phrase', exact: true })).toBeVisible()
+  return keyboard
+}
+
+test('a looping phrase releases its old output and stops when another output is selected', async ({
+  page,
+}) => {
+  const keyboard = await startPadPhrase(page)
+
+  await chooseOutput(page, 'second-output', 'second-input')
+  await page.clock.runFor(1)
+
+  await expect(keyboard.getByRole('button', { name: 'Play the phrase', exact: true })).toBeVisible()
+  expect(await sentMidi(page, 'fm1')).toEqual([...padNoteOns, ...padNoteOffs])
+  expect(await sentMidi(page, 'second')).toEqual([fakeMidiRequests.identity])
+  await page.clock.runFor(13000)
+  expect(await sentMidi(page, 'fm1')).toEqual([...padNoteOns, ...padNoteOffs])
+  expect(await sentMidi(page, 'second')).toEqual([fakeMidiRequests.identity])
+})
+
+test('a looping phrase releases the original note channel and stops when that channel changes', async ({
+  page,
+}) => {
+  const keyboard = await startPadPhrase(page)
+
+  await page
+    .getByRole('combobox', { name: 'Note channel', exact: true })
+    .locator('visible=true')
+    .first()
+    .selectOption('3')
+
+  await expect(keyboard.getByRole('button', { name: 'Play the phrase', exact: true })).toBeVisible()
+  expect(await sentMidi(page, 'fm1')).toEqual([...padNoteOns, ...padNoteOffs])
+  await page.clock.runFor(13000)
+  expect(await sentMidi(page, 'fm1')).toEqual([...padNoteOns, ...padNoteOffs])
+  expect(await sentMidi(page, 'second')).toEqual([])
+})
+
+test('MIDI panic stops a looping phrase so it cannot strike the released notes again', async ({
+  page,
+}) => {
+  const keyboard = await startPadPhrase(page)
+
+  await page.getByRole('button', { name: 'MIDI panic', exact: true }).click()
+
+  await expect(keyboard.getByRole('button', { name: 'Play the phrase', exact: true })).toBeVisible()
+  await page.clock.runFor(13000)
+  const messages = await sentMidi(page, 'fm1')
+  expect(messages.filter(([status]) => status === 0x90)).toEqual(padNoteOns)
+  const releases = messages.filter(([status]) => status === 0x80)
+  expect(new Set(releases.map(([, note]) => note))).toEqual(
+    new Set(Array.from({ length: 128 }, (_, note) => note)),
+  )
+  expect(releases).toEqual(expect.arrayContaining(padNoteOffs))
+  expect(messages.every(([status]) => status === 0x80 || status === 0x90)).toBe(true)
+  expect(await sentMidi(page, 'second')).toEqual([])
+})
+
+test('a looping phrase stops on disconnect, selects no other device and does not resume on reconnect', async ({
+  page,
+}) => {
+  const keyboard = await startPadPhrase(page)
+
+  await setMidiDeviceConnected(page, 'fm1', false)
+
+  await expect(keyboard.getByRole('button', { name: 'Play the phrase', exact: true })).toBeVisible()
+  const settings = page.getByLabel('Settings', { exact: true }).locator('visible=true').first()
+  await settings.click()
+  await expect(page.getByRole('combobox', { name: 'Output', exact: true })).toHaveValue('')
+  await page.clock.runFor(13000)
+  expect(await sentMidi(page, 'second')).toEqual([])
+
+  await setMidiDeviceConnected(page, 'fm1', true)
+  await page.clock.runFor(1)
+  await expect(page.getByRole('combobox', { name: 'Output', exact: true })).toHaveValue(
+    'fm1-output',
+  )
+  await expect(page.getByRole('combobox', { name: 'Input monitor', exact: true })).toHaveValue(
+    'fm1-input',
+  )
+  await settings.click()
+  await page.clock.runFor(13000)
+  await expect(keyboard.getByRole('button', { name: 'Play the phrase', exact: true })).toBeVisible()
+  expect(await sentMidi(page, 'fm1')).toEqual([...padNoteOns, fakeMidiRequests.identity])
+  expect(await sentMidi(page, 'second')).toEqual([])
+})
+
+for (const scenario of [
+  {
+    firmware: 'smk37',
+    label: 'identified stock SMK-37',
+    send: 'Send to SMK-37',
+    identityFrames: [fakeMidiRequests.identity],
+  },
+  {
+    firmware: 'unanswered',
+    label: 'unanswered output named SMK',
+    send: 'Send to FM1',
+    identityFrames: [
+      fakeMidiRequests.identity,
+      fakeMidiRequests.identity,
+      fakeMidiRequests.identity,
+    ],
+  },
+] as const) {
+  test(`a bank send to an ${scenario.label} is refused without sending a bank dump`, async ({
+    page,
+  }) => {
+    await page.route('https://**/*', (route) => route.abort())
+    await installFakeMidi(page, {
+      devices: [
+        { id: 'fm1', portName: 'FM-1 A' },
+        { id: 'smk', portName: 'SMK-37 Pro-Private', firmware: scenario.firmware },
+      ],
+    })
+    await openLibrarian(page)
+    await switchMidiOn(page)
+    // Explicitly establish the baseline route, regardless of automatic port-name preference.
+    await chooseOutput(page, 'fm1-output', 'fm1-input')
+    await expect(page.getByTitle(/^The FM1 runs M-VAVE’s own firmware, V15\./)).toBeVisible()
+    await clearSentMidi(page)
+    await page.clock.install({ time: new Date('2026-11-09T12:00:00Z') })
+    await page.clock.pauseAt(new Date('2026-11-09T12:00:01Z'))
+
+    await chooseOutput(page, 'smk-output', 'smk-input')
+    await page.clock.runFor(1)
+    await page.getByRole('button', { name: scenario.send, exact: true }).first().click()
+
+    const refused = page.getByRole('dialog', {
+      name: 'The SMK-37 would save a bank over its presets, so none is sent',
+      exact: true,
+    })
+    await expect(refused).toBeVisible()
+    await expect(refused.getByRole('button', { name: /^Send to/ })).toHaveCount(0)
+    await page.clock.runFor(5000)
+    await expect(refused).toBeVisible()
+    await expect(refused.getByRole('button', { name: /^Send to/ })).toHaveCount(0)
+    expect(await sentMidi(page, 'fm1')).toEqual([])
+    expect(await sentMidi(page, 'smk')).toEqual(scenario.identityFrames)
+    expect((await sentSysex(page)).filter((message) => message.length === bankDumpLength)).toEqual(
+      [],
+    )
+  })
 }
 
 test.describe('with an FM-1 connected', () => {
@@ -431,7 +726,7 @@ test.describe('with an FM-1 on M-VAVE’s Official Open', () => {
     await installFakeMidi(page, { firmware: 'official-open', trackEngines })
     await openLibrarian(page)
     await switchMidiOn(page)
-    await expect(page.getByTitle(/^The FM1 runs M-VAVE’s Open firmware, V12/)).toBeVisible()
+    await expect(page.getByTitle(/^M-VAVE’s Open firmware, V12/)).toBeVisible()
   }
 
   test('reads the track engines, then sends the patch to the DX7 track on the note channel', async ({

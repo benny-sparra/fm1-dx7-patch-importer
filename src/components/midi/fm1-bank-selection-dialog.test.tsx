@@ -175,15 +175,20 @@ describe('Fm1BankSelectionDialog', () => {
     expect(screen.queryByText(/If your FM1 runs Baud Girl’s firmware/)).toBeNull()
   })
 
-  it('says M-VAVE’s Official Open ignores DX7 banks rather than how FM-1+VA differs', () => {
-    render(renderDialog(true, { identity: 'FM-1_8000012', kind: 'official-open' }))
+  it('offers M-VAVE’s Official Open no bank, on the FM1 or the SMK-37, since it drops one', () => {
+    for (const identity of ['FM-1_8000012', 'SMK-37 Pro_8000001']) {
+      const { unmount } = render(renderDialog(true, { identity, kind: 'official-open' }))
 
-    expect(
-      screen.getByText(
-        'M-VAVE’s Open firmware ignores DX7 banks, so sending this bank does not change its projects.',
-      ),
-    ).toBeTruthy()
-    expect(screen.queryByText(/If your FM1 runs Baud Girl’s firmware/)).toBeNull()
+      expect(
+        screen.getByRole('dialog', {
+          hidden: true,
+          name: 'M-VAVE’s Open firmware ignores DX7 banks, so none is sent',
+        }),
+      ).toBeTruthy()
+      expect(screen.queryByRole('button', { hidden: true, name: /^Send to/ })).toBeNull()
+      expect(screen.queryByText(/If your FM1 runs Baud Girl’s firmware/)).toBeNull()
+      unmount()
+    }
   })
 
   it('says Felucca and SLOOP ignore DX7 banks for FM-1_900, the name both report', () => {

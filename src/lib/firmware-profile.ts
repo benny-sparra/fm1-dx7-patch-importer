@@ -36,7 +36,8 @@ export type EffectControllerBase = 0 | 70
  * - `bankDumps`: **Send to FM1** may send a DX7 32-voice bank dump, whose destination the FM1 asks
  *   for on its own screen. The SMK-37 saves a single-voice dump over its selected preset and has
  *   no bank export to back its presets up, so a bank dump would very likely replace a stored bank
- *   for good (docs/hardware-runs/smk37-2026-11-03.md); it gets none.
+ *   for good (docs/hardware-runs/smk37-2026-11-03.md); it gets none. Official Open drops one
+ *   unread, on the FM1 and the SMK-37, so it gets none either.
  * - `trackEngineRead`: Official Open's command 0, `F0 7D 'F' 'M' 02 00`, which reads each track's
  *   engine. Where it is offered, a dump goes to the track on the note channel, and only after
  *   command 0 shows that track running DX7, since a dump to another engine is dropped silently.
@@ -70,6 +71,11 @@ export type EffectControllerBase = 0 | 70
  *   M-VAVE's V16 (`docs/hardware-runs/stock-v16-live-fx-read-2026-11-05.md`).
  * - `multitimbral`: the FM1 plays several Voices, each with its own preset and MIDI channel.
  *   M-VAVE's V16 (docs/hardware-runs/stock-v16-voices-2026-10-26.md).
+ * - `trackVoiceRead`: Official Open's read of a DX7 track's voice, commands 1, 2, and 6 with kind
+ *   1 (`src/lib/official-open-read.ts`, approved 2026-10-20). It changes nothing on the FM1.
+ * - `libraryBankRead`: Official Open's read of a bank of the DX7 library V14 added, the same
+ *   commands with kind 4. Only a release that names itself V14 or later is offered it, so a
+ *   community or development build, whose name carries no release, is not.
  * - `selectedPresetWrite`: **Write to SMK-37…** may send one DX7 single-voice dump, which the
  *   SMK-37 saves over the preset selected on its synth screen for good. It cannot be told which
  *   preset (no Program Change or Bank Select reaches it) or read one back, so the user selects it
@@ -82,6 +88,7 @@ type FirmwareCapability =
   | 'effectControllers'
   | 'effectOrder'
   | 'knobChoices'
+  | 'libraryBankRead'
   | 'liveEffectsRead'
   | 'multitimbral'
   | 'parameterChanges'
@@ -95,6 +102,7 @@ type FirmwareCapability =
   | 'singleVoiceDumps'
   | 'soundControls'
   | 'trackEngineRead'
+  | 'trackVoiceRead'
 
 /** How a run of preset writes is paced. */
 type PresetWriteTiming = {
@@ -193,8 +201,18 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
   // M-VAVE's Official Open is an eight-track groovebox, not a bank of DX7 presets, and takes a
   // slot's Program Change and the effect controllers as changes to its tracks
   // (docs/fm1-research.md, "Official Open: released source"). It takes a single-voice dump into
-  // a DX7 track, and command 0 says which tracks run DX7 (both approved 2026-10-16).
-  'official-open': { capabilities: { bankDumps: 0, singleVoiceDumps: 0, trackEngineRead: 0 } },
+  // a DX7 track, and command 0 says which tracks run DX7 (both approved 2026-10-16). It drops
+  // any SysEx over 192 bytes, so a bank did nothing on the FM1 (2026-10-16): it gets none.
+  // The reads of 2026-10-20 give a DX7 track's voice on every release and, from V14, the banks
+  // of its DX7 library (docs/hardware-runs/official-open-v14-reads-2026-10-20.md).
+  'official-open': {
+    capabilities: {
+      libraryBankRead: 14,
+      singleVoiceDumps: 0,
+      trackEngineRead: 0,
+      trackVoiceRead: 0,
+    },
+  },
   // M-VAVE's SMK-37 keyboard on its stock V015 (docs/hardware-runs/smk37-2026-11-03.md) holds DX7
   // parameter changes as an unsaved edit, but saves a single-voice dump over its selected preset,
   // ignores Program Change, and did nothing with the effect controllers on channel 2. With no
@@ -205,13 +223,31 @@ const familyProfiles: Record<Fm1Firmware['kind'], FamilyProfile> = {
 }
 
 /**
+ * SMK37 OPEN, Official Open ported to the SMK-37 (docs/smk37-open-research.md), counts its own
+ * releases from V01 and was cut from a release that has the DX7 library, so every one of its
+ * releases reads a library bank. It names itself as the SMK-37's model with Official Open's
+ * `8000` number, or as its updater's `SMK37P_OPEN_` and `SMK37E_OPEN_`.
+ */
+const smk37OpenProfile: FamilyProfile = {
+  capabilities: { ...familyProfiles['official-open'].capabilities, libraryBankRead: 0 },
+}
+
+function isSmk37Open(firmware: Fm1Firmware) {
+  return (
+    firmware.kind === 'official-open' &&
+    /^(SMK-37 (Pro|Elite)_8000\d{3}|SMK37[EP]_OPEN_\d{3})$/.test(firmware.identity)
+  )
+}
+
+/**
  * The release a firmware reports as three digits after its model, such as 89 for `FM-1_089`, or 15
- * for the SMK-37's own `SMK-37 Pro_015`. Official Open's and DX747's longer numbers name no release
- * here, and their families list every capability from 0.
+ * for the SMK-37's own `SMK-37 Pro_015`, or as the last three of Official Open's six, 14 for
+ * `FM-1_8000014`. Official Open's community and development builds and DX747 name no release.
  */
 function releaseNumber(firmware: Fm1Firmware) {
   if (firmware.kind === 'checking' || firmware.kind === 'unidentified') return null
-  const match = /^[^_]+_(\d{3})$/.exec(firmware.identity)
+  const pattern = firmware.kind === 'official-open' ? /^FM-1_8000(\d{3})$/ : /^[^_]+_(\d{3})$/
+  const match = pattern.exec(firmware.identity)
   return match ? Number(match[1]) : null
 }
 
@@ -227,7 +263,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
     capabilities,
     effectControllerBase: movedControllers,
     presetWriteTiming: fasterTiming,
-  } = familyProfiles[firmware.kind]
+  } = isSmk37Open(firmware) ? smk37OpenProfile : familyProfiles[firmware.kind]
   return {
     capabilities: {
       bankDumps: from(capabilities.bankDumps),
@@ -235,6 +271,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       effectControllers: from(capabilities.effectControllers),
       effectOrder: from(capabilities.effectOrder),
       knobChoices: from(capabilities.knobChoices),
+      libraryBankRead: from(capabilities.libraryBankRead),
       liveEffectsRead: from(capabilities.liveEffectsRead),
       multitimbral: from(capabilities.multitimbral),
       parameterChanges: from(capabilities.parameterChanges),
@@ -248,6 +285,7 @@ export function resolveFirmwareProfile(firmware: Fm1Firmware): FirmwareProfile {
       singleVoiceDumps: from(capabilities.singleVoiceDumps),
       soundControls: from(capabilities.soundControls),
       trackEngineRead: from(capabilities.trackEngineRead),
+      trackVoiceRead: from(capabilities.trackVoiceRead),
     },
     effectControllerBase:
       movedControllers && from(movedControllers.from) ? movedControllers.base : 0,

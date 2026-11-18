@@ -83,6 +83,7 @@ export function usePatchLibrary() {
   const [hasDamagedNamedBanks, setHasDamagedNamedBanks] = useState(false)
   const [namedBanksLoadFailed, setNamedBanksLoadFailed] = useState(false)
   const [namedBanksLoading, setNamedBanksLoading] = useState(true)
+  const namedBanksRead = useRef(0)
   const [persistence, setPersistence] = useState<WorkspacePersistenceState>({
     error: null,
     hasSaveFailure: false,
@@ -137,24 +138,29 @@ export function usePatchLibrary() {
     }
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-    void listStoredNamedBanks()
-      .then(({ banks, damagedCount }) => {
-        if (cancelled) return
-        setNamedBanks(banks)
-        setHasDamagedNamedBanks(damagedCount > 0)
-      })
-      .catch(() => {
-        if (!cancelled) setNamedBanksLoadFailed(true)
-      })
-      .finally(() => {
-        if (!cancelled) setNamedBanksLoading(false)
-      })
-    return () => {
-      cancelled = true
+  const reloadNamedBanks = useCallback(async () => {
+    const request = ++namedBanksRead.current
+    setNamedBanksLoading(true)
+    try {
+      const { banks, damagedCount } = await listStoredNamedBanks()
+      if (namedBanksRead.current !== request) return
+      setNamedBanks(banks)
+      setHasDamagedNamedBanks(damagedCount > 0)
+      setNamedBanksLoadFailed(false)
+    } catch (error) {
+      if (namedBanksRead.current === request) setNamedBanksLoadFailed(true)
+      throw error
+    } finally {
+      if (namedBanksRead.current === request) setNamedBanksLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    void reloadNamedBanks().catch(() => undefined)
+    return () => {
+      namedBanksRead.current += 1
+    }
+  }, [reloadNamedBanks])
 
   useEffect(() => {
     persistenceController.current?.updateWorkspace(history.present)
@@ -432,7 +438,7 @@ export function usePatchLibrary() {
         { description, id: createId(), name, now },
         initVoice,
       )
-      await saveStoredNamedBank(bank)
+      await saveStoredNamedBank(bank, null)
       setNamedBanks((current) => [bank, ...current])
       return bank
     },
@@ -448,7 +454,7 @@ export function usePatchLibrary() {
   const updateNamedBankDetails = useCallback(
     async (bank: NamedBank, name: string, description: string) => {
       const updated = renameNamedBank(bank, name, description, new Date().toISOString())
-      await saveStoredNamedBank(updated)
+      await saveStoredNamedBank(updated, bank)
       setNamedBanks((current) =>
         current
           .map((candidate) => (candidate.id === updated.id ? updated : candidate))
@@ -461,14 +467,14 @@ export function usePatchLibrary() {
 
   const copyNamedBank = useCallback(async (bank: NamedBank) => {
     const duplicate = duplicateNamedBank(bank, createId(), new Date().toISOString())
-    await saveStoredNamedBank(duplicate)
+    await saveStoredNamedBank(duplicate, null)
     setNamedBanks((current) => [duplicate, ...current])
     return duplicate
   }, [])
 
-  const deleteNamedBank = useCallback(async (id: string) => {
-    await deleteStoredNamedBank(id)
-    setNamedBanks((current) => current.filter((bank) => bank.id !== id))
+  const deleteNamedBank = useCallback(async (bank: NamedBank) => {
+    await deleteStoredNamedBank(bank)
+    setNamedBanks((current) => current.filter((candidate) => candidate.id !== bank.id))
   }, [])
 
   /**
@@ -604,6 +610,7 @@ export function usePatchLibrary() {
     namedBanks,
     namedBanksLoadFailed,
     namedBanksLoading,
+    reloadNamedBanks,
     patches,
     persistenceError: persistence.error,
     persistenceStatus: persistence.status,

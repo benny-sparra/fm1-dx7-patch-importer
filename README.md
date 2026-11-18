@@ -12,7 +12,7 @@ The app runs entirely in the browser. Build and organise your own patch banks, e
 - Import and export standard DX7 `.syx` banks and single patches
 - Edit every DX7 voice parameter and the FM1's filter, reverb, delay, distortion, chorus, and phaser, with live MIDI updates
 - Audition any patch on the FM1 with a click, or from an on-screen keyboard
-- Work with M-VAVE's stock firmware up to V16, Baud Girl's FM-1+VA, and M-VAVE's Official Open
+- Work with M-VAVE's stock firmware up to V16, Baud Girl's FM-1+VA, and M-VAVE's Official Open, on the FM1 and the SMK-37
 - On V16, edit the shared effects and their order, read them back from the FM1, keep them as named FX presets, and receive banks from the FM1
 - Use it in British or American English, French, Spanish, German, Brazilian Portuguese, Ukrainian, or Simplified Chinese, in any of the FM1's seven colour finishes
 

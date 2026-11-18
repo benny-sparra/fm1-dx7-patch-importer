@@ -8,6 +8,7 @@ const nothing = {
   effectControllers: false,
   effectOrder: false,
   knobChoices: false,
+  libraryBankRead: false,
   liveEffectsRead: false,
   multitimbral: false,
   parameterChanges: false,
@@ -21,6 +22,7 @@ const nothing = {
   singleVoiceDumps: false,
   soundControls: false,
   trackEngineRead: false,
+  trackVoiceRead: false,
 }
 
 // What every firmware but Official Open takes, whatever else it can do.
@@ -264,24 +266,73 @@ describe('resolveFirmwareProfile', () => {
     expect(fm1Va('FM-1_089').family).toBe('fm1-va')
   })
 
-  it('sends Official Open dumps to DX7 tracks it reads, and no channel message it misreads', () => {
+  it('sends Official Open dumps to DX7 tracks it reads, on either device, and no bank or channel message', () => {
     for (const identity of [
       'FM-1_8000012',
       'FM-1_8000013',
-      'FM-1_8000099',
       'FM1_COMMUNITY_3',
       'FM1_OFFICIAL_OPEN',
     ]) {
       expect(resolveFirmwareProfile({ identity, kind: 'official-open' })).toEqual({
         capabilities: {
           ...nothing,
-          bankDumps: true,
           singleVoiceDumps: true,
           trackEngineRead: true,
+          trackVoiceRead: true,
         },
         effectControllerBase: 0,
         family: 'official-open',
         presetWriteTiming: presetsPageTiming,
+      })
+    }
+  })
+
+  it('reads a bank of the DX7 library only from an Official Open that names itself V14 or later', () => {
+    const reads = (identity: string) =>
+      resolveFirmwareProfile({ identity, kind: 'official-open' }).capabilities.libraryBankRead
+    expect(reads('FM-1_8000013')).toBe(false)
+    expect(reads('FM-1_8000014')).toBe(true)
+    expect(reads('FM-1_8000099')).toBe(true)
+    expect(reads('FM1_COMMUNITY_3')).toBe(false)
+    expect(reads('FM1_OFFICIAL_OPEN')).toBe(false)
+  })
+
+  it('reads tracks and library banks from every release of SMK37 OPEN, and sends it no bank', () => {
+    for (const identity of [
+      'SMK-37 Pro_8000001',
+      'SMK-37 Elite_8000001',
+      'SMK37P_OPEN_001',
+      'SMK37E_OPEN_002',
+    ]) {
+      expect(resolveFirmwareProfile({ identity, kind: 'official-open' })).toEqual({
+        capabilities: {
+          ...nothing,
+          libraryBankRead: true,
+          singleVoiceDumps: true,
+          trackEngineRead: true,
+          trackVoiceRead: true,
+        },
+        effectControllerBase: 0,
+        family: 'official-open',
+        presetWriteTiming: presetsPageTiming,
+      })
+    }
+  })
+
+  it('reads a track’s voice or a library bank from no firmware but Official Open', () => {
+    for (const firmware of [
+      { kind: 'checking' },
+      { kind: 'unidentified' },
+      { identity: 'FM-1_016', kind: 'mvave' },
+      { identity: 'FM-1_097', kind: 'fm1-va' },
+      { identity: 'FM-1_908', kind: 'felucca' },
+      { identity: 'FM-1_8747747', kind: 'dx747' },
+      { identity: 'SMK-37 Pro_015', kind: 'smk37' },
+    ] as const) {
+      const { libraryBankRead, trackVoiceRead } = resolveFirmwareProfile(firmware).capabilities
+      expect({ libraryBankRead, trackVoiceRead }).toEqual({
+        libraryBankRead: false,
+        trackVoiceRead: false,
       })
     }
   })
@@ -362,7 +413,7 @@ describe('resolveFirmwareProfile', () => {
     })
   })
 
-  it('sends a bank dump to every firmware but the SMK-37 and DX747', () => {
+  it('sends a bank dump to every firmware but the SMK-37, DX747, and Official Open', () => {
     for (const firmware of [
       { kind: 'checking' },
       { kind: 'unidentified' },
@@ -370,9 +421,13 @@ describe('resolveFirmwareProfile', () => {
       { identity: 'FM-1_016', kind: 'mvave' },
       { identity: 'FM-1_097', kind: 'fm1-va' },
       { identity: 'FM-1_908', kind: 'felucca' },
-      { identity: 'FM-1_8000012', kind: 'official-open' },
     ] as const) {
       expect(resolveFirmwareProfile(firmware).capabilities.bankDumps).toBe(true)
+    }
+    for (const identity of ['FM-1_8000012', 'SMK-37 Pro_8000001']) {
+      expect(
+        resolveFirmwareProfile({ identity, kind: 'official-open' }).capabilities.bankDumps,
+      ).toBe(false)
     }
     expect(
       resolveFirmwareProfile({ identity: 'SMK-37 Pro_015', kind: 'smk37' }).capabilities.bankDumps,

@@ -20,6 +20,8 @@ const engineNames: Record<OfficialOpenEngine, string> = {
 
 type OfficialOpenTrackStatusProps = {
   midi: Pick<MidiController, 'channel' | 'trackDelivery'>
+  /** Whether Official Open runs on the SMK-37 (SMK37 OPEN), which the notices name for the FM1. */
+  smk37?: boolean
 }
 
 /**
@@ -27,7 +29,7 @@ type OfficialOpenTrackStatusProps = {
  * the track it reached, or, while the note channel stays the one it was sent on, a notice saying
  * why it was not sent and how to fix it. The live region stays mounted so the notice is announced.
  */
-export function OfficialOpenTrackStatus({ midi }: OfficialOpenTrackStatusProps) {
+export function OfficialOpenTrackStatus({ midi, smk37 = false }: OfficialOpenTrackStatusProps) {
   const { t } = useTranslation()
   const toast = useToast()
   const { channel, trackDelivery } = midi
@@ -35,9 +37,11 @@ export function OfficialOpenTrackStatus({ midi }: OfficialOpenTrackStatusProps) 
   useEffect(() => {
     if (trackDelivery?.announce && trackDelivery.delivery.type === 'sent') {
       const { name, track } = trackDelivery.delivery
-      toast.success(t('officialOpenTracks.sent', { name, track }))
+      toast.success(
+        t(smk37 ? 'officialOpenTracks.sentSmk37' : 'officialOpenTracks.sent', { name, track }),
+      )
     }
-  }, [t, toast, trackDelivery])
+  }, [smk37, t, toast, trackDelivery])
 
   const delivery = trackDelivery?.delivery
   const notice =
@@ -45,12 +49,14 @@ export function OfficialOpenTrackStatus({ midi }: OfficialOpenTrackStatusProps) 
       ? delivery.type === 'no-track'
         ? t('officialOpenTracks.noTrack', { channel })
         : delivery.type === 'not-dx7'
-          ? t('officialOpenTracks.notDx7', {
+          ? t(smk37 ? 'officialOpenTracks.notDx7Smk37' : 'officialOpenTracks.notDx7', {
               engine: engineNames[delivery.engine],
               track: delivery.track,
             })
           : delivery.type === 'unread'
-            ? t('officialOpenTracks.unread', { track: delivery.track })
+            ? t(smk37 ? 'officialOpenTracks.unreadSmk37' : 'officialOpenTracks.unread', {
+                track: delivery.track,
+              })
             : null
       : null
 

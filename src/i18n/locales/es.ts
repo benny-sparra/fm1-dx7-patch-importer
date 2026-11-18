@@ -19,8 +19,8 @@ export default {
       'Gira SELECT hasta Replace y pulsa SEL para guardar los 32 sonidos, o pulsa HOME para cancelar. También sustituyen para siempre los presets de fábrica de ese banco.',
     bankFm1VaNote:
       'Si tu FM1 usa el firmware de Baud Girl, pregunta en su lugar «Replace Bank A?» y empieza en el banco A. Gira ALGORITHM hasta el banco de destino, luego SELECT hasta Replace, y pulsa SEL.',
-    bankOfficialOpenNote:
-      'El firmware Open de M-VAVE ignora los bancos DX7, así que enviar este banco no cambia sus proyectos.',
+    bankOfficialOpenTitle:
+      'El firmware Open de M-VAVE ignora los bancos DX7, así que no se envía ninguno',
     bankSmk37Title: 'El SMK-37 guardaría un banco sobre sus presets, así que no se envía ninguno',
     bankDx747Title: 'DX747 no acepta bancos por MIDI, así que no se envía ninguno',
     bankFeluccaNote:
@@ -651,6 +651,8 @@ export default {
       review:
         'Haz clic en un sonido para escucharlo en el FM1. Tu biblioteca no cambia hasta que reemplaces algo.',
       destination: 'Elige adónde van los sonidos.',
+      sourceRead: 'Elige qué leer del {{device}}. Leer no cambia nada en él.',
+      read: 'Elige qué leer y pulsa Leer. Nada cambia en el {{device}}.',
     },
     sourceLegend: 'Qué está enviando',
     sources: {
@@ -658,6 +660,10 @@ export default {
       fm1Hint: 'Un banco de 32 sonidos, enviado con GLOBE → Export.',
       patch: 'Un sonido de otro dispositivo',
       patchHint: 'Desde Dexed, un DX7 u otro editor.',
+      library: 'Un banco de su biblioteca',
+      libraryHint: '32 sonidos de la biblioteca DX7 del {{device}}.',
+      track: 'El sonido de una pista',
+      trackHint: 'El sonido que toca una pista DX7 del {{device}}.',
     },
     stepsHeading: 'Pasos',
     steps: {
@@ -667,6 +673,11 @@ export default {
       patchConnect:
         'Conecta el dispositivo, o abre Dexed o el otro editor, con su salida MIDI llegando a este ordenador.',
       patchSend: 'Envía desde él un sonido como volcado DX7 de una sola voz.',
+      readConnect: 'Conecta el {{device}} por USB y activa MIDI, con él como salida y entrada.',
+      readNextBank:
+        'Pulsa Siguiente, elige uno de los cuatro bancos de su biblioteca y pulsa Leer.',
+      readNextTrack: 'Pulsa Siguiente, elige una pista DX7 y pulsa Leer.',
+      readUnchanged: 'El editor solo lee: nada cambia en el {{device}}.',
     },
     startFm1: 'Ahora abre GLOBE en el FM1, elige Export y luego un banco.',
     startPatch: 'Ahora envía el sonido como volcado DX7 de una sola voz.',
@@ -707,6 +718,31 @@ export default {
     noBanks:
       'Un sonido solo puede reemplazar a otro que ya esté en un banco. Añade primero un banco con sonidos.',
     replace: 'Reemplazar',
+    read: {
+      bankLegend: 'Banco de la biblioteca que leer',
+      bank: 'Banco {{number}}',
+      trackLegend: 'Pista que leer',
+      track: 'Pista {{track}}',
+      noDx7Tracks:
+        'Ninguna pista del {{device}} usa DX7. Pon el motor de una pista en DX7 para leer su sonido.',
+      noPorts:
+        'Elige el {{device}} como salida y entrada MIDI, con SysEx permitido, para leer de él.',
+      readBank: 'Leer banco {{number}}',
+      readTrack: 'Leer pista {{track}}',
+      reading: 'Leyendo…',
+      readBankDone:
+        'Se leyeron 32 sonidos, empezando por «{{patch}}». Pulsa Siguiente para oírlos.',
+      readVoiceDone: 'Se leyó «{{patch}}». Pulsa Siguiente para oírlo.',
+      tryAgain: 'Reintentar',
+      errors: {
+        noReply: 'El {{device}} no respondió. Comprueba la conexión y vuelve a intentarlo.',
+        refused: 'El {{device}} rechazó la lectura. Vuelve a intentarlo.',
+        sendFailed: 'No se pudo enviar la petición al {{device}}. Comprueba su conexión MIDI.',
+        unexpected:
+          'Lo que envió el {{device}} no es un sonido ni un banco DX7. Vuelve a intentarlo.',
+        tracks: 'No se pudieron leer las pistas del {{device}}.',
+      },
+    },
   },
   bankFile: {
     legend: 'Bancos de este archivo',
@@ -1286,7 +1322,7 @@ export default {
       'El FM1 usa el firmware original de M-VAVE, {{release}}: ocho Voices, cada una en su propio canal, con un único grupo de FX compartido. Los sonidos que tocas van a su búfer de edición.',
     officialOpenBadgeLabel: 'Firmware Open de M-VAVE, {{release}}',
     officialOpenBadgeTitle:
-      'El FM1 usa el firmware Open de M-VAVE, {{release}}, una groovebox de ocho pistas. Un sonido en el que haces clic o que editas va a la pista del canal de notas cuando esa pista usa DX7. Ignora los bancos DX7, y los controles de efectos no envían nada, porque los tomaría como cambios en sus pistas.',
+      'Firmware Open de M-VAVE, {{release}}, una groovebox de ocho pistas. Un sonido en el que haces clic o que editas va a la pista del canal de notas cuando esa pista usa DX7. Ignora los bancos DX7, y los controles de efectos no envían nada, porque los tomaría como cambios en sus pistas.',
     dx747BadgeLabel: 'Firmware DX747, {{release}}',
     dx747BadgeTitle:
       'El FM1 usa DX747, {{release}}: hasta ocho partes, cada una en su propio canal. Un sonido en el que haces clic o que editas va a la parte del canal de notas. No acepta bancos, y el editor no envía Program Change ni controles de efectos.',
@@ -1548,6 +1584,9 @@ export default {
     deleteConfirm: '¿Eliminar permanentemente “{{name}}” de este navegador?',
     loadConfirm: '¿Sustituir los 32 sonidos de “{{bank}}” por “{{name}}”?',
     replaceAction: 'Sustituir sonidos',
+    conflict:
+      'Este banco guardado se modificó o eliminó en otra pestaña. Tus cambios se conservan aquí. Recarga los bancos guardados y vuelve a abrir sus detalles para revisar la última versión.',
+    reload: 'Recargar bancos guardados',
     operationFailed: 'La operación del banco guardado ha fallado.',
     openFailed:
       'No se pudieron abrir los bancos guardados. Recarga la página e inténtalo de nuevo.',
@@ -1630,6 +1669,12 @@ export default {
       'La pista {{track}} usa {{engine}}, que no admite un sonido, así que no se envió nada. Pon la pista {{track}} en DX7 en el FM1, o elige el canal de notas de una pista que use DX7.',
     unread:
       'El FM1 no indicó qué motor usa la pista {{track}}, así que el sonido no se envió. Comprueba que el FM1 esté conectado y vuelve a intentarlo.',
+    sentSmk37:
+      'Se envió “{{name}}” a la pista {{track}}. Guarda el proyecto en el SMK-37 para conservarlo.',
+    notDx7Smk37:
+      'La pista {{track}} usa {{engine}}, que no admite un sonido, así que no se envió nada. Pon la pista {{track}} en DX7 en el SMK-37, o elige el canal de notas de una pista que use DX7.',
+    unreadSmk37:
+      'El SMK-37 no indicó qué motor usa la pista {{track}}, así que el sonido no se envió. Comprueba que el SMK-37 esté conectado y vuelve a intentarlo.',
   },
   attract: {
     pressAnyKey: 'PULSA CUALQUIER TECLA',

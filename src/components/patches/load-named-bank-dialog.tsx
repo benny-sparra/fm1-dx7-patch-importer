@@ -24,6 +24,7 @@ import {
 import { ErrorNotice } from '@/components/ui/error-notice'
 import { useToast } from '@/components/ui/toast'
 import { bankDescriptionLength } from '@/lib/patch-library'
+import { PatchLibraryStorageError } from '@/lib/patch-library-storage'
 import { downloadSysexFile } from '@/lib/sysex-file'
 
 export function LoadNamedBankDialog({
@@ -40,13 +41,16 @@ export function LoadNamedBankDialog({
   const editNameRef = useRef<HTMLInputElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
   const [description, setDescription] = useState('')
-  const [editingId, setEditingId] = useState('')
+  const [editingBank, setEditingBank] = useState<NamedBank | null>(null)
   const [error, setError] = useState('')
+  const [conflict, setConflict] = useState(false)
   const [name, setName] = useState('')
   const [query, setQuery] = useState('')
   const [workingId, setWorkingId] = useState('')
   const toast = useToast()
-  const [confirmingDeleteId, setConfirmingDeleteId] = useState('')
+  const [confirmingDeleteBank, setConfirmingDeleteBank] = useState<NamedBank | null>(null)
+  const confirmingDeleteId = confirmingDeleteBank?.id ?? ''
+  const editingId = editingBank?.id ?? ''
   const [confirmingLoadId, setConfirmingLoadId] = useState('')
   const deleteButtonRefs = useRef(new Map<string, HTMLButtonElement>())
   const loadButtonRefs = useRef(new Map<string, HTMLButtonElement>())
@@ -81,25 +85,33 @@ export function LoadNamedBankDialog({
 
   const clearForm = () => {
     setDescription('')
-    setEditingId('')
+    setEditingBank(null)
     setName('')
   }
 
   const reset = () => {
     clearForm()
-    setConfirmingDeleteId('')
+    setConfirmingDeleteBank(null)
     setConfirmingLoadId('')
     setError('')
+    setConflict(false)
     setQuery('')
   }
 
   const run = async (id: string, operation: () => Promise<unknown>) => {
     setWorkingId(id)
     setError('')
+    setConflict(false)
     try {
       await operation()
     } catch (cause) {
-      setError(bankErrorMessage(t, cause, t('namedBanks.operationFailed')))
+      const changed = cause instanceof PatchLibraryStorageError && cause.code === 'conflict'
+      setConflict(changed)
+      setError(
+        changed
+          ? t('namedBanks.conflict')
+          : bankErrorMessage(t, cause, t('namedBanks.operationFailed')),
+      )
     } finally {
       setWorkingId('')
     }
@@ -117,10 +129,11 @@ export function LoadNamedBankDialog({
   }
 
   const beginEditing = (bank: NamedBank) => {
-    setEditingId(bank.id)
+    setEditingBank(bank)
     setName(bank.name)
     setDescription(bank.description)
     setError('')
+    setConflict(false)
     // The body scrolls smoothly only when motion is allowed (its motion-safe:scroll-smooth class).
     bodyRef.current?.scrollTo({ top: 0 })
     window.requestAnimationFrame(() => editNameRef.current?.focus())
@@ -152,11 +165,8 @@ export function LoadNamedBankDialog({
                 className="grid gap-3 rounded-lg border border-primary/25 bg-primary/5 p-4"
                 onSubmit={(event) => {
                   event.preventDefault()
-                  const bank = library.namedBanks.find((candidate) => candidate.id === editingId)
-                  if (!bank) {
-                    clearForm()
-                    return
-                  }
+                  const bank = editingBank
+                  if (!bank) return
                   void run(editingId, async () => {
                     await library.updateNamedBankDetails(bank, name, description)
                     clearForm()
@@ -266,7 +276,7 @@ export function LoadNamedBankDialog({
                               setError('')
                               // A bank that already has sounds is replaced only once the user agrees.
                               if (destinationLoaded) {
-                                setConfirmingDeleteId('')
+                                setConfirmingDeleteBank(null)
                                 setConfirmingLoadId(bank.id)
                                 return
                               }
@@ -344,7 +354,7 @@ export function LoadNamedBankDialog({
                             onClick={() => {
                               setError('')
                               setConfirmingLoadId('')
-                              setConfirmingDeleteId(bank.id)
+                              setConfirmingDeleteBank(bank)
                             }}
                             ref={(button) => {
                               if (button) deleteButtonRefs.current.set(bank.id, button)
@@ -405,12 +415,12 @@ export function LoadNamedBankDialog({
                           role="group"
                         >
                           <p className="text-sm text-destructive">
-                            {t('namedBanks.deleteConfirm', { name: bank.name })}
+                            {t('namedBanks.deleteConfirm', { name: confirmingDeleteBank?.name })}
                           </p>
                           <div className="flex shrink-0 gap-2">
                             <Button
                               onClick={() => {
-                                setConfirmingDeleteId('')
+                                setConfirmingDeleteBank(null)
                                 deleteButtonRefs.current.get(bank.id)?.focus()
                               }}
                               size="sm"
@@ -421,11 +431,13 @@ export function LoadNamedBankDialog({
                             </Button>
                             <Button
                               onClick={() => {
-                                setConfirmingDeleteId('')
+                                const captured = confirmingDeleteBank
+                                if (!captured) return
+                                setConfirmingDeleteBank(null)
                                 void run(bank.id, async () => {
-                                  await library.deleteNamedBank(bank.id)
+                                  await library.deleteNamedBank(captured)
                                   if (editingId === bank.id) clearForm()
-                                  toast.success(t('namedBanks.deleted', { name: bank.name }))
+                                  toast.success(t('namedBanks.deleted', { name: captured.name }))
                                   searchRef.current?.focus()
                                 })
                               }}
@@ -448,6 +460,18 @@ export function LoadNamedBankDialog({
 
             {error || library.namedBanksLoadFailed ? (
               <ErrorNotice>{error || t('namedBanks.loadFailed')}</ErrorNotice>
+            ) : null}
+            {conflict || library.namedBanksLoadFailed ? (
+              <Button
+                aria-disabled={workingId !== ''}
+                onClick={() => {
+                  if (!workingId) void run('reload', library.reloadNamedBanks)
+                }}
+                type="button"
+                variant="outline"
+              >
+                {t('namedBanks.reload')}
+              </Button>
             ) : null}
           </div>
         </DialogBody>
