@@ -88,7 +88,7 @@
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
     "sharp": "0.35.5",
-    "stylelint": "17.16.0",
+    "stylelint": "18.0.0",
     "tailwindcss": "4.3.5",
     "typescript": "~7.0.2",
     "vite": "^8.3.6",
