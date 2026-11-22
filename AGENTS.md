@@ -749,9 +749,12 @@ npm run build`, since `resolveSentryRelease` puts it in the entry. A local build
   like any other change. Vite's `__vitePreload` helper, which every lazy import calls, is in the
   entry too, so a Vite upgrade is measured the same way: 8.3.2's rewrite of its CSS check cost
   61 B gzip when 52 B were spare.
-- react-i18next imports `use-sync-external-store/shim` for Reacts before 18. `vite.config.ts`
-  points it at `src/lib/use-sync-external-store-shim.ts`, which takes the hook from React, so the
-  entry leaves out the shim's fallback (283 B). Keep the alias while react-i18next imports the shim.
+- react-i18next 18 takes `useSyncExternalStore` from React itself, so the `vite.config.ts` alias
+  that pointed `use-sync-external-store/shim` at a local module went with the upgrade (2026-11-22).
+  Do not bring it back unless a dependency imports the shim again.
+- i18next 27 cannot check a key built from a generic type parameter, such as
+  ``t(`section.${id}`)`` where `id` is `Id extends string`. Build the key from the concrete union
+  of ids, as `EffectPresetControl` does, never through `as`.
 - Do not commit `dist/`, source maps, or one-off bundle-analysis reports.
 - The firmware page (`firmware/index.html`) is static HTML and shares one module with the app:
   its showcase's `src/firmware-wireframe.ts`, which runs the welcome's FM1 outline

@@ -263,7 +263,7 @@ function EffectScope({
   controls, and disabled with them while the effect is bypassed. A rule sets
   it apart from the controls below, which change one value each.
 */
-function EffectPresetControl<Id extends string>({
+function EffectPresetControl<Id extends EffectPresetId | BitcrushPresetId>({
   disabled,
   effectKey,
   onApplyPreset,
@@ -279,6 +279,9 @@ function EffectPresetControl<Id extends string>({
 
   const translatedEffect = t(`ui.effects.${effectKey}`)
   const label = t('editor.effectPreset')
+  // The key is built from the id union, not the generic `Id`, whose template i18next cannot check.
+  const presetName = (id: EffectPresetId | BitcrushPresetId) =>
+    t(`editor.effectPresetOptions.${id}`)
   return (
     <PresetSelect
       accessibleLabel={`${translatedEffect} ${label}`}
@@ -286,7 +289,7 @@ function EffectPresetControl<Id extends string>({
       help={t('controlHelp.effectPresets')}
       label={label}
       onApply={onApplyPreset}
-      options={presets.map(({ id }) => ({ id, name: t(`editor.effectPresetOptions.${id}`) }))}
+      options={presets.map(({ id }) => ({ id, name: presetName(id) }))}
       placeholder={t('editor.effectPresetPlaceholder')}
       variant="effect"
     />
