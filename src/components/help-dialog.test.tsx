@@ -147,7 +147,7 @@ describe('HelpDialog welcome', () => {
     expect(screen.getByText('This browser can’t connect to the FM1.')).toBeTruthy()
     expect(
       screen.getByText(
-        'Open this page in Chrome, Edge or Firefox on a computer, or Chrome on Android.',
+        'Open this page in Chrome, Edge, Firefox, Opera or Vivaldi on a computer, or Chrome on Android.',
       ),
     ).toBeTruthy()
     expect(screen.getByText('You can still browse and edit patches here.')).toBeTruthy()

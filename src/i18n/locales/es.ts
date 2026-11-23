@@ -1082,7 +1082,7 @@ export default {
     synthAlt: 'Panel frontal del sintetizador M-VAVE FM1',
     unsupportedTitle: 'Navegador no compatible.',
     unsupportedBody:
-      'Este bibliotecario necesita un navegador compatible con Web MIDI y SysEx, como Chrome, Edge, Firefox u Opera. Chrome en Android también funciona.',
+      'Este bibliotecario necesita un navegador compatible con Web MIDI y SysEx, como Chrome, Edge, Firefox, Opera o Vivaldi. Chrome en Android también funciona.',
     localOnly: 'Tus sonidos permanecen en este navegador',
     projectLinks: 'Enlaces del proyecto',
     firmwareLink: 'Firmware del FM1',
@@ -1128,7 +1128,7 @@ export default {
       'Tus bancos se guardan en este navegador. Haz copias de seguridad desde Acciones de la biblioteca.',
     unsupportedTitle: 'Este navegador no puede conectarse al FM1.',
     unsupportedBody:
-      'Abre esta página en Chrome, Edge o Firefox en un ordenador, o en Chrome en Android.',
+      'Abre esta página en Chrome, Edge, Firefox, Opera o Vivaldi en un ordenador, o en Chrome en Android.',
     stillWorks: 'Aun así, puedes explorar y editar sonidos aquí.',
     fullGuide: 'Guía completa',
     start: 'Empezar a editar',
@@ -1344,7 +1344,7 @@ export default {
       insecureContext:
         'Web MIDI necesita una conexión segura. Abre el editor mediante HTTPS o localhost.',
       unsupportedBrowser:
-        'Este navegador no es compatible con Web MIDI. Usa un navegador como Chrome, Edge o Firefox.',
+        'Este navegador no es compatible con Web MIDI. Usa un navegador como Chrome, Edge, Firefox, Opera o Vivaldi.',
       permissionDenied:
         'Se bloqueó el acceso MIDI. Permite el acceso MIDI y SysEx para este sitio y vuelve a conectar. En Firefox, acepta el complemento de permisos del sitio cuando se ofrezca.',
       enableFailed:

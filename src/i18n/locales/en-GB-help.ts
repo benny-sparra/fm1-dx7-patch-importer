@@ -18,7 +18,7 @@ export default {
     savedInBrowser: 'Your banks are saved in this browser. Back them up from Library actions.',
     unsupportedTitle: 'This browser can’t connect to the FM1.',
     unsupportedBody:
-      'Open this page in Chrome, Edge or Firefox on a computer, or Chrome on Android.',
+      'Open this page in Chrome, Edge, Firefox, Opera or Vivaldi on a computer, or Chrome on Android.',
     stillWorks: 'You can still browse and edit patches here.',
     fullGuide: 'Full guide',
     start: 'Start editing',
