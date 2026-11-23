@@ -20,6 +20,8 @@ The editor works in browsers with Web MIDI and SysEx. In a browser without them,
 | Chrome  | Yes            | Desktop and Android               |
 | Edge    | Yes            | Desktop                           |
 | Firefox | Yes            | Desktop                           |
+| Opera   | Yes            | Desktop                           |
+| Vivaldi | Yes            | Desktop                           |
 | Safari  | No             | Nor any browser on iPhone or iPad |
 
 Every browser on iPhone and iPad is built on Safari's engine, so none of them has Web MIDI, whatever its name. Firefox on Android has none either.

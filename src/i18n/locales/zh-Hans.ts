@@ -962,7 +962,7 @@ export default {
     synthAlt: 'M-VAVE FM1 合成器前面板',
     unsupportedTitle: '不支持的浏览器。',
     unsupportedBody:
-      '此音色库工具需要支持 Web MIDI 和 SysEx 的浏览器，例如 Chrome、Edge、Firefox 或 Opera。Android 上的 Chrome 同样可用。',
+      '此音色库工具需要支持 Web MIDI 和 SysEx 的浏览器，例如 Chrome、Edge、Firefox、Opera 或 Vivaldi。Android 上的 Chrome 同样可用。',
     localOnly: '您的音色仅保存在此浏览器中',
     projectLinks: '项目链接',
     firmwareLink: 'FM1 固件',
@@ -1005,7 +1005,7 @@ export default {
     savedInBrowser: '你的音色库保存在此浏览器中。请通过“音色库操作”备份。',
     unsupportedTitle: '此浏览器无法连接 FM1。',
     unsupportedBody:
-      '请在电脑上用 Chrome、Edge 或 Firefox 打开此页面，或在 Android 上用 Chrome 打开。',
+      '请在电脑上用 Chrome、Edge、Firefox、Opera 或 Vivaldi 打开此页面，或在 Android 上用 Chrome 打开。',
     stillWorks: '你仍然可以在这里浏览和编辑音色。',
     fullGuide: '完整指南',
     start: '开始编辑',
@@ -1216,7 +1216,8 @@ export default {
     connecting: '正在连接…',
     errors: {
       insecureContext: 'Web MIDI 需要安全连接。请通过 HTTPS 或 localhost 打开编辑器。',
-      unsupportedBrowser: '此浏览器不支持 Web MIDI。请使用 Chrome、Edge 或 Firefox 等浏览器。',
+      unsupportedBrowser:
+        '此浏览器不支持 Web MIDI。请使用 Chrome、Edge、Firefox、Opera 或 Vivaldi 等浏览器。',
       permissionDenied:
         'MIDI 访问已被阻止。请允许此网站访问 MIDI 和 SysEx，然后重新连接。在 Firefox 中，请在出现提示时接受网站权限附加组件。',
       enableFailed: '无法启动 MIDI。请检查设备连接后重试。',

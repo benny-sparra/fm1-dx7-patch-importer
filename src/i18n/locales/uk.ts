@@ -1140,7 +1140,7 @@ export default {
     synthAlt: 'Передня панель синтезатора M-VAVE FM1',
     unsupportedTitle: 'Браузер не підтримується.',
     unsupportedBody:
-      'Цьому застосунку потрібен браузер із підтримкою Web MIDI і SysEx, як-от Chrome, Edge, Firefox чи Opera. Chrome на Android теж підходить.',
+      'Цьому застосунку потрібен браузер із підтримкою Web MIDI і SysEx, як-от Chrome, Edge, Firefox, Opera чи Vivaldi. Chrome на Android теж підходить.',
     localOnly: 'Ваші патчі лишаються у цьому браузері',
     projectLinks: 'Посилання проєкту',
     firmwareLink: 'Прошивки FM1',
@@ -1185,7 +1185,7 @@ export default {
       'Банки зберігаються в цьому браузері. Робіть резервні копії через «Дії з бібліотекою».',
     unsupportedTitle: 'Цей браузер не може під’єднатися до FM1.',
     unsupportedBody:
-      'Відкрийте цю сторінку в Chrome, Edge чи Firefox на комп’ютері або в Chrome на Android.',
+      'Відкрийте цю сторінку в Chrome, Edge, Firefox, Opera чи Vivaldi на комп’ютері або в Chrome на Android.',
     stillWorks: 'Переглядати й редагувати патчі тут однаково можна.',
     fullGuide: 'Уся довідка',
     start: 'Почати редагування',
@@ -1402,7 +1402,7 @@ export default {
       insecureContext:
         'Web MIDI потребує захищеного з’єднання. Відкрийте редактор за адресою https:// або на localhost.',
       unsupportedBrowser:
-        'Цей браузер не підтримує Web MIDI. Відкрийте застосунок у Chrome, Edge чи Firefox.',
+        'Цей браузер не підтримує Web MIDI. Відкрийте застосунок у Chrome, Edge, Firefox, Opera чи Vivaldi.',
       permissionDenied:
         'Доступ до MIDI заблоковано. Надайте сайту доступ до MIDI і SysEx та підключіться знову. У Firefox погодьтеся встановити додаток-дозвіл, коли браузер його запропонує.',
       enableFailed: 'Не вдалося запустити MIDI. Перевірте підключення пристрою й спробуйте ще раз.',

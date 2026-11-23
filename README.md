@@ -32,6 +32,8 @@ See the [full feature list](docs/features.md).
   | Chrome  | Yes            | Desktop and Android               |
   | Edge    | Yes            | Desktop                           |
   | Firefox | Yes            | Desktop                           |
+  | Opera   | Yes            | Desktop                           |
+  | Vivaldi | Yes            | Desktop                           |
   | Safari  | No             | Nor any browser on iPhone or iPad |
 
 Web MIDI requires a secure context. The local development server uses HTTPS by default.
