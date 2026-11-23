@@ -37,6 +37,13 @@ const mapFiles = files.filter((file) => file.endsWith('.js.map'))
 if (javascriptFiles.length === 0)
   throw new Error('Production output contains no JavaScript chunks.')
 
+// Rolldown 1.2.19 (Vite 8.3.8) emits its generated helper chunk without a map, since the chunk
+// has no source file of its own to map. Only that chunk, and only with neither comment nor map,
+// is exempt; every chunk built from our own or a dependency's source still needs one.
+const isMaplessRuntimeChunk = (file) =>
+  /^rolldown-runtime-[\w-]+\.js$/.test(path.basename(file)) && !mapFiles.includes(`${file}.map`)
+const checkedJavascriptFiles = javascriptFiles.filter((file) => !isMaplessRuntimeChunk(file))
+
 const referencedMaps = new Set()
 for (const javascriptFile of javascriptFiles) {
   const javascript = await readFile(javascriptFile, 'utf8')
@@ -49,7 +56,13 @@ for (const javascriptFile of javascriptFiles) {
     )
   }
 
-  if (sourceMapMode === 'public') {
+  if (isMaplessRuntimeChunk(javascriptFile)) {
+    if (comments.length !== 0) {
+      throw new Error(
+        `${path.relative(outputDirectory, javascriptFile)} advertises a source map that is missing.`,
+      )
+    }
+  } else if (sourceMapMode === 'public') {
     if (comments.length !== 1) {
       throw new Error(
         `${path.relative(outputDirectory, javascriptFile)} has ${comments.length} source-map comments; expected one.`,
@@ -72,9 +85,9 @@ for (const javascriptFile of javascriptFiles) {
 if (sourceMapMode === 'none' && mapFiles.length !== 0) {
   throw new Error(`Found ${mapFiles.length} source maps in none mode.`)
 }
-if (sourceMapMode !== 'none' && mapFiles.length !== javascriptFiles.length) {
+if (sourceMapMode !== 'none' && mapFiles.length !== checkedJavascriptFiles.length) {
   throw new Error(
-    `Found ${mapFiles.length} source maps for ${javascriptFiles.length} JavaScript chunks.`,
+    `Found ${mapFiles.length} source maps for ${checkedJavascriptFiles.length} JavaScript chunks.`,
   )
 }
 
