@@ -110,8 +110,12 @@ test('hides the Latest strip’s list with its eye button, and keeps it hidden o
 })
 
 test('opens a card’s photo full size in a dialog, closed by a click outside it', async ({
+  browserName,
   page,
 }) => {
+  // CI's Linux Firefox paints this long page slowly: loading it and each click on the scrolled
+  // page take about ten seconds there, so the journey outran the 30 s limit (PR 584's timings).
+  test.slow(browserName === 'firefox', 'Firefox in CI paints the firmware page slowly')
   await page.goto('/firmware/')
   const thumbnail = page.getByRole('button', { name: 'Enlarge the photo of AMB-1' })
 
